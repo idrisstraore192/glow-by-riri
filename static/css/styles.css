@@ -3,15 +3,15 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --rose:      #c96a85;
-    --rose-light:#f0c4d0;
-    --rose-dark: #a84f6a;
-    --beige:     #fdf6f0;
-    --beige-mid: #f5e8de;
-    --cream:     #fff9f5;
-    --text:      #2a2a2a;
-    --muted:     #8a7a74;
-    --border:    #e8d5cc;
+    --rose:      #e8508a;
+    --rose-light:#f9a8c9;
+    --rose-dark: #c93570;
+    --beige:     #fff0f6;
+    --beige-mid: #fce4ef;
+    --cream:     #ffffff;
+    --text:      #0f0f0f;
+    --muted:     #666666;
+    --border:    #f0d0df;
     --white:     #ffffff;
     --max:       1180px;
 }
@@ -210,7 +210,7 @@ footer span { color: var(--rose-light); }
 
 /* ───── HERO ───── */
 .hero {
-    background: linear-gradient(135deg, #3d1a24 0%, #6b2d42 40%, #a84f6a 100%);
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 40%, #e8508a 100%);
     color: #fff;
     padding: 7rem 2rem 6rem;
     text-align: center;
@@ -376,7 +376,7 @@ footer span { color: var(--rose-light); }
 
 /* ───── PAGE HEADER ───── */
 .page-header {
-    background: linear-gradient(135deg, #3d1a24, #6b2d42);
+    background: linear-gradient(135deg, #0f0f0f, #e8508a);
     color: #fff;
     text-align: center;
     padding: 4.5rem 2rem;
