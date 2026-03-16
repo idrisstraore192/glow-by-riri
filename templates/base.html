@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Glow by Riri{% endblock %}</title>
+    {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+
+    <div class="announce">Livraison offerte dès 50€ d'achat &nbsp;✦&nbsp; Nouveautés disponibles</div>
+
+    <header>
+        <div class="header-inner">
+            <a class="brand" href="/">Glow by Riri</a>
+            <nav>
+                <a href="/">Accueil</a>
+                <a href="/shop/">Boutique</a>
+                <a href="/booking/" class="nav-cta">Prendre rendez-vous</a>
+            </nav>
+        </div>
+    </header>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer>
+        <p>© 2026 <span>Glow by Riri</span> &nbsp;—&nbsp; Tous droits réservés</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Rendez-vous — Glow by Riri{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Prendre rendez-vous</h1>
+    <p>Réservez votre prestation en quelques secondes</p>
+</div>
+
+<div class="booking-wrap">
+
+    <div class="booking-info">
+        <p class="booking-info-tag">✦ Nos prestations</p>
+        <h2>Votre beauté,<br>notre priorité.</h2>
+        <p>Choisissez votre service et votre créneau. Nous confirmerons votre rendez-vous rapidement.</p>
+        <ul class="service-list">
+            <li>Pose de perruque complète</li>
+            <li>Retouche & entretien</li>
+            <li>Consultation personnalisée</li>
+            <li>Coiffage & mise en forme</li>
+        </ul>
+        <p style="font-size:0.8rem;color:#b0a0a0;">Paiement sur place le jour du rendez-vous.</p>
+    </div>
+
+    <div class="booking-form-box">
+        <h3>Votre réservation</h3>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <ul class="field-errors">
+                    {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn form-submit">Confirmer le rendez-vous</button>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
