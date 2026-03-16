@@ -8,21 +8,47 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <meta name="theme-color" content="#a84f6a">
+    <meta name="theme-color" content="#0f0f0f">
 </head>
 <body>
 
     <div class="announce">Livraison offerte dès 50€ d'achat &nbsp;✦&nbsp; Nouveautés disponibles</div>
 
+    <!-- SIDEBAR OVERLAY -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+        <nav class="sidebar-nav">
+            <a href="/" onclick="closeSidebar()">Accueil</a>
+            <a href="/shop/" onclick="closeSidebar()">Boutique</a>
+            <a href="/shop/cart/" onclick="closeSidebar()">Mon panier</a>
+            <a href="/booking/" onclick="closeSidebar()">Prendre rendez-vous</a>
+        </nav>
+    </aside>
+
+    <!-- HEADER -->
     <header>
         <div class="header-inner">
+            <button class="burger" onclick="openSidebar()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
             <a class="brand" href="/">Glow by Riri</a>
-            <nav>
-                <a href="/">Accueil</a>
-                <a href="/shop/">Boutique</a>
-                <a href="/shop/cart/" class="nav-cart">🛒 Panier {% if request.session.cart %}({{ request.session.cart.values|length }}){% endif %}</a>
-                <a href="/booking/" class="nav-cta">Prendre rendez-vous</a>
-            </nav>
+            <div class="header-icons">
+                <a href="/shop/cart/" class="icon-cart" aria-label="Panier">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                    {% if request.session.cart %}
+                    <span class="cart-count">{{ request.session.cart.values|length }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+        <div class="header-nav-desktop">
+            <a href="/">Accueil</a>
+            <a href="/shop/">Boutique</a>
+            <a href="/booking/">Rendez-vous</a>
+            <a href="/shop/cart/">Panier</a>
         </div>
     </header>
 
@@ -39,6 +65,19 @@
     <footer>
         <p>© 2026 <span>Glow by Riri</span> &nbsp;—&nbsp; Tous droits réservés</p>
     </footer>
+
+    <script>
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    </script>
 
 </body>
 </html>
