@@ -81,4 +81,66 @@
     </div>
 </div>
 
+<!-- AVIS CLIENTS -->
+<div style="background: var(--gray); padding: 5rem 0;">
+    <div class="section" style="padding-top: 0; padding-bottom: 0;">
+        <div class="section-header">
+            <div>
+                <p class="section-label">Ce qu'elles disent</p>
+                <h2 class="section-title mixed-title">
+                    <span class="upper">Avis</span>
+                    <span class="script">clients</span>
+                </h2>
+            </div>
+        </div>
+
+        {% if reviews %}
+        <div class="reviews-grid">
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-stars">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <span class="star filled">★</span>
+                        {% else %}
+                            <span class="star">★</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <p class="review-comment">"{{ review.comment }}"</p>
+                <p class="review-name">— {{ review.name }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- FORMULAIRE AVIS -->
+        <div class="review-form-wrap">
+            <h3 class="review-form-title">Laisser un avis</h3>
+            {% if submitted %}
+                <p class="review-thanks">Merci pour votre avis ! Il sera visible après validation. ✦</p>
+            {% else %}
+            <form method="post" action="/avis/soumettre/">
+                {% csrf_token %}
+                <div class="review-form-row">
+                    <div class="form-group">
+                        <label>{{ form.name.label }}</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="form-group">
+                        <label>{{ form.rating.label }}</label>
+                        {{ form.rating }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{ form.comment.label }}</label>
+                    {{ form.comment }}
+                </div>
+                <button type="submit" class="btn btn-black" style="margin-top:0.5rem;">Envoyer mon avis</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 {% endblock %}

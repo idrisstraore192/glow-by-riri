@@ -426,6 +426,19 @@ footer span { color: var(--rose); }
 .mixed-title .upper { font-family: 'Jost', sans-serif; font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; display: inline; }
 .mixed-title .script { font-family: 'Dancing Script', cursive; font-size: clamp(2rem, 3.5vw, 3rem); color: var(--rose-dark); display: inline; margin-left: 0.3rem; }
 
+/* ── REVIEWS ── */
+.reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 3rem; }
+.review-card { background: var(--white); border: 1px solid var(--border); padding: 2rem; }
+.review-stars { margin-bottom: 0.75rem; }
+.star { font-size: 1.1rem; color: var(--border); }
+.star.filled { color: var(--rose-dark); }
+.review-comment { font-size: 0.9rem; color: var(--muted); line-height: 1.75; margin-bottom: 1rem; font-style: italic; }
+.review-name { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); }
+.review-form-wrap { background: var(--white); border: 1px solid var(--border); padding: 2.5rem; max-width: 640px; }
+.review-form-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 1.5rem; }
+.review-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.review-thanks { color: var(--rose-dark); font-size: 0.95rem; padding: 1rem 0; }
+
 /* ── MOBILE ── */
 @media (max-width: 600px) {
     .announce { font-size: 0.62rem; padding: 0.45rem; }
@@ -451,6 +464,8 @@ footer span { color: var(--rose); }
     .success-box { padding: 4rem 1.25rem; }
     .services-grid { grid-template-columns: 1fr 1fr; }
     .meet-heading-script { font-size: 2.2rem; }
+    .review-form-row { grid-template-columns: 1fr; }
+    .review-form-wrap { padding: 1.5rem; }
     footer { margin-top: 3rem; }
 }
 @media (max-width: 380px) {
