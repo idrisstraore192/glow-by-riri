@@ -239,7 +239,7 @@ footer span { color: var(--rose); }
     max-width: 680px;
 }
 .hero h1 {
-    font-family: 'Dancing Script', cursive;
+    font-family: 'Times New Roman', Times, serif;
     font-size: clamp(3rem, 6vw, 5.5rem);
     font-weight: 700;
     line-height: 1.15;
