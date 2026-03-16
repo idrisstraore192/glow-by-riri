@@ -297,9 +297,10 @@ footer span { color: var(--rose); }
 .meet-img {
     width: 100%;
     aspect-ratio: 3/4;
-    object-fit: cover;
-    object-position: top;
+    object-fit: contain;
+    object-position: bottom center;
     display: block;
+    background: #fff;
 }
 .meet-text { }
 .meet-heading {
