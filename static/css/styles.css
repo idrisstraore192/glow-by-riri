@@ -3,15 +3,15 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --rose:      #e8508a;
-    --rose-light:#f9a8c9;
-    --rose-dark: #c93570;
-    --beige:     #fff0f6;
-    --beige-mid: #fce4ef;
+    --rose:      #f4b8d1;
+    --rose-light:#fce8f2;
+    --rose-dark: #e080a8;
+    --beige:     #fff5f9;
+    --beige-mid: #fce8f2;
     --cream:     #ffffff;
     --text:      #0f0f0f;
     --muted:     #666666;
-    --border:    #f0d0df;
+    --border:    #f5d8e8;
     --white:     #ffffff;
     --max:       1180px;
 }
