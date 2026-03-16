@@ -19,6 +19,7 @@
             <nav>
                 <a href="/">Accueil</a>
                 <a href="/shop/">Boutique</a>
+                <a href="/shop/cart/" class="nav-cart">🛒 Panier {% if request.session.cart %}({{ request.session.cart.values|length }}){% endif %}</a>
                 <a href="/booking/" class="nav-cta">Prendre rendez-vous</a>
             </nav>
         </div>

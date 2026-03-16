@@ -94,6 +94,60 @@ nav a:hover::after { width: 100%; }
 }
 .nav-cta:hover { background: var(--rose-dark) !important; }
 .nav-cta::after { display: none !important; }
+.nav-cart { color: var(--text) !important; }
+.nav-cart::after { display: none !important; }
+
+/* ── CART ── */
+.cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2.5rem;
+    align-items: start;
+}
+@media (max-width: 768px) { .cart-layout { grid-template-columns: 1fr; } }
+.cart-item {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+}
+.cart-item-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--beige);
+    flex-shrink: 0;
+}
+.cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
+.cart-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--border);
+}
+.cart-item-info { flex: 1; }
+.cart-item-info h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; }
+.cart-item-price { font-size: 0.85rem; color: var(--muted); }
+.cart-item-qty { font-size: 0.85rem; color: var(--muted); }
+.cart-item-total { text-align: right; }
+.cart-item-total span { display: block; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--rose-dark); }
+.cart-remove { font-size: 0.75rem; color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); }
+.cart-remove:hover { color: #c0392b; border-color: #c0392b; }
+.cart-summary {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    position: sticky;
+    top: 90px;
+}
+.cart-summary h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 1.25rem; }
+.summary-row { display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.9rem; color: var(--muted); border-bottom: 1px solid var(--border); }
+.summary-total { display: flex; justify-content: space-between; padding: 1rem 0 0; font-size: 1rem; font-weight: 700; }
 
 /* ───── MAIN ───── */
 main { min-height: 60vh; }

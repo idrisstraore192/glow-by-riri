@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Paiement annulé — Glow by Riri{% endblock %}
+
+{% block content %}
+<div class="success-box">
+    <div class="success-icon" style="border-color:#f0c4d0;color:#c96a85;">✕</div>
+    <h1>Paiement annulé</h1>
+    <p>Votre paiement a été annulé. Votre panier est toujours disponible si vous souhaitez reprendre votre commande.</p>
+    <a class="btn" href="{% url 'cart' %}">Retour au panier</a>
+</div>
+{% endblock %}

@@ -25,6 +25,9 @@
                 <h3>{{ p.name }}</h3>
                 {% if p.description %}<p class="product-desc">{{ p.description }}</p>{% endif %}
                 <p class="product-price">{{ p.price }} €</p>
+                <a href="{% url 'add_to_cart' p.id %}" class="btn" style="width:100%;text-align:center;margin-top:1rem;display:block;padding:0.65rem;">
+                    Ajouter au panier
+                </a>
             </div>
         </div>
         {% endfor %}

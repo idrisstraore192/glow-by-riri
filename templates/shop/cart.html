@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Mon panier — Glow by Riri{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Mon panier</h1>
+    <p>Vérifiez votre commande avant de payer</p>
+</div>
+
+<div class="section" style="padding-top:3rem;">
+    {% if cart|length > 0 %}
+    <div class="cart-layout">
+        <div class="cart-items">
+            {% for item in cart %}
+            <div class="cart-item">
+                <div class="cart-item-img">
+                    {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                    <div class="cart-img-placeholder">✦</div>
+                    {% endif %}
+                </div>
+                <div class="cart-item-info">
+                    <h3>{{ item.product.name }}</h3>
+                    <p class="cart-item-price">{{ item.price }} € / unité</p>
+                    <p class="cart-item-qty">Quantité : {{ item.quantity }}</p>
+                </div>
+                <div class="cart-item-total">
+                    <span>{{ item.total }} €</span>
+                    <a href="{% url 'remove_from_cart' item.product.id %}" class="cart-remove">Retirer</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cart-summary">
+            <h3>Récapitulatif</h3>
+            <div class="summary-row">
+                <span>Sous-total</span>
+                <span>{{ cart.get_total }} €</span>
+            </div>
+            <div class="summary-row">
+                <span>Livraison</span>
+                <span style="color:#27ae60;">Gratuite</span>
+            </div>
+            <div class="summary-total">
+                <span>Total</span>
+                <span>{{ cart.get_total }} €</span>
+            </div>
+            <a href="{% url 'checkout' %}" class="btn" style="width:100%;text-align:center;margin-top:1.5rem;display:block;">
+                Payer maintenant
+            </a>
+            <a href="{% url 'products' %}" class="btn btn-outline" style="width:100%;text-align:center;margin-top:0.75rem;display:block;">
+                Continuer mes achats
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty">
+        <p>Votre panier est vide.</p>
+        <a href="{% url 'products' %}" class="btn btn-outline" style="margin-top:1.5rem;">Voir la boutique</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
