@@ -570,6 +570,79 @@ footer span { color: var(--rose-light); }
     letter-spacing: 0.18em;
 }
 
+/* ───── MOBILE ───── */
+@media (max-width: 600px) {
+
+    /* Annonce */
+    .announce { font-size: 0.65rem; letter-spacing: 0.08em; padding: 0.5rem; }
+
+    /* Header */
+    .header-inner { padding: 0 1rem; height: 60px; }
+    .brand { font-size: 1.15rem; }
+    nav { gap: 1rem; }
+    nav a { font-size: 0.7rem; letter-spacing: 0.06em; }
+    .nav-cta { padding: 0.45rem 0.85rem; font-size: 0.68rem !important; display: none; }
+    .nav-cart { font-size: 0.8rem !important; }
+
+    /* Hero */
+    .hero { padding: 4rem 1.25rem 3.5rem; }
+    .hero h1 { font-size: 2.4rem; }
+    .hero-sub { font-size: 0.9rem; }
+    .hero-actions { flex-direction: column; align-items: center; gap: 0.75rem; }
+    .hero-actions .btn { width: 100%; max-width: 280px; text-align: center; }
+
+    /* Strip */
+    .strip { gap: 1.5rem; padding: 1.25rem 1rem; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+    .strip-item { font-size: 0.65rem; }
+    .strip-item strong { font-size: 0.95rem; }
+
+    /* Sections */
+    .section { padding: 3rem 1.25rem; }
+    .section-header { margin-bottom: 2rem; }
+
+    /* Feature cards */
+    .features { grid-template-columns: 1fr; gap: 1rem; }
+    .feature-card { padding: 1.75rem 1.5rem; }
+
+    /* Page header */
+    .page-header { padding: 3rem 1.25rem; }
+
+    /* Produits - 2 colonnes sur mobile */
+    .product-grid { grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    .product-info { padding: 0.85rem 0.85rem 1rem; }
+    .product-info h3 { font-size: 0.78rem; }
+    .product-price { font-size: 0.9rem; }
+    .product-desc { display: none; }
+    .product-info .btn { font-size: 0.65rem; padding: 0.55rem 0.5rem; letter-spacing: 0.08em; }
+
+    /* Formulaires - 16px minimum pour éviter le zoom iOS */
+    .form-group input,
+    .form-group select { font-size: 16px; padding: 0.9rem 0.85rem; }
+    .form-group label { font-size: 0.68rem; }
+    .booking-form-box { padding: 1.5rem; border-radius: 14px; }
+    .booking-wrap { padding: 2.5rem 1.25rem; gap: 2rem; }
+
+    /* Panier */
+    .cart-item { gap: 0.85rem; }
+    .cart-item-img { width: 70px; height: 70px; }
+    .cart-summary { padding: 1.25rem; }
+    .section .cart-layout { padding: 0; }
+
+    /* Success */
+    .success-box { padding: 4rem 1.25rem; }
+
+    /* Footer */
+    footer { margin-top: 3rem; font-size: 0.72rem; }
+
+    /* Boutons touch-friendly */
+    .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+}
+
+@media (max-width: 380px) {
+    .product-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 2rem; }
+}
+
 /* ───── SUCCESS ───── */
 .success-box {
     text-align: center;
