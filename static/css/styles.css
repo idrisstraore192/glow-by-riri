@@ -1,5 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Dancing+Script:wght@600;700&display=swap');
 
+@font-face {
+    font-family: 'GreatDay';
+    src: url('../fonts/GreatDay.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -235,7 +242,7 @@ footer span { color: var(--rose); }
     text-align: center;
 }
 .hero h1 {
-    font-family: 'Times New Roman', Times, serif;
+    font-family: 'GreatDay', 'Times New Roman', serif;
     font-size: clamp(3rem, 6vw, 5.5rem);
     font-weight: 700;
     line-height: 1.15;
