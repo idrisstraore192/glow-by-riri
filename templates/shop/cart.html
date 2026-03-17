@@ -25,7 +25,12 @@
                 <div class="cart-item-info">
                     <h3>{{ item.product.name }}</h3>
                     <p class="cart-item-price">{{ item.price }} € / unité</p>
-                    <p class="cart-item-qty">Quantité : {{ item.quantity }}</p>
+                    <form method="post" action="{% url 'update_cart' item.product.id %}" class="cart-qty-form">
+                        {% csrf_token %}
+                        <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}" class="qty-btn">−</button>
+                        <span class="qty-val">{{ item.quantity }}</span>
+                        <button type="submit" name="quantity" value="{{ item.quantity|add:'1' }}" class="qty-btn">+</button>
+                    </form>
                 </div>
                 <div class="cart-item-total">
                     <span>{{ item.total }} €</span>

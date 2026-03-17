@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} — Glow by Riri{% endblock %}
+
+{% block content %}
+
+<div class="section" style="padding-top: 4rem;">
+    <div class="product-detail-wrap">
+        <div class="product-detail-img">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+            <div class="product-img-placeholder" style="aspect-ratio:3/4;font-size:4rem;">✦</div>
+            {% endif %}
+        </div>
+        <div class="product-detail-info">
+            <p class="section-label">Boutique</p>
+            <h1 class="product-detail-name">{{ product.name }}</h1>
+            <p class="product-detail-price">{{ product.price }} €</p>
+            {% if product.description %}
+            <p class="product-detail-desc">{{ product.description }}</p>
+            {% endif %}
+            <a href="{% url 'add_to_cart' product.id %}" class="btn" style="margin-top: 2rem; min-width: 220px; justify-content: center;">
+                Ajouter au panier
+            </a>
+            <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
