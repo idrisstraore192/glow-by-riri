@@ -16,6 +16,15 @@ class Cart:
             self.cart[pid] = {'quantity': quantity, 'price': str(product.price)}
         self.save()
 
+    def update(self, product, quantity):
+        pid = str(product.id)
+        if pid in self.cart:
+            if quantity > 0:
+                self.cart[pid]['quantity'] = quantity
+            else:
+                del self.cart[pid]
+            self.save()
+
     def remove(self, product):
         pid = str(product.id)
         if pid in self.cart:

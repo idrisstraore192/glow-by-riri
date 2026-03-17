@@ -13,6 +13,22 @@ def product_list(request):
     return render(request, "shop/products.html", {"products": products})
 
 
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    return render(request, "shop/product_detail.html", {"product": product})
+
+
+def update_cart(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    cart = Cart(request)
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+    except ValueError:
+        quantity = 1
+    cart.update(product, quantity)
+    return redirect('cart')
+
+
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     cart = Cart(request)

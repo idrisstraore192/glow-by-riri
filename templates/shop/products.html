@@ -13,7 +13,7 @@
     {% if products %}
     <div class="product-grid">
         {% for p in products %}
-        <a href="{% url 'add_to_cart' p.id %}" class="product-card">
+        <a href="{% url 'product_detail' p.id %}" class="product-card">
             <div class="product-img-wrap">
                 {% if p.image %}
                 <img class="product-img" src="{{ p.image.url }}" alt="{{ p.name }}">
