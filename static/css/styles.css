@@ -55,7 +55,7 @@ body {
 .sidebar {
     position: fixed;
     top: 0; left: 0;
-    width: 290px;
+    width: 320px;
     height: 100vh;
     background: var(--black);
     z-index: 500;
@@ -63,36 +63,80 @@ body {
     transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
     display: flex;
     flex-direction: column;
-    padding: 2rem 2.5rem;
     overflow-y: auto;
 }
 .sidebar.open { transform: translateX(0); }
+.sidebar-top { display: flex; justify-content: flex-end; padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .sidebar-close {
     background: none;
     border: none;
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    align-self: flex-start;
-    margin-bottom: 2.5rem;
     padding: 0;
-    opacity: 0.7;
+    opacity: 0.6;
     transition: opacity 0.2s;
 }
 .sidebar-close:hover { opacity: 1; }
-.sidebar-nav { display: flex; flex-direction: column; }
+.sidebar-nav { display: flex; flex-direction: column; flex: 1; padding: 0 2rem; }
 .sidebar-nav a {
     color: #fff;
     text-decoration: none;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    padding: 1.1rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    transition: color 0.2s, padding-left 0.2s;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
-.sidebar-nav a:hover { color: var(--rose); padding-left: 0.5rem; }
+.sidebar-nav a:hover { color: var(--rose); }
+.sidebar-footer { padding: 2rem; border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-socials { display: flex; gap: 1.25rem; }
+.sidebar-socials a { color: rgba(255,255,255,0.5); transition: color 0.2s; }
+.sidebar-socials a:hover { color: var(--rose); }
+
+/* ── SHOP BANNER ── */
+.shop-banner {
+    background: var(--black);
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4rem;
+    padding: 4rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+.shop-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(244,184,209,0.08) 0%, transparent 70%);
+}
+.shop-banner-logo {
+    height: 160px;
+    width: auto;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    filter: brightness(1.1);
+}
+.shop-banner-text {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+}
+.shop-banner-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 700;
+    margin: 0.3rem 0 0.5rem;
+}
+.shop-banner-text p { font-size: 0.85rem; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; }
 
 /* ── HEADER ── */
 header {
@@ -506,6 +550,8 @@ footer span { color: var(--rose); }
     .meet-heading-script { font-size: 2.2rem; }
     .review-form-row { grid-template-columns: 1fr; }
     .review-form-wrap { padding: 1.5rem; }
+    .shop-banner { flex-direction: column; gap: 1.5rem; min-height: auto; padding: 3rem 1.5rem; text-align: center; }
+    .shop-banner-logo { height: 110px; }
     .footer-inner { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.5rem 1.5rem; }
     .product-detail-wrap { grid-template-columns: 1fr; gap: 2rem; }
     .whatsapp-btn { bottom: 1rem; right: 1rem; width: 48px; height: 48px; }
