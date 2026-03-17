@@ -102,33 +102,29 @@ body {
 /* ── SHOP BANNER ── */
 .shop-banner {
     background: var(--black);
-    min-height: 280px;
+    min-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4rem;
-    padding: 4rem 2rem;
     position: relative;
     overflow: hidden;
+    padding: 4rem 2rem;
 }
-.shop-banner::before {
-    content: '';
+.shop-banner-bg {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, rgba(244,184,209,0.08) 0%, transparent 70%);
-}
-.shop-banner-logo {
-    height: 260px;
-    width: auto;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    position: relative;
-    z-index: 1;
-    filter: brightness(1.1);
+    object-position: center;
+    opacity: 0.18;
+    z-index: 0;
 }
 .shop-banner-text {
     position: relative;
     z-index: 1;
     color: #fff;
+    text-align: center;
 }
 .shop-banner-text h1 {
     font-family: 'Playfair Display', serif;
@@ -136,7 +132,7 @@ body {
     font-weight: 700;
     margin: 0.3rem 0 0.5rem;
 }
-.shop-banner-text p { font-size: 0.85rem; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; }
+.shop-banner-text p { font-size: 0.85rem; color: rgba(255,255,255,0.55); letter-spacing: 0.06em; }
 
 /* ── HEADER ── */
 header {
@@ -550,8 +546,7 @@ footer span { color: var(--rose); }
     .meet-heading-script { font-size: 2.2rem; }
     .review-form-row { grid-template-columns: 1fr; }
     .review-form-wrap { padding: 1.5rem; }
-    .shop-banner { flex-direction: column; gap: 1.5rem; min-height: auto; padding: 3rem 1.5rem; text-align: center; }
-    .shop-banner-logo { height: 180px; }
+    .shop-banner { min-height: 220px; padding: 3rem 1.5rem; }
     .footer-inner { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.5rem 1.5rem; }
     .product-detail-wrap { grid-template-columns: 1fr; gap: 2rem; }
     .whatsapp-btn { bottom: 1rem; right: 1rem; width: 48px; height: 48px; }
