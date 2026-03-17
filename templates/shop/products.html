@@ -1,12 +1,18 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Boutique — Glow by Riri{% endblock %}
 
 {% block content %}
 
-<div class="page-header">
-    <h1>Boutique</h1>
-    <p>Produits sélectionnés pour sublimer votre perruque</p>
+<!-- BANNIÈRE BOUTIQUE -->
+<div class="shop-banner">
+    <img src="{% static 'images/logo.png' %}" alt="Glow by Riri" class="shop-banner-logo">
+    <div class="shop-banner-text">
+        <p class="section-label" style="color:rgba(255,255,255,0.6);">Collections</p>
+        <h1>La Boutique</h1>
+        <p>Produits professionnels pour perruques</p>
+    </div>
 </div>
 
 <div class="section" style="padding-top: 3.5rem;">
