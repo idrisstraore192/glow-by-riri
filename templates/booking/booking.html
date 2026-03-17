@@ -6,25 +6,38 @@
 
 <div class="page-header">
     <h1>Prendre rendez-vous</h1>
-    <p>Réservez votre prestation en quelques secondes</p>
+    <p>Choisissez votre prestation et réservez en quelques secondes</p>
 </div>
 
-<div class="booking-wrap">
-
-    <div class="booking-info">
-        <p class="booking-info-tag">✦ Nos prestations</p>
-        <h2>Votre beauté,<br>notre priorité.</h2>
-        <p>Choisissez votre service et votre créneau. Nous confirmerons votre rendez-vous rapidement.</p>
-        <ul class="service-list">
-            <li>Pose de perruque complète</li>
-            <li>Retouche & entretien</li>
-            <li>Consultation personnalisée</li>
-            <li>Coiffage & mise en forme</li>
-        </ul>
-        <p style="font-size:0.8rem;color:#b0a0a0;">Paiement sur place le jour du rendez-vous.</p>
+<!-- LISTE DES SERVICES -->
+<div class="section" style="padding-bottom: 0;">
+    <div class="section-header">
+        <div>
+            <p class="section-label">Nos prestations</p>
+            <h2 class="section-title">Sélectionner un service</h2>
+        </div>
     </div>
 
-    <div class="booking-form-box">
+    {% if services %}
+    <div class="services-list">
+        {% for service in services %}
+        <div class="service-item">
+            <div class="service-item-info">
+                <h3 class="service-item-name">{{ service.name }}</h3>
+                {% if service.duration %}<p class="service-item-meta">{{ service.duration }}</p>{% endif %}
+                {% if service.description %}<p class="service-item-desc">{{ service.description }}</p>{% endif %}
+                <p class="service-item-price">{{ service.price }} €</p>
+            </div>
+            <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn">Réserver</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- FORMULAIRE RÉSERVATION -->
+<div class="section" id="reserver">
+    <div class="booking-form-box" style="max-width: 560px;">
         <h3>Votre réservation</h3>
         <form method="post">
             {% csrf_token %}
@@ -42,7 +55,6 @@
             <button type="submit" class="btn form-submit">Confirmer le rendez-vous</button>
         </form>
     </div>
-
 </div>
 
 <!-- AVIS CLIENTS -->
@@ -105,5 +117,12 @@
         </div>
     </div>
 </div>
+
+<script>
+function preselectService(serviceId) {
+    var select = document.querySelector('#id_service');
+    if (select) select.value = serviceId;
+}
+</script>
 
 {% endblock %}

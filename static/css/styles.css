@@ -371,18 +371,29 @@ footer span { color: var(--rose); }
 .page-header p { font-size: 0.88rem; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; }
 
 /* ── PRODUCT GRID ── */
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem; }
-.product-card { background: var(--white); border: 1px solid var(--border); overflow: hidden; transition: box-shadow 0.3s, transform 0.3s; }
-.product-card:hover { box-shadow: 0 12px 36px rgba(0,0,0,0.1); transform: translateY(-4px); }
-.product-img-wrap { overflow: hidden; background: var(--gray); aspect-ratio: 3/4; }
+.product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+.product-card { background: var(--white); text-decoration: none; color: var(--text); display: block; transition: opacity 0.2s; }
+.product-card:hover { opacity: 0.85; }
+.product-img-wrap { overflow: hidden; background: var(--gray); aspect-ratio: 3/4; margin-bottom: 1rem; }
 .product-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
-.product-card:hover .product-img { transform: scale(1.05); }
+.product-card:hover .product-img { transform: scale(1.04); }
 .product-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ddd; font-size: 3rem; }
-.product-info { padding: 1.2rem 1.2rem 1.4rem; }
-.product-info h3 { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 0.3rem; text-transform: uppercase; }
+.product-info { padding: 0 0.25rem; }
+.product-info h3 { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; margin-bottom: 0.3rem; text-transform: uppercase; }
 .product-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.6rem; line-height: 1.5; }
-.product-price { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--text); font-weight: 700; margin-bottom: 0.75rem; }
+.product-price { font-size: 0.82rem; color: var(--muted); }
 .empty { text-align: center; color: var(--muted); padding: 5rem 2rem; font-size: 0.9rem; }
+
+/* ── SERVICES LIST (BOOKING) ── */
+.services-list { display: flex; flex-direction: column; gap: 0; margin-bottom: 3rem; border: 1px solid var(--border); }
+.service-item { display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: 1.75rem 2rem; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+.service-item:last-child { border-bottom: none; }
+.service-item:hover { background: var(--gray); }
+.service-item-info { flex: 1; }
+.service-item-name { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.25rem; text-transform: uppercase; }
+.service-item-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
+.service-item-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.5rem; }
+.service-item-price { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--text); }
 
 /* ── CART ── */
 .cart-layout { display: grid; grid-template-columns: 1fr 320px; gap: 2.5rem; align-items: start; }
@@ -460,9 +471,8 @@ footer span { color: var(--rose); }
     .section { padding: 3rem 1.25rem; }
     .features { grid-template-columns: 1fr; gap: 1rem; }
     .product-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    .product-info { padding: 0.85rem; }
-    .product-info h3 { font-size: 0.72rem; }
-    .product-info .btn { font-size: 0.62rem; padding: 0.55rem 0.5rem; }
+    .service-item { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1.25rem; }
+    .service-item .btn { width: 100%; text-align: center; }
     .booking-wrap { grid-template-columns: 1fr; gap: 2rem; padding: 2.5rem 1.25rem; }
     .booking-form-box { padding: 1.5rem; }
     .cart-layout { grid-template-columns: 1fr; }
