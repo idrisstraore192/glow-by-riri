@@ -110,8 +110,14 @@ header {
     align-items: center;
     justify-content: space-between;
 }
-.brand { text-decoration: none; display: flex; align-items: center; }
-.brand-logo { height: 52px; width: auto; object-fit: contain; }
+.brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
 .burger {
     background: none;
     border: none;
