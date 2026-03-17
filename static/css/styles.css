@@ -102,22 +102,23 @@ body {
 /* ── SHOP BANNER ── */
 .shop-banner {
     background: var(--black);
-    min-height: 300px;
+    min-height: 420px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
-    padding: 4rem 2rem;
+    padding: 5rem 2rem;
+    width: 100%;
 }
 .shop-banner-bg {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
-    opacity: 0.18;
+    opacity: 0.15;
     z-index: 0;
 }
 .shop-banner-text {
@@ -546,7 +547,7 @@ footer span { color: var(--rose); }
     .meet-heading-script { font-size: 2.2rem; }
     .review-form-row { grid-template-columns: 1fr; }
     .review-form-wrap { padding: 1.5rem; }
-    .shop-banner { min-height: 220px; padding: 3rem 1.5rem; }
+    .shop-banner { min-height: 280px; padding: 3.5rem 1.5rem; }
     .footer-inner { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.5rem 1.5rem; }
     .product-detail-wrap { grid-template-columns: 1fr; gap: 2rem; }
     .whatsapp-btn { bottom: 1rem; right: 1rem; width: 48px; height: 48px; }
