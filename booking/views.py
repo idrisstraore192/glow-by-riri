@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import AppointmentForm
-
+from reviews.models import Review
+from reviews.forms import ReviewForm
 
 def booking_page(request):
     if request.method == 'POST':
@@ -12,7 +13,15 @@ def booking_page(request):
             return redirect('booking_success')
     else:
         form = AppointmentForm()
-    return render(request, 'booking/booking.html', {'form': form})
+    reviews = Review.objects.filter(approved=True)[:6]
+    review_form = ReviewForm()
+    submitted = request.GET.get('avis') == 'merci'
+    return render(request, 'booking/booking.html', {
+        'form': form,
+        'reviews': reviews,
+        'review_form': review_form,
+        'submitted': submitted,
+    })
 
 
 def booking_success(request):
