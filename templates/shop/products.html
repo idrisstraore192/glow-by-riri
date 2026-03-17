@@ -13,7 +13,7 @@
     {% if products %}
     <div class="product-grid">
         {% for p in products %}
-        <div class="product-card">
+        <a href="{% url 'add_to_cart' p.id %}" class="product-card">
             <div class="product-img-wrap">
                 {% if p.image %}
                 <img class="product-img" src="{{ p.image.url }}" alt="{{ p.name }}">
@@ -23,13 +23,9 @@
             </div>
             <div class="product-info">
                 <h3>{{ p.name }}</h3>
-                {% if p.description %}<p class="product-desc">{{ p.description }}</p>{% endif %}
                 <p class="product-price">{{ p.price }} €</p>
-                <a href="{% url 'add_to_cart' p.id %}" class="btn" style="width:100%;text-align:center;margin-top:1rem;display:block;padding:0.65rem;">
-                    Ajouter au panier
-                </a>
             </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
     {% else %}
