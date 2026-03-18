@@ -14,7 +14,8 @@ def booking_page(request):
             return redirect('booking_success')
     else:
         form = AppointmentForm()
-    services = Service.objects.all()
+    category = request.GET.get('category', '')
+    services = Service.objects.filter(category=category) if category else Service.objects.all()
     reviews = Review.objects.filter(approved=True)[:6]
     review_form = ReviewForm()
     submitted = request.GET.get('avis') == 'merci'
@@ -24,6 +25,8 @@ def booking_page(request):
         'reviews': reviews,
         'review_form': review_form,
         'submitted': submitted,
+        'active_category': category,
+        'categories': Service.CATEGORY_CHOICES,
     })
 
 
