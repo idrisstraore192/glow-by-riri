@@ -7,7 +7,11 @@
 
 <!-- BANNIÈRE BOUTIQUE -->
 <div class="shop-banner">
+    {% if current_category == 'perruques' %}
+    <img src="{% static 'images/photo_perruque.png' %}" alt="Perruques" class="shop-banner-bg shop-banner-photo">
+    {% else %}
     <img src="{% static 'images/logo.png' %}" alt="" class="shop-banner-bg">
+    {% endif %}
 </div>
 
 <div class="section" style="padding-top: 3.5rem;">

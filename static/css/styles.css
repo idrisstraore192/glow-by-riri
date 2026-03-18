@@ -112,6 +112,7 @@ body {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
 }
+.shop-banner-photo { object-position: center top; }
 .shop-banner-bg {
     position: absolute;
     inset: 0;
