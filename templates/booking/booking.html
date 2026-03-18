@@ -26,7 +26,7 @@
                 <h3 class="service-item-name">{{ service.name }}</h3>
                 {% if service.duration %}<p class="service-item-meta">{{ service.duration }}</p>{% endif %}
                 {% if service.description %}<p class="service-item-desc">{{ service.description }}</p>{% endif %}
-                <p class="service-item-price">{{ service.price }} €</p>
+                <p class="service-item-price">{{ service.price }} $</p>
             </div>
             <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn">Réserver</a>
         </div>
