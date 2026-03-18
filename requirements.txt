@@ -7,4 +7,3 @@ Pillow
 stripe
 psycopg2-binary
 cloudinary
-django-cloudinary-storage
