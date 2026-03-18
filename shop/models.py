@@ -6,7 +6,7 @@ class Product(models.Model):
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to="products/", blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
 
     def __str__(self):
         return self.name

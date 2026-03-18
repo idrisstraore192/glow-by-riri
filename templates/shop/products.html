@@ -38,8 +38,8 @@
         {% for p in products %}
         <a href="{% url 'product_detail' p.id %}" class="product-card" data-price="{{ p.price }}" data-name="{{ p.name }}">
             <div class="product-img-wrap">
-                {% if p.image %}
-                <img class="product-img" src="{{ p.image.url }}" alt="{{ p.name }}">
+                {% if p.image_url %}
+                <img class="product-img" src="{{ p.image_url }}" alt="{{ p.name }}">
                 {% else %}
                 <div class="product-img-placeholder">✦</div>
                 {% endif %}
