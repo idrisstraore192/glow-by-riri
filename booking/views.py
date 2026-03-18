@@ -17,7 +17,7 @@ def booking_page(request):
     category = request.GET.get('category', '')
     price_range = request.GET.get('price', '')
 
-    services = Service.objects.all()
+    services = Service.objects.all().order_by('price')
     if category:
         services = services.filter(category=category)
     if price_range == '0-50':
