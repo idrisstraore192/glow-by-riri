@@ -24,7 +24,7 @@
                 </div>
                 <div class="cart-item-info">
                     <h3>{{ item.product.name }}</h3>
-                    <p class="cart-item-price">{{ item.price }} € / unité</p>
+                    <p class="cart-item-price">{{ item.price }} $ / unité</p>
                     <form method="post" action="{% url 'update_cart' item.product.id %}" class="cart-qty-form">
                         {% csrf_token %}
                         <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}" class="qty-btn">−</button>
@@ -33,7 +33,7 @@
                     </form>
                 </div>
                 <div class="cart-item-total">
-                    <span>{{ item.total }} €</span>
+                    <span>{{ item.total }} $</span>
                     <a href="{% url 'remove_from_cart' item.product.id %}" class="cart-remove">Retirer</a>
                 </div>
             </div>
@@ -44,7 +44,7 @@
             <h3>Récapitulatif</h3>
             <div class="summary-row">
                 <span>Sous-total</span>
-                <span>{{ cart.get_total }} €</span>
+                <span>{{ cart.get_total }} $</span>
             </div>
             <div class="summary-row">
                 <span>Livraison</span>
@@ -52,7 +52,7 @@
             </div>
             <div class="summary-total">
                 <span>Total</span>
-                <span>{{ cart.get_total }} €</span>
+                <span>{{ cart.get_total }} $</span>
             </div>
             <a href="{% url 'checkout' %}" class="btn" style="width:100%;text-align:center;margin-top:1.5rem;display:block;">
                 Payer maintenant
