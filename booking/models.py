@@ -2,7 +2,6 @@ from django.db import models
 
 class Service(models.Model):
     CATEGORY_CHOICES = [
-        ('soins', 'Soins capillaires'),
         ('coiffure', 'Coiffure'),
         ('perruques', 'Perruques & Lace'),
         ('autres', 'Autres'),
