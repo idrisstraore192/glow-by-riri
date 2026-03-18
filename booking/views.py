@@ -15,7 +15,18 @@ def booking_page(request):
     else:
         form = AppointmentForm()
     category = request.GET.get('category', '')
-    services = Service.objects.filter(category=category) if category else Service.objects.all()
+    price_range = request.GET.get('price', '')
+
+    services = Service.objects.all()
+    if category:
+        services = services.filter(category=category)
+    if price_range == '0-50':
+        services = services.filter(price__lte=50)
+    elif price_range == '50-100':
+        services = services.filter(price__gt=50, price__lte=100)
+    elif price_range == '100+':
+        services = services.filter(price__gt=100)
+
     reviews = Review.objects.filter(approved=True)[:6]
     review_form = ReviewForm()
     submitted = request.GET.get('avis') == 'merci'
@@ -26,6 +37,7 @@ def booking_page(request):
         'review_form': review_form,
         'submitted': submitted,
         'active_category': category,
+        'active_price': price_range,
         'categories': Service.CATEGORY_CHOICES,
     })
 

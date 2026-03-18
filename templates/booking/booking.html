@@ -18,11 +18,19 @@
         </div>
     </div>
 
-    <div class="service-filters">
-        <a href="/booking/" class="service-filter-btn {% if not active_category %}active{% endif %}">Tous</a>
-        {% for cat_key, cat_label in categories %}
-        <a href="/booking/?category={{ cat_key }}" class="service-filter-btn {% if active_category == cat_key %}active{% endif %}">{{ cat_label }}</a>
-        {% endfor %}
+    <div class="service-filters-wrap">
+        <div class="service-filters">
+            <a href="/booking/{% if active_price %}?price={{ active_price }}{% endif %}" class="service-filter-btn {% if not active_category %}active{% endif %}">Tous</a>
+            {% for cat_key, cat_label in categories %}
+            <a href="/booking/?category={{ cat_key }}{% if active_price %}&price={{ active_price }}{% endif %}" class="service-filter-btn {% if active_category == cat_key %}active{% endif %}">{{ cat_label }}</a>
+            {% endfor %}
+        </div>
+        <div class="service-filters price-filters">
+            <a href="/booking/{% if active_category %}?category={{ active_category }}{% endif %}" class="service-filter-btn {% if not active_price %}active{% endif %}">Tout prix</a>
+            <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=0-50" class="service-filter-btn {% if active_price == '0-50' %}active{% endif %}">Moins de 50 $</a>
+            <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=50-100" class="service-filter-btn {% if active_price == '50-100' %}active{% endif %}">50 $ — 100 $</a>
+            <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=100+" class="service-filter-btn {% if active_price == '100+' %}active{% endif %}">Plus de 100 $</a>
+        </div>
     </div>
 
     {% if services %}
