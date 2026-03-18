@@ -16,6 +16,7 @@ class ServiceAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price', 'duration']
     list_filter = ['category']
     inlines = [ServiceImageInline]
+    exclude = ['image_url']
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
