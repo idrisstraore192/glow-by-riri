@@ -12,9 +12,31 @@
 
 <div class="section" style="padding-top: 3.5rem;">
     {% if products %}
-    <div class="product-grid">
+
+    <!-- TOOLBAR -->
+    <div class="shop-toolbar">
+        <div class="shop-sort">
+            <span>Trier</span>
+            <select id="sortSelect" onchange="sortProducts()">
+                <option value="default">Par défaut</option>
+                <option value="price-asc">Prix croissant</option>
+                <option value="price-desc">Prix décroissant</option>
+                <option value="name">Nom A–Z</option>
+            </select>
+        </div>
+        <div class="shop-view-toggle">
+            <button class="view-btn active" id="btnGrid" onclick="setView('grid')" title="Grille">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6"/><rect x="8" y="0" width="6" height="6"/><rect x="0" y="8" width="6" height="6"/><rect x="8" y="8" width="6" height="6"/></svg>
+            </button>
+            <button class="view-btn" id="btnList" onclick="setView('list')" title="Liste">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2"/><rect x="0" y="6" width="14" height="2"/><rect x="0" y="12" width="14" height="2"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="product-grid" id="productGrid">
         {% for p in products %}
-        <a href="{% url 'product_detail' p.id %}" class="product-card">
+        <a href="{% url 'product_detail' p.id %}" class="product-card" data-price="{{ p.price }}" data-name="{{ p.name }}">
             <div class="product-img-wrap">
                 {% if p.image %}
                 <img class="product-img" src="{{ p.image.url }}" alt="{{ p.name }}">
@@ -33,5 +55,35 @@
     <p class="empty">Aucun produit disponible pour le moment.<br>Revenez bientôt ✦</p>
     {% endif %}
 </div>
+
+<script>
+function setView(mode) {
+    const grid = document.getElementById('productGrid');
+    const btnGrid = document.getElementById('btnGrid');
+    const btnList = document.getElementById('btnList');
+    if (mode === 'list') {
+        grid.classList.add('list-view');
+        btnList.classList.add('active');
+        btnGrid.classList.remove('active');
+    } else {
+        grid.classList.remove('list-view');
+        btnGrid.classList.add('active');
+        btnList.classList.remove('active');
+    }
+}
+
+function sortProducts() {
+    const grid = document.getElementById('productGrid');
+    const cards = Array.from(grid.querySelectorAll('.product-card'));
+    const val = document.getElementById('sortSelect').value;
+    cards.sort((a, b) => {
+        if (val === 'price-asc') return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+        if (val === 'price-desc') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+        if (val === 'name') return a.dataset.name.localeCompare(b.dataset.name);
+        return 0;
+    });
+    cards.forEach(c => grid.appendChild(c));
+}
+</script>
 
 {% endblock %}
