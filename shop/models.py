@@ -3,10 +3,16 @@ from django.db import models
 
 
 class Product(models.Model):
+    CATEGORY_CHOICES = [
+        ('produits', 'Nos produits'),
+        ('perruques', 'Perruques'),
+        ('lace', 'Lace'),
+    ]
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(blank=True)
     image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='produits', verbose_name="Catégorie")
 
     def __str__(self):
         return self.name

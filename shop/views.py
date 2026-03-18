@@ -10,8 +10,9 @@ SITE_URL = "https://web-production-ff3c4.up.railway.app"
 
 
 def product_list(request):
-    products = Product.objects.all()
-    return render(request, "shop/products.html", {"products": products})
+    category = request.GET.get('category')
+    products = Product.objects.filter(category=category) if category else Product.objects.all()
+    return render(request, "shop/products.html", {"products": products, "current_category": category})
 
 
 def product_detail(request, product_id):
