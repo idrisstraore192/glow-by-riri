@@ -101,7 +101,7 @@ body {
 
 /* ── SHOP BANNER ── */
 .shop-banner {
-    background: #0f0f0f;
+    background: #ffffff;
     min-height: 420px;
     display: flex;
     align-items: center;
@@ -138,14 +138,15 @@ body {
 
 /* ── PERRUQUES HERO BANNER ── */
 .shop-banner-hero {
-    min-height: 600px;
+    min-height: 85vh;
     align-items: flex-end;
     justify-content: flex-start;
     padding: 0;
+    background: #1a1008;
 }
 .shop-banner-hero .shop-banner-photo {
     object-fit: cover;
-    object-position: center top;
+    object-position: center 20%;
 }
 .shop-banner-hero::after {
     content: '';
@@ -657,7 +658,7 @@ footer span { color: var(--rose); }
     .review-form-row { grid-template-columns: 1fr; }
     .review-form-wrap { padding: 1.5rem; }
     .shop-banner { min-height: 280px; padding: 3.5rem 1.5rem; width: 100vw; margin-left: calc(-50vw + 50%); }
-    .shop-banner-hero { min-height: 480px; }
+    .shop-banner-hero { min-height: 70vh; }
     .shop-banner-hero-text { padding: 2rem 1.5rem; }
     .shop-banner-hero-title { font-size: 2.2rem; }
     .footer-inner { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.5rem 1.5rem; }
