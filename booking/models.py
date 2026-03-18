@@ -20,6 +20,20 @@ class Service(models.Model):
     def __str__(self):
         return self.name
 
+class ServiceImage(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='images', verbose_name="Service")
+    image_url = models.URLField(verbose_name="URL de l'image (Cloudinary)")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre")
+
+    class Meta:
+        verbose_name = "Photo du service"
+        verbose_name_plural = "Photos du service"
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Photo de {self.service.name}"
+
+
 class Appointment(models.Model):
     customer_name = models.CharField(max_length=200, verbose_name="Nom")
     service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name="Service")
