@@ -3,8 +3,6 @@ from django.db import models
 class Service(models.Model):
     CATEGORY_CHOICES = [
         ('coiffure', 'Coiffure'),
-        ('perruques', 'Perruques & Lace'),
-        ('autres', 'Autres'),
     ]
     name = models.CharField(max_length=200, verbose_name="Nom")
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='autres', verbose_name="Catégorie")
