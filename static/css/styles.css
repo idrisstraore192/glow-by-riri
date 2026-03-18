@@ -485,16 +485,10 @@ footer span { color: var(--rose); }
 .services-list { display: flex; flex-direction: column; gap: 0; margin-bottom: 3rem; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
 .service-item { border-bottom: 1px solid var(--border); }
 .service-item:last-child { border-bottom: none; }
-.service-item-row { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.5rem 2rem; cursor: pointer; transition: background 0.2s; user-select: none; }
-.service-item-row:hover { background: var(--gray); }
-.service-item.open .service-item-row { background: var(--gray); }
-.service-item-info { flex: 1; }
-.service-item-name { font-size: 0.92rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.2rem; }
-.service-item-meta { display: flex; gap: 1rem; align-items: center; font-size: 0.8rem; color: var(--muted); }
+.service-item-top { padding: 1.5rem 2rem 1rem; }
+.service-item-name { font-size: 0.92rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+.service-item-meta { display: flex; gap: 1rem; align-items: center; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; }
 .service-item-price { font-family: 'Playfair Display', serif; font-size: 0.88rem; font-weight: 700; color: var(--text); }
-.service-item-chevron { font-size: 1.3rem; font-weight: 300; color: var(--muted); transition: transform 0.3s; flex-shrink: 0; line-height: 1; }
-.service-item.open .service-item-chevron { transform: rotate(45deg); }
-.service-item-expand { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1); }
 .service-expand-img-wrap { width: 100%; overflow: hidden; }
 .service-expand-img { width: 100%; height: auto; display: block; }
 .service-slider { position: relative; width: 100%; overflow: hidden; }
@@ -508,7 +502,7 @@ footer span { color: var(--rose); }
 .slider-dots { position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.4rem; }
 .slider-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: background 0.2s; }
 .slider-dot.active { background: #fff; }
-.service-expand-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.7; padding: 1.25rem 2rem 0; }
+.service-expand-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
 .service-expand-btn { display: block; margin: 1.25rem 2rem 1.5rem; width: calc(100% - 4rem); text-align: center; }
 
 /* ── CART ── */

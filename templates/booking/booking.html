@@ -56,49 +56,44 @@
     {% if services %}
     <div class="services-list">
         {% for service in services %}
-        <div class="service-item" id="service-{{ service.id }}">
-            <div class="service-item-row" onclick="toggleService('{{ service.id }}')">
-                <div class="service-item-info">
-                    <h3 class="service-item-name">{{ service.name }}</h3>
-                    <div class="service-item-meta">
-                        {% if service.duration %}<span>{{ service.duration }}</span>{% endif %}
-                        <span class="service-item-price">{{ service.price }} $</span>
-                    </div>
+        <div class="service-item">
+            <div class="service-item-top">
+                <h3 class="service-item-name">{{ service.name }}</h3>
+                <div class="service-item-meta">
+                    {% if service.duration %}<span>{{ service.duration }}</span>{% endif %}
+                    <span class="service-item-price">{{ service.price }} $</span>
                 </div>
-                <span class="service-item-chevron">+</span>
-            </div>
-            <div class="service-item-expand" id="expand-{{ service.id }}">
-                {% with images=service.images.all %}
-                {% if images %}
-                <div class="service-slider" id="slider-{{ service.id }}">
-                    <div class="service-slider-track" id="track-{{ service.id }}">
-                        {% for img in images %}
-                        <div class="service-slide">
-                            <img src="{{ img.image_url }}" alt="{{ service.name }}">
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% if images|length > 1 %}
-                    <button class="slider-btn slider-prev" onclick="slideService('{{ service.id }}', -1)">&#8249;</button>
-                    <button class="slider-btn slider-next" onclick="slideService('{{ service.id }}', 1)">&#8250;</button>
-                    <div class="slider-dots" id="dots-{{ service.id }}">
-                        {% for img in images %}
-                        <span class="slider-dot {% if forloop.first %}active{% endif %}" onclick="goToSlide('{{ service.id }}', {{ forloop.counter0 }})"></span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-                {% elif service.image_url %}
-                <div class="service-expand-img-wrap">
-                    <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-expand-img">
-                </div>
-                {% endif %}
-                {% endwith %}
                 {% if service.description %}
                 <p class="service-expand-desc">{{ service.description }}</p>
                 {% endif %}
-                <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn btn-black service-expand-btn">Réserver</a>
             </div>
+            {% with images=service.images.all %}
+            {% if images %}
+            <div class="service-slider" id="slider-{{ service.id }}">
+                <div class="service-slider-track" id="track-{{ service.id }}">
+                    {% for img in images %}
+                    <div class="service-slide">
+                        <img src="{{ img.image_url }}" alt="{{ service.name }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if images|length > 1 %}
+                <button class="slider-btn slider-prev" onclick="slideService('{{ service.id }}', -1)">&#8249;</button>
+                <button class="slider-btn slider-next" onclick="slideService('{{ service.id }}', 1)">&#8250;</button>
+                <div class="slider-dots" id="dots-{{ service.id }}">
+                    {% for img in images %}
+                    <span class="slider-dot {% if forloop.first %}active{% endif %}" onclick="goToSlide('{{ service.id }}', {{ forloop.counter0 }})"></span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% elif service.image_url %}
+            <div class="service-expand-img-wrap">
+                <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-expand-img">
+            </div>
+            {% endif %}
+            {% endwith %}
+            <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn btn-black service-expand-btn">Réserver</a>
         </div>
         {% endfor %}
     </div>
@@ -225,25 +220,6 @@ function preselectService(serviceId) {
     if (select) select.value = serviceId;
 }
 
-function toggleService(id) {
-    var expand = document.getElementById('expand-' + id);
-    var item = document.getElementById('service-' + id);
-    var chevron = item.querySelector('.service-item-chevron');
-    var isOpen = item.classList.contains('open');
-
-    // Fermer tous les autres
-    document.querySelectorAll('.service-item.open').forEach(function(el) {
-        el.classList.remove('open');
-        el.querySelector('.service-item-expand').style.maxHeight = null;
-        el.querySelector('.service-item-chevron').textContent = '+';
-    });
-
-    if (!isOpen) {
-        item.classList.add('open');
-        expand.style.maxHeight = 'none';
-        chevron.textContent = '−';
-    }
-}
 </script>
 
 {% endblock %}
