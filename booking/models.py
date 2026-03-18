@@ -5,6 +5,7 @@ class Service(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Prix")
     duration = models.CharField(max_length=100, blank=True, verbose_name="Durée", help_text="Ex: 1h30")
     description = models.TextField(blank=True, verbose_name="Description")
+    image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
 
     class Meta:
         verbose_name = "Service"

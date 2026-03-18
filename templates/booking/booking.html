@@ -22,6 +22,9 @@
     <div class="services-list">
         {% for service in services %}
         <div class="service-item">
+            {% if service.image_url %}
+            <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-item-img">
+            {% endif %}
             <div class="service-item-info">
                 <h3 class="service-item-name">{{ service.name }}</h3>
                 {% if service.duration %}<p class="service-item-meta">{{ service.duration }}</p>{% endif %}
