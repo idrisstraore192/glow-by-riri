@@ -10,9 +10,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --rose:      #f4b8d1;
-    --rose-dark: #e080a8;
-    --rose-btn:  #f4b8d1;
+    --rose:      #fce4ef;
+    --rose-dark: #f4b8d1;
+    --rose-btn:  #fce4ef;
     --black:     #0f0f0f;
     --white:     #ffffff;
     --gray:      #f8f8f8;
