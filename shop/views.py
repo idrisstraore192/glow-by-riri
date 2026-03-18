@@ -1,6 +1,7 @@
 import stripe
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
+from django.contrib import messages
 from .models import Product, Order, OrderItem
 from .cart import Cart
 
@@ -33,7 +34,8 @@ def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     cart = Cart(request)
     cart.add(product)
-    return redirect('cart')
+    messages.success(request, f'{product.name} ajouté au panier ✦')
+    return redirect(request.META.get('HTTP_REFERER', 'products'))
 
 
 def remove_from_cart(request, product_id):
