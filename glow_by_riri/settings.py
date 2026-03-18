@@ -92,8 +92,7 @@ CLOUDINARY_STORAGE = {
     'API_KEY': os.environ.get('CLD_API_KEY', ''),
     'API_SECRET': os.environ.get('CLD_API_TOKEN', ''),
 }
-if CLOUDINARY_STORAGE['CLOUD_NAME']:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 
 # Stripe
