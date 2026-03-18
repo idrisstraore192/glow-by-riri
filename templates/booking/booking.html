@@ -197,12 +197,13 @@ document.addEventListener('click', function(e) {
 });
 
 var sliderIndexes = {};
+var sliderTimers = {};
 
 function slideService(id, dir) {
     var track = document.getElementById('track-' + id);
     var slides = track.querySelectorAll('.service-slide');
     var total = slides.length;
-    if (!sliderIndexes[id]) sliderIndexes[id] = 0;
+    if (sliderIndexes[id] === undefined) sliderIndexes[id] = 0;
     sliderIndexes[id] = (sliderIndexes[id] + dir + total) % total;
     goToSlide(id, sliderIndexes[id]);
 }
@@ -210,10 +211,25 @@ function slideService(id, dir) {
 function goToSlide(id, index) {
     sliderIndexes[id] = index;
     var track = document.getElementById('track-' + id);
+    if (!track) return;
     track.style.transform = 'translateX(-' + (index * 100) + '%)';
     var dots = document.querySelectorAll('#dots-' + id + ' .slider-dot');
     dots.forEach(function(d, i) { d.classList.toggle('active', i === index); });
 }
+
+function startAutoSlide(id) {
+    if (sliderTimers[id]) clearInterval(sliderTimers[id]);
+    sliderTimers[id] = setInterval(function() { slideService(id, 1); }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.service-slider').forEach(function(slider) {
+        var id = slider.id.replace('slider-', '');
+        var slides = slider.querySelectorAll('.service-slide');
+        sliderIndexes[id] = 0;
+        if (slides.length > 1) startAutoSlide(id);
+    });
+});
 
 function preselectService(serviceId) {
     var select = document.querySelector('#id_service');
