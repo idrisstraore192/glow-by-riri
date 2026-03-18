@@ -4,7 +4,8 @@ from .models import Service, Appointment
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'price', 'duration']
+    list_display = ['name', 'category', 'price', 'duration']
+    list_filter = ['category']
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')

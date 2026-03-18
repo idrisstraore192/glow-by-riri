@@ -1,7 +1,14 @@
 from django.db import models
 
 class Service(models.Model):
+    CATEGORY_CHOICES = [
+        ('soins', 'Soins capillaires'),
+        ('coiffure', 'Coiffure'),
+        ('perruques', 'Perruques & Lace'),
+        ('autres', 'Autres'),
+    ]
     name = models.CharField(max_length=200, verbose_name="Nom")
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='autres', verbose_name="Catégorie")
     price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Prix")
     duration = models.CharField(max_length=100, blank=True, verbose_name="Durée", help_text="Ex: 1h30")
     description = models.TextField(blank=True, verbose_name="Description")

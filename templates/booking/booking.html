@@ -18,6 +18,13 @@
         </div>
     </div>
 
+    <div class="service-filters">
+        <a href="/booking/" class="service-filter-btn {% if not active_category %}active{% endif %}">Tous</a>
+        {% for cat_key, cat_label in categories %}
+        <a href="/booking/?category={{ cat_key }}" class="service-filter-btn {% if active_category == cat_key %}active{% endif %}">{{ cat_label }}</a>
+        {% endfor %}
+    </div>
+
     {% if services %}
     <div class="services-cards">
         {% for service in services %}

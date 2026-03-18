@@ -464,6 +464,12 @@ footer span { color: var(--rose); }
 .product-price { font-size: 0.82rem; color: var(--muted); }
 .empty { text-align: center; color: var(--muted); padding: 5rem 2rem; font-size: 0.9rem; }
 
+/* ── SERVICE FILTERS ── */
+.service-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0 2rem; }
+.service-filter-btn { display: inline-block; padding: 0.5rem 1.25rem; border: 1px solid var(--border); border-radius: 999px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; color: var(--text); background: var(--white); transition: all 0.2s; }
+.service-filter-btn:hover { background: var(--black); color: var(--white); border-color: var(--black); }
+.service-filter-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
+
 /* ── SERVICES CARDS (BOOKING) ── */
 .services-cards { display: flex; flex-direction: column; gap: 0; margin-bottom: 3rem; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
 .service-card { border-bottom: 1px solid var(--border); padding: 2rem 2.5rem; }
