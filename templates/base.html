@@ -26,6 +26,9 @@
         <nav class="sidebar-nav">
             <a href="/" onclick="closeSidebar()">Accueil</a>
             <a href="/shop/" onclick="closeSidebar()">Boutique</a>
+            <a href="/shop/?category=produits" onclick="closeSidebar()" class="sidebar-sub">— Nos produits</a>
+            <a href="/shop/?category=perruques" onclick="closeSidebar()" class="sidebar-sub">— Perruques</a>
+            <a href="/shop/?category=lace" onclick="closeSidebar()" class="sidebar-sub">— Lace</a>
             <a href="/booking/" onclick="closeSidebar()">Prendre rendez-vous</a>
             <a href="/shop/cart/" onclick="closeSidebar()">Mon panier</a>
         </nav>
@@ -62,7 +65,14 @@
         </div>
         <div class="header-nav-desktop">
             <a href="/">Accueil</a>
-            <a href="/shop/">Boutique</a>
+            <div class="nav-dropdown">
+                <a href="/shop/">Boutique</a>
+                <div class="nav-dropdown-menu">
+                    <a href="/shop/?category=produits">Nos produits</a>
+                    <a href="/shop/?category=perruques">Perruques</a>
+                    <a href="/shop/?category=lace">Lace</a>
+                </div>
+            </div>
             <a href="/booking/">Rendez-vous</a>
             <a href="/shop/cart/">Panier</a>
         </div>
