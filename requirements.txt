@@ -5,3 +5,4 @@ whitenoise
 dj-database-url
 Pillow
 stripe
+psycopg2-binary
