@@ -25,10 +25,13 @@
         </div>
         <nav class="sidebar-nav">
             <a href="/" onclick="closeSidebar()">Accueil</a>
-            <a href="/shop/" onclick="closeSidebar()">Boutique</a>
-            <a href="/shop/?category=produits" onclick="closeSidebar()" class="sidebar-sub">— Nos produits</a>
-            <a href="/shop/?category=perruques" onclick="closeSidebar()" class="sidebar-sub">— Perruques</a>
-            <a href="/shop/?category=lace" onclick="closeSidebar()" class="sidebar-sub">— Lace</a>
+            <button class="sidebar-toggle" onclick="toggleShopMenu()">Boutique <span id="shopToggleIcon">+</span></button>
+            <div class="sidebar-submenu" id="shopSubmenu">
+                <a href="/shop/" onclick="closeSidebar()">Tout voir</a>
+                <a href="/shop/?category=produits" onclick="closeSidebar()">Nos produits</a>
+                <a href="/shop/?category=perruques" onclick="closeSidebar()">Perruques</a>
+                <a href="/shop/?category=lace" onclick="closeSidebar()">Lace</a>
+            </div>
             <a href="/booking/" onclick="closeSidebar()">Prendre rendez-vous</a>
             <a href="/shop/cart/" onclick="closeSidebar()">Mon panier</a>
         </nav>
@@ -150,6 +153,13 @@
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('open');
             document.body.style.overflow = '';
+        }
+
+        function toggleShopMenu() {
+            const menu = document.getElementById('shopSubmenu');
+            const icon = document.getElementById('shopToggleIcon');
+            const isOpen = menu.classList.toggle('open');
+            icon.textContent = isOpen ? '−' : '+';
         }
 
         // Toast

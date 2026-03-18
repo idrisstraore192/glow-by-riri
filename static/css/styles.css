@@ -223,9 +223,13 @@ header {
 .nav-dropdown-menu a:hover { color: var(--rose); background: rgba(255,255,255,0.04); }
 .nav-dropdown:hover .nav-dropdown-menu { display: flex; }
 
-/* ── SIDEBAR SUB ── */
-.sidebar-sub { font-size: 0.72rem !important; padding-left: 1.5rem !important; color: rgba(255,255,255,0.45) !important; letter-spacing: 0.08em; }
-.sidebar-sub:hover { color: var(--rose) !important; }
+/* ── SIDEBAR TOGGLE ── */
+.sidebar-toggle { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 0.8rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; cursor: pointer; padding: 0.5rem 0; text-align: left; display: flex; align-items: center; gap: 0.5rem; width: 100%; }
+.sidebar-toggle:hover { color: var(--rose); }
+.sidebar-submenu { display: none; flex-direction: column; padding-left: 1rem; margin-bottom: 0.5rem; }
+.sidebar-submenu.open { display: flex; }
+.sidebar-submenu a { font-size: 0.72rem; color: rgba(255,255,255,0.55); text-decoration: none; padding: 0.35rem 0; letter-spacing: 0.1em; text-transform: uppercase; }
+.sidebar-submenu a:hover { color: var(--rose); }
 
 /* ── MAIN ── */
 main { min-height: 60vh; }
