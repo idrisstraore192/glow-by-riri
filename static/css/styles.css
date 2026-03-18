@@ -474,6 +474,7 @@ footer span { color: var(--rose); }
 .service-item-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
 .service-item-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.5rem; }
 .service-item-price { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--text); }
+.service-item-img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
 
 /* ── CART ── */
 .cart-layout { display: grid; grid-template-columns: 1fr 320px; gap: 2.5rem; align-items: start; }
