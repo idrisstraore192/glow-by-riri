@@ -113,15 +113,14 @@ body {
     margin-left: calc(-50vw + 50%);
 }
 .shop-banner-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
+    position: relative;
+    width: auto;
     height: 100%;
-    object-fit: cover;
+    max-height: 300px;
+    object-fit: contain;
     object-position: center center;
-    opacity: 0.2;
+    opacity: 1;
     z-index: 0;
-    transform: scale(1.05);
 }
 .shop-banner-text {
     position: relative;
