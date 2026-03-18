@@ -86,9 +86,12 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# Cloudinary (stockage images) — lit automatiquement CLOUDINARY_URL
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# Cloudinary (stockage images)
+DEFAULT_FILE_STORAGE = 'glow_by_riri.storage.CloudinaryMediaStorage'
 MEDIA_URL = '/media/'
+CLD_CLOUD_NAME = os.environ.get('CLD_CLOUD_NAME', '')
+CLD_API_KEY = os.environ.get('CLD_API_KEY', '')
+CLD_API_TOKEN = os.environ.get('CLD_API_TOKEN', '')
 
 # Stripe
 STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "")
