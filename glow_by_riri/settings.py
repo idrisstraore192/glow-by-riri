@@ -86,18 +86,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# Cloudinary (stockage images)
-import cloudinary
-cloudinary.config(
-    cloud_name=os.environ.get('CLD_CLOUD_NAME', ''),
-    api_key=os.environ.get('CLD_API_KEY', ''),
-    api_secret=os.environ.get('CLD_API_TOKEN', ''),
-)
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLD_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLD_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLD_API_TOKEN', ''),
-}
+# Cloudinary (stockage images) — lit automatiquement CLOUDINARY_URL
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 
