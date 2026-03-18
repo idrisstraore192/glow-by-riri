@@ -6,13 +6,20 @@
 {% block content %}
 
 <!-- BANNIÈRE BOUTIQUE -->
-<div class="shop-banner">
-    {% if current_category == 'perruques' %}
+{% if current_category == 'perruques' %}
+<div class="shop-banner shop-banner-hero">
     <img src="{% static 'images/photo_perruque.png' %}" alt="Perruques" class="shop-banner-bg shop-banner-photo">
-    {% else %}
-    <img src="{% static 'images/logo.png' %}" alt="" class="shop-banner-bg">
-    {% endif %}
+    <div class="shop-banner-hero-text">
+        <span class="shop-banner-hero-label">Collection</span>
+        <h1 class="shop-banner-hero-title">Perruques<br>& Lace</h1>
+        <p class="shop-banner-hero-sub">{{ products|length }} style{% if products|length > 1 %}s{% endif %} disponible{% if products|length > 1 %}s{% endif %}</p>
+    </div>
 </div>
+{% else %}
+<div class="shop-banner">
+    <img src="{% static 'images/logo.png' %}" alt="" class="shop-banner-bg">
+</div>
+{% endif %}
 
 <div class="section" style="padding-top: 3.5rem;">
     {% if products %}

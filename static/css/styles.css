@@ -101,7 +101,7 @@ body {
 
 /* ── SHOP BANNER ── */
 .shop-banner {
-    background: #ffffff;
+    background: #0f0f0f;
     min-height: 420px;
     display: flex;
     align-items: center;
@@ -112,7 +112,6 @@ body {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
 }
-.shop-banner-photo { object-position: center top; }
 .shop-banner-bg {
     position: absolute;
     inset: 0;
@@ -136,6 +135,54 @@ body {
     margin: 0.3rem 0 0.5rem;
 }
 .shop-banner-text p { font-size: 0.85rem; color: rgba(255,255,255,0.55); letter-spacing: 0.06em; }
+
+/* ── PERRUQUES HERO BANNER ── */
+.shop-banner-hero {
+    min-height: 600px;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 0;
+}
+.shop-banner-hero .shop-banner-photo {
+    object-fit: cover;
+    object-position: center top;
+}
+.shop-banner-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.15) 50%, transparent 100%);
+    z-index: 1;
+}
+.shop-banner-hero-text {
+    position: relative;
+    z-index: 2;
+    padding: 3rem 3.5rem;
+    color: #fff;
+}
+.shop-banner-hero-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 0.6rem;
+    display: block;
+}
+.shop-banner-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+.shop-banner-hero-sub {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
 
 /* ── HEADER ── */
 header {
@@ -610,6 +657,9 @@ footer span { color: var(--rose); }
     .review-form-row { grid-template-columns: 1fr; }
     .review-form-wrap { padding: 1.5rem; }
     .shop-banner { min-height: 280px; padding: 3.5rem 1.5rem; width: 100vw; margin-left: calc(-50vw + 50%); }
+    .shop-banner-hero { min-height: 480px; }
+    .shop-banner-hero-text { padding: 2rem 1.5rem; }
+    .shop-banner-hero-title { font-size: 2.2rem; }
     .footer-inner { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.5rem 1.5rem; }
     .product-detail-wrap { grid-template-columns: 1fr; gap: 2rem; }
     .whatsapp-btn { bottom: 1rem; right: 1rem; width: 48px; height: 48px; }
