@@ -27,6 +27,12 @@ def booking_page(request):
     elif price_range == '100+':
         services = services.filter(price__gt=100)
 
+    sort = request.GET.get('sort', '')
+    if sort == 'asc':
+        services = services.order_by('price')
+    elif sort == 'desc':
+        services = services.order_by('-price')
+
     reviews = Review.objects.filter(approved=True)[:6]
     review_form = ReviewForm()
     submitted = request.GET.get('avis') == 'merci'
@@ -38,6 +44,7 @@ def booking_page(request):
         'submitted': submitted,
         'active_category': category,
         'active_price': price_range,
+        'active_sort': sort,
         'categories': Service.CATEGORY_CHOICES,
     })
 
