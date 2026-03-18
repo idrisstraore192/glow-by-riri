@@ -19,19 +19,28 @@
     </div>
 
     {% if services %}
-    <div class="services-list">
+    <div class="services-cards">
         {% for service in services %}
-        <div class="service-item">
-            {% if service.image_url %}
-            <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-item-img">
-            {% endif %}
-            <div class="service-item-info">
-                <h3 class="service-item-name">{{ service.name }}</h3>
-                {% if service.duration %}<p class="service-item-meta">{{ service.duration }}</p>{% endif %}
-                {% if service.description %}<p class="service-item-desc">{{ service.description }}</p>{% endif %}
-                <p class="service-item-price">{{ service.price }} $</p>
+        <div class="service-card">
+            <div class="service-card-header">
+                <h3 class="service-card-name">{{ service.name }}</h3>
+                <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn btn-black">Réserver</a>
             </div>
-            <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn">Réserver</a>
+            <div class="service-card-meta">
+                {% if service.duration %}<span class="service-card-duration">{{ service.duration }}</span>{% endif %}
+                <span class="service-card-price">{{ service.price }} $</span>
+            </div>
+            {% if service.description %}
+            <div class="service-card-desc-wrap">
+                <p class="service-card-desc" id="desc-{{ service.id }}">{{ service.description }}</p>
+                <button class="service-card-toggle" onclick="toggleDesc('{{ service.id }}', this)">Tout afficher</button>
+            </div>
+            {% endif %}
+            {% if service.image_url %}
+            <div class="service-card-img-wrap">
+                <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-card-img">
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -125,6 +134,12 @@
 function preselectService(serviceId) {
     var select = document.querySelector('#id_service');
     if (select) select.value = serviceId;
+}
+
+function toggleDesc(id, btn) {
+    var desc = document.getElementById('desc-' + id);
+    desc.classList.toggle('expanded');
+    btn.textContent = desc.classList.contains('expanded') ? 'Réduire' : 'Tout afficher';
 }
 </script>
 
