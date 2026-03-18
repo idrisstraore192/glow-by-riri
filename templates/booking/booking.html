@@ -19,22 +19,37 @@
     </div>
 
     <div class="service-filters-wrap">
-        <div class="service-filters">
-            <a href="/booking/{% if active_price %}?price={{ active_price }}{% endif %}" class="service-filter-btn {% if not active_category %}active{% endif %}">Tous</a>
-            {% for cat_key, cat_label in categories %}
-            <a href="/booking/?category={{ cat_key }}{% if active_price %}&price={{ active_price }}{% endif %}" class="service-filter-btn {% if active_category == cat_key %}active{% endif %}">{{ cat_label }}</a>
-            {% endfor %}
+        <div class="service-filters-top">
+            <div class="service-filters">
+                <a href="/booking/{% if active_price %}?price={{ active_price }}{% endif %}{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if not active_category %}active{% endif %}">Tous</a>
+                {% for cat_key, cat_label in categories %}
+                <a href="/booking/?category={{ cat_key }}{% if active_price %}&price={{ active_price }}{% endif %}{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_category == cat_key %}active{% endif %}">{{ cat_label }}</a>
+                {% endfor %}
+            </div>
+            <button class="filter-toggle-btn {% if active_price or active_sort %}has-active{% endif %}" onclick="toggleFilterPanel()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+                Filtres{% if active_price or active_sort %} ●{% endif %}
+            </button>
         </div>
-        <div class="service-filters price-filters">
-            <a href="/booking/{% if active_category %}?category={{ active_category }}{% endif %}" class="service-filter-btn {% if not active_price %}active{% endif %}">Tout prix</a>
-            <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=0-50{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '0-50' %}active{% endif %}">Moins de 50 $</a>
-            <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=50-100{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '50-100' %}active{% endif %}">50 $ — 100 $</a>
-            <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=100+{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '100+' %}active{% endif %}">Plus de 100 $</a>
-        </div>
-        <div class="service-filters sort-filters">
-            <span class="filter-label">Trier :</span>
-            <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}{% if active_price %}price={{ active_price }}&{% endif %}sort=asc" class="service-filter-btn {% if active_sort == 'asc' %}active{% endif %}">Prix croissant ↑</a>
-            <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}{% if active_price %}price={{ active_price }}&{% endif %}sort=desc" class="service-filter-btn {% if active_sort == 'desc' %}active{% endif %}">Prix décroissant ↓</a>
+
+        <div class="filter-panel" id="filterPanel">
+            <div class="filter-panel-section">
+                <p class="filter-panel-label">Tranche de prix</p>
+                <div class="filter-panel-options">
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}{% if active_sort %}sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if not active_price %}active{% endif %}">Tout prix</a>
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=0-50{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '0-50' %}active{% endif %}">Moins de 50 $</a>
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=50-100{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '50-100' %}active{% endif %}">50 $ — 100 $</a>
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=100+{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '100+' %}active{% endif %}">Plus de 100 $</a>
+                </div>
+            </div>
+            <div class="filter-panel-section">
+                <p class="filter-panel-label">Trier par prix</p>
+                <div class="filter-panel-options">
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}{% if active_price %}price={{ active_price }}&{% endif %}" class="service-filter-btn {% if not active_sort %}active{% endif %}">Par défaut</a>
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}{% if active_price %}price={{ active_price }}&{% endif %}sort=asc" class="service-filter-btn {% if active_sort == 'asc' %}active{% endif %}">Croissant ↑</a>
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}{% if active_price %}price={{ active_price }}&{% endif %}sort=desc" class="service-filter-btn {% if active_sort == 'desc' %}active{% endif %}">Décroissant ↓</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -174,6 +189,18 @@
 </div>
 
 <script>
+function toggleFilterPanel() {
+    var panel = document.getElementById('filterPanel');
+    panel.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+    var panel = document.getElementById('filterPanel');
+    var btn = document.querySelector('.filter-toggle-btn');
+    if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+        panel.classList.remove('open');
+    }
+});
+
 var sliderIndexes = {};
 
 function slideService(id, dir) {
