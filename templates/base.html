@@ -114,6 +114,14 @@
     </footer>
 
 
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- BACK TO TOP -->
+    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Retour en haut">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+
     <script>
         // Animations au scroll
         const observer = new IntersectionObserver((entries) => {
@@ -133,6 +141,31 @@
             document.getElementById('sidebarOverlay').classList.remove('open');
             document.body.style.overflow = '';
         }
+
+        // Toast
+        function showToast(msg) {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 3100);
+        }
+
+        // Afficher messages Django comme toasts
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.message').forEach(m => {
+                showToast(m.textContent.trim());
+                m.style.display = 'none';
+            });
+        });
+
+        // Back to top
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('backToTop');
+            if (window.scrollY > 400) btn.classList.add('visible');
+            else btn.classList.remove('visible');
+        });
     </script>
 
 </body>

@@ -7,9 +7,9 @@
 
 <div class="section" style="padding-top: 4rem;">
     <div class="product-detail-wrap">
-        <div class="product-detail-img">
+        <div class="product-detail-img" onclick="toggleZoom(this)">
             {% if product.image_url %}
-            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" id="productImg">
             {% else %}
             <div class="product-img-placeholder" style="aspect-ratio:3/4;font-size:4rem;">✦</div>
             {% endif %}
@@ -21,7 +21,7 @@
             {% if product.description %}
             <p class="product-detail-desc">{{ product.description }}</p>
             {% endif %}
-            <a href="{% url 'add_to_cart' product.id %}" class="btn" style="margin-top: 2rem; min-width: 220px; justify-content: center;">
+            <a href="{% url 'add_to_cart' product.id %}" class="btn" id="addToCartBtn" style="margin-top: 2rem; min-width: 220px; justify-content: center;" onclick="cartAnimation(this)">
                 Ajouter au panier
             </a>
             <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
@@ -29,4 +29,14 @@
     </div>
 </div>
 
+<script>
+function toggleZoom(wrap) {
+    const img = wrap.querySelector('img');
+    if (img) img.classList.toggle('zoomed');
+}
+function cartAnimation(btn) {
+    btn.textContent = '✦ Ajouté !';
+    btn.style.background = '#1a1a1a';
+}
+</script>
 {% endblock %}
