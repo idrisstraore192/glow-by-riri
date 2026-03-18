@@ -26,28 +26,30 @@
     </div>
 
     {% if services %}
-    <div class="services-cards">
+    <div class="services-list">
         {% for service in services %}
-        <div class="service-card">
-            <div class="service-card-header">
-                <h3 class="service-card-name">{{ service.name }}</h3>
-                <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn btn-black">Réserver</a>
+        <div class="service-item" id="service-{{ service.id }}">
+            <div class="service-item-row" onclick="toggleService('{{ service.id }}')">
+                <div class="service-item-info">
+                    <h3 class="service-item-name">{{ service.name }}</h3>
+                    <div class="service-item-meta">
+                        {% if service.duration %}<span>{{ service.duration }}</span>{% endif %}
+                        <span class="service-item-price">{{ service.price }} $</span>
+                    </div>
+                </div>
+                <span class="service-item-chevron">+</span>
             </div>
-            <div class="service-card-meta">
-                {% if service.duration %}<span class="service-card-duration">{{ service.duration }}</span>{% endif %}
-                <span class="service-card-price">{{ service.price }} $</span>
+            <div class="service-item-expand" id="expand-{{ service.id }}">
+                {% if service.image_url %}
+                <div class="service-expand-img-wrap">
+                    <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-expand-img">
+                </div>
+                {% endif %}
+                {% if service.description %}
+                <p class="service-expand-desc">{{ service.description }}</p>
+                {% endif %}
+                <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn btn-black service-expand-btn">Réserver</a>
             </div>
-            {% if service.description %}
-            <div class="service-card-desc-wrap">
-                <p class="service-card-desc" id="desc-{{ service.id }}">{{ service.description }}</p>
-                <button class="service-card-toggle" onclick="toggleDesc('{{ service.id }}', this)">Tout afficher</button>
-            </div>
-            {% endif %}
-            {% if service.image_url %}
-            <div class="service-card-img-wrap">
-                <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-card-img">
-            </div>
-            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -143,10 +145,24 @@ function preselectService(serviceId) {
     if (select) select.value = serviceId;
 }
 
-function toggleDesc(id, btn) {
-    var desc = document.getElementById('desc-' + id);
-    desc.classList.toggle('expanded');
-    btn.textContent = desc.classList.contains('expanded') ? 'Réduire' : 'Tout afficher';
+function toggleService(id) {
+    var expand = document.getElementById('expand-' + id);
+    var item = document.getElementById('service-' + id);
+    var chevron = item.querySelector('.service-item-chevron');
+    var isOpen = item.classList.contains('open');
+
+    // Fermer tous les autres
+    document.querySelectorAll('.service-item.open').forEach(function(el) {
+        el.classList.remove('open');
+        el.querySelector('.service-item-expand').style.maxHeight = null;
+        el.querySelector('.service-item-chevron').textContent = '+';
+    });
+
+    if (!isOpen) {
+        item.classList.add('open');
+        expand.style.maxHeight = expand.scrollHeight + 'px';
+        chevron.textContent = '−';
+    }
 }
 </script>
 
