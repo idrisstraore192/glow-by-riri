@@ -74,8 +74,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "fr-fr"
-TIME_ZONE = "Europe/Paris"
+TIME_ZONE = "America/Toronto"
 USE_I18N = True
+USE_L10N = False
 USE_TZ = True
 
 # Fichiers statiques
