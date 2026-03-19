@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import Product, ProductVariant, Order, OrderItem
+from .models import Product, ProductImage, ProductVariant, Order, OrderItem
+
+
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 1
+    fields = ['image_url', 'order']
+
+    class Media:
+        js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
 
 
 class ProductVariantInline(admin.TabularInline):
@@ -25,7 +34,7 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price']
-    inlines = [ProductVariantInline]
+    inlines = [ProductImageInline, ProductVariantInline]
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')

@@ -18,7 +18,8 @@ def product_list(request):
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     variants = product.variants.all()
-    return render(request, "shop/product_detail.html", {"product": product, "variants": variants})
+    images = product.images.all()
+    return render(request, "shop/product_detail.html", {"product": product, "variants": variants, "images": images})
 
 
 def update_cart(request, product_id):
