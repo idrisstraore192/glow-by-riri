@@ -40,7 +40,21 @@ document.addEventListener('DOMContentLoaded', initAllCloudinaryFields);
 
 // Gérer les nouvelles lignes ajoutées dynamiquement dans les inlines
 document.addEventListener('click', function(e) {
-    if (e.target && (e.target.classList.contains('add-row') || e.target.closest('.add-row'))) {
-        setTimeout(initAllCloudinaryFields, 300);
+    var target = e.target;
+    if (target && (target.classList.contains('add-row') || target.closest('.add-row') ||
+        (target.tagName === 'A' && target.textContent.includes('Ajouter')))) {
+        setTimeout(initAllCloudinaryFields, 400);
     }
 });
+
+// Observer les mutations DOM pour détecter les nouvelles lignes
+if (window.MutationObserver) {
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+            if (m.addedNodes.length) setTimeout(initAllCloudinaryFields, 200);
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+}

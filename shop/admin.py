@@ -34,6 +34,7 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price']
+    exclude = ['image_url']
     inlines = [ProductImageInline, ProductVariantInline]
 
     class Media:
