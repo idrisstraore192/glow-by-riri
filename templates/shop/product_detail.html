@@ -7,9 +7,30 @@
 
 <div class="section" style="padding-top: 4rem;">
     <div class="product-detail-wrap">
-        <div class="product-detail-img" onclick="toggleZoom(this)">
-            {% if product.image_url %}
-            <img src="{{ product.image_url }}" alt="{{ product.name }}" id="productImg">
+        <div class="product-detail-img">
+            {% if images %}
+            <div class="product-slider" id="productSlider">
+                <div class="product-slider-track" id="productTrack">
+                    {% for img in images %}
+                    <div class="product-slide">
+                        <img src="{{ img.image_url }}" alt="{{ product.name }}" onclick="toggleZoom(this)">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if images|length > 1 %}
+                <button class="slider-btn slider-prev" onclick="slideProduct(-1)">&#8249;</button>
+                <button class="slider-btn slider-next" onclick="slideProduct(1)">&#8250;</button>
+                <div class="product-thumbs">
+                    {% for img in images %}
+                    <img src="{{ img.image_url }}" alt="{{ product.name }}"
+                        class="product-thumb {% if forloop.first %}active{% endif %}"
+                        onclick="goToProductSlide({{ forloop.counter0 }})">
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% elif product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" id="productImg" onclick="toggleZoom(this)">
             {% else %}
             <div class="product-img-placeholder" style="aspect-ratio:3/4;font-size:4rem;">✦</div>
             {% endif %}
@@ -59,6 +80,23 @@
 </div>
 
 <script>
+var productSlideIndex = 0;
+
+function slideProduct(dir) {
+    var track = document.getElementById('productTrack');
+    var slides = track.querySelectorAll('.product-slide');
+    productSlideIndex = (productSlideIndex + dir + slides.length) % slides.length;
+    goToProductSlide(productSlideIndex);
+}
+
+function goToProductSlide(index) {
+    productSlideIndex = index;
+    document.getElementById('productTrack').style.transform = 'translateX(-' + (index * 100) + '%)';
+    document.querySelectorAll('.product-thumb').forEach(function(t, i) {
+        t.classList.toggle('active', i === index);
+    });
+}
+
 function selectVariant(btn) {
     document.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');

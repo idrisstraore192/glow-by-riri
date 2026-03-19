@@ -18,6 +18,20 @@ class Product(models.Model):
         return self.name
 
 
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images', verbose_name="Produit")
+    image_url = models.URLField(verbose_name="URL de l'image (Cloudinary)")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre")
+
+    class Meta:
+        verbose_name = "Photo"
+        verbose_name_plural = "Photos"
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Photo de {self.product.name}"
+
+
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="Produit")
     size = models.CharField(max_length=50, verbose_name="Taille", help_text="Ex: 12 pouces")
