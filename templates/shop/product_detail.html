@@ -5,8 +5,8 @@
 
 {% block content %}
 
-<!-- ── HERO SLIDER (photos + vidéos) ──────────────────────────── -->
-{% if images or videos %}
+<!-- ── HERO SLIDER ──────────────────────────────────────────── -->
+{% if media_count %}
 <div class="pd-hero">
     <div class="pd-slider" id="pdSlider">
         <div class="pd-track" id="pdTrack">
@@ -24,16 +24,13 @@
             </div>
             {% endfor %}
         </div>
-        {% with total=images|length|add:videos|length %}
-        {% if total > 1 %}
+        {% if media_count > 1 %}
         <button class="pd-arrow pd-arrow-prev" onclick="pdSlide(-1)">&#8249;</button>
         <button class="pd-arrow pd-arrow-next" onclick="pdSlide(1)">&#8250;</button>
         {% endif %}
-        {% endwith %}
     </div>
 
-    {% with total=images|length|add:videos|length %}
-    {% if total > 1 %}
+    {% if media_count > 1 %}
     <div class="pd-thumbs">
         {% for img in images %}
         <button class="pd-thumb {% if forloop.first %}active{% endif %}" onclick="pdGoto({{ forloop.counter0 }})">
@@ -47,11 +44,10 @@
         {% endfor %}
     </div>
     {% endif %}
-    {% endwith %}
 </div>
 {% endif %}
 
-<!-- ── PRODUCT INFO ────────────────────────────────── -->
+<!-- ── PRODUCT INFO ─────────────────────────────────────────── -->
 <div class="pd-info-wrap">
 
     <p class="pd-category">{{ product.get_category_display }}</p>
@@ -82,7 +78,7 @@
                 data-variant-id="{{ v.id }}"
                 data-variant-type="{{ group.type }}"
                 {% if v.price %}data-price="{{ v.price }}"{% endif %}
-                onclick="selectVariant(this, '{{ group.type }}')">
+                onclick="selectVariant(this)">
                 {{ v.label }}
             </button>
             {% endfor %}
@@ -118,33 +114,37 @@
 </div>
 
 <script>
-var discountPercent = parseFloat('{{ product.discount_percent|default:0 }}') || 0;
-var baseVariantPrice = parseFloat('{{ variant_groups.0.options.0.price|default:product.price }}') || {{ product.price }};
-var currentPrice = discountPercent > 0 ? round2(baseVariantPrice * (1 - discountPercent/100)) : baseVariantPrice;
+// ── Config ────────────────────────────────────────────────────
+var DISCOUNT = {{ product.discount_percent|default:0 }};
+var BASE_PRICE = {{ product.price }};
+var currentPrice = BASE_PRICE;
 var pdIndex = 0;
-var pdTotal = {{ images|length|add:videos|length }};
+var pdTotal = {{ media_count }};
 
-function round2(n) { return Math.round(n * 100) / 100; }
+// Initialiser le prix avec le premier variant s'il existe
+{% if variant_groups %}{% if variant_groups.0.options.0.price %}
+currentPrice = {{ variant_groups.0.options.0.price }};
+{% endif %}{% endif %}
+if (DISCOUNT > 0) currentPrice = Math.round(currentPrice * (1 - DISCOUNT/100) * 100) / 100;
 
-// ── Slider ──────────────────────────────────────────
+// ── Slider ────────────────────────────────────────────────────
 function pdSlide(dir) {
-    if (pdTotal < 2) return;
     pdIndex = (pdIndex + dir + pdTotal) % pdTotal;
     pdGoto(pdIndex);
 }
 function pdGoto(i) {
     pdIndex = i;
     var slider = document.getElementById('pdSlider');
-    var track = document.getElementById('pdTrack');
-    if (!slider || !track) return;
-    track.style.transform = 'translateX(-' + (i * slider.offsetWidth) + 'px)';
+    var track  = document.getElementById('pdTrack');
+    if (!track) return;
+    track.style.transform = 'translateX(' + (-i * slider.offsetWidth) + 'px)';
 
-    // Pause toutes les vidéos, play la slide active si c'est une vidéo
+    // Gestion vidéo
     document.querySelectorAll('.pd-slide video').forEach(function(v) { v.pause(); });
-    var activeSlide = document.querySelectorAll('.pd-slide')[i];
-    if (activeSlide && activeSlide.classList.contains('pd-slide-video')) {
-        var vid = activeSlide.querySelector('video');
-        if (vid) vid.play();
+    var slides = document.querySelectorAll('.pd-slide');
+    if (slides[i] && slides[i].classList.contains('pd-slide-video')) {
+        slides[i].querySelector('video').play();
+        slides[i].querySelector('.pd-video-play-btn').style.opacity = '0';
     }
 
     document.querySelectorAll('.pd-thumb').forEach(function(t, idx) {
@@ -157,69 +157,57 @@ function toggleVideoPlay(btn) {
     else { video.pause(); btn.style.opacity = '1'; }
 }
 
-// ── Swipe tactile ────────────────────────────────────
-var pdTouchX = 0;
-var sliderEl = document.getElementById('pdSlider');
-if (sliderEl) {
-    sliderEl.addEventListener('touchstart', function(e) { pdTouchX = e.touches[0].clientX; }, {passive:true});
-    sliderEl.addEventListener('touchend', function(e) {
-        if (Math.abs(pdTouchX - e.changedTouches[0].clientX) > 40)
-            pdSlide(pdTouchX > e.changedTouches[0].clientX ? 1 : -1);
-    }, {passive:true});
+// Swipe tactile
+var _tx = 0;
+var _slider = document.getElementById('pdSlider');
+if (_slider) {
+    _slider.addEventListener('touchstart', function(e){ _tx = e.touches[0].clientX; }, {passive:true});
+    _slider.addEventListener('touchend',   function(e){ var d = _tx - e.changedTouches[0].clientX; if(Math.abs(d)>40) pdSlide(d>0?1:-1); }, {passive:true});
 }
 
-// Auto-slide toutes les 5s
-if (pdTotal > 1) {
-    setInterval(function() { pdSlide(1); }, 5000);
-}
+// Auto-slide 5s
+if (pdTotal > 1) setInterval(function(){ pdSlide(1); }, 5000);
 
-// ── Variantes ────────────────────────────────────────
-function selectVariant(btn, type) {
-    btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(function(b) {
-        b.classList.remove('active');
-    });
+// ── Variantes ─────────────────────────────────────────────────
+function selectVariant(btn) {
+    btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
-    var variantInput = document.getElementById('variantInput');
-    if (variantInput) variantInput.value = btn.dataset.variantId;
+    var vi = document.getElementById('variantInput');
+    if (vi) vi.value = btn.dataset.variantId;
     if (btn.dataset.price) {
-        var rawPrice = parseFloat(btn.dataset.price);
-        currentPrice = discountPercent > 0 ? round2(rawPrice * (1 - discountPercent/100)) : rawPrice;
-        updatePriceDisplay();
+        var p = parseFloat(btn.dataset.price);
+        currentPrice = DISCOUNT > 0 ? Math.round(p * (1 - DISCOUNT/100) * 100) / 100 : p;
+        refreshPrice();
     }
 }
 
-// ── Installation toggle ──────────────────────────────
-function toggleInstallation(checkbox) {
-    document.getElementById('installationInput').value = checkbox.checked ? '1' : '0';
-    updatePriceDisplay();
+// ── Prix ──────────────────────────────────────────────────────
+function toggleInstallation(cb) {
+    document.getElementById('installationInput').value = cb.checked ? '1' : '0';
+    refreshPrice();
 }
-
-function updatePriceDisplay() {
-    var withInstall = document.getElementById('installationCheck') && document.getElementById('installationCheck').checked;
+function refreshPrice() {
+    var cb = document.getElementById('installationCheck');
+    var withInstall = cb && cb.checked;
+    var final = withInstall ? Math.round(currentPrice * 0.95 * 100) / 100 : currentPrice;
     var priceEl = document.getElementById('displayPrice');
-    var discEl = document.getElementById('displayPriceDiscounted');
+    var discEl  = document.getElementById('displayPriceDiscounted');
 
-    var finalPrice = withInstall ? round2(currentPrice * 0.95) : currentPrice;
-    var originalVariantPrice = parseFloat(document.querySelector('.variant-btn.active[data-price]') ? document.querySelector('.variant-btn.active[data-price]').dataset.price : '{{ product.price }}');
+    var activeBtn = document.querySelector('.variant-btn.active[data-price]');
+    var origRaw   = activeBtn ? parseFloat(activeBtn.dataset.price) : BASE_PRICE;
 
-    if (discountPercent > 0 || withInstall) {
-        priceEl.style.textDecoration = 'line-through';
-        priceEl.style.opacity = '0.4';
-        priceEl.style.fontSize = '1rem';
-        priceEl.textContent = originalVariantPrice.toFixed(2) + ' $';
-        discEl.style.display = 'block';
-        discEl.textContent = finalPrice.toFixed(2) + ' $';
+    if (DISCOUNT > 0 || withInstall) {
+        priceEl.style.cssText = 'text-decoration:line-through;opacity:0.4;font-size:1rem;';
+        priceEl.textContent   = origRaw.toFixed(2) + ' $';
+        discEl.style.display  = 'block';
+        discEl.textContent    = final.toFixed(2) + ' $';
     } else {
-        priceEl.style.textDecoration = '';
-        priceEl.style.opacity = '';
-        priceEl.style.fontSize = '';
-        priceEl.textContent = currentPrice.toFixed(2) + ' $';
-        discEl.style.display = 'none';
+        priceEl.style.cssText = '';
+        priceEl.textContent   = currentPrice.toFixed(2) + ' $';
+        discEl.style.display  = 'none';
     }
 }
-
-// Afficher le rabais dès le chargement si applicable
-if (discountPercent > 0) { updatePriceDisplay(); }
+if (DISCOUNT > 0) refreshPrice();
 
 function cartAnimation(btn) { btn.textContent = '✦ Ajouté !'; }
 </script>
