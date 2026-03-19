@@ -34,8 +34,15 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price']
+    list_filter = ['category']
     exclude = ['image_url']
     inlines = [ProductImageInline, ProductVariantInline]
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if request.GET.get('category'):
+            initial['category'] = request.GET.get('category')
+        return initial
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
