@@ -11,6 +11,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(blank=True)
     image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
+    video_url = models.URLField(blank=True, null=True, verbose_name="URL de la vidéo (Cloudinary)")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='produits', verbose_name="Catégorie")
 
     def __str__(self):

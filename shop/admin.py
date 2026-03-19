@@ -35,7 +35,7 @@ class OrderAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price']
     list_filter = ['category']
-    exclude = ['image_url']
+    fields = ['name', 'category', 'price', 'description', 'video_url']
     inlines = [ProductImageInline, ProductVariantInline]
 
     def get_changeform_initial_data(self, request):

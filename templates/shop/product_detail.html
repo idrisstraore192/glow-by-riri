@@ -5,121 +5,134 @@
 
 {% block content %}
 
-<div class="section" style="padding-top: 4rem;">
-    <div class="product-detail-wrap">
-        <div class="product-detail-img">
-            {% if images %}
-            <div class="product-slider" id="productSlider">
-                <div class="product-slider-track" id="productTrack">
-                    {% for img in images %}
-                    <div class="product-slide">
-                        <img src="{{ img.image_url }}" alt="{{ product.name }}" onclick="toggleZoom(this)">
-                    </div>
-                    {% endfor %}
-                </div>
-                {% if images|length > 1 %}
-                <button class="slider-btn slider-prev" onclick="slideProduct(-1)">&#8249;</button>
-                <button class="slider-btn slider-next" onclick="slideProduct(1)">&#8250;</button>
-                <div class="product-thumbs">
-                    {% for img in images %}
-                    <img src="{{ img.image_url }}" alt="{{ product.name }}"
-                        class="product-thumb {% if forloop.first %}active{% endif %}"
-                        onclick="goToProductSlide({{ forloop.counter0 }})">
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            {% elif product.image_url %}
-            <img src="{{ product.image_url }}" alt="{{ product.name }}" id="productImg" onclick="toggleZoom(this)">
-            {% else %}
-            <div class="product-img-placeholder" style="aspect-ratio:3/4;font-size:4rem;">✦</div>
-            {% endif %}
-        </div>
-
-        <div class="product-detail-info">
-            <p class="section-label">{{ product.get_category_display }}</p>
-            <h1 class="product-detail-name">{{ product.name }}</h1>
-
-            <div class="price-wrap">
-                <p class="product-detail-price" id="displayPrice">
-                    {% if variant_groups %}{{ variant_groups.0.options.0.price|default:product.price }}{% else %}{{ product.price }}{% endif %} $
-                </p>
-                <p class="price-discounted" id="displayPriceDiscounted" style="display:none;"></p>
-            </div>
-
-            {% if product.description %}
-            <p class="product-detail-desc">{{ product.description }}</p>
-            {% endif %}
-
-            {% for group in variant_groups %}
-            <div class="variant-selector">
-                <p class="variant-label">{{ group.label }}</p>
-                <div class="variant-options">
-                    {% for v in group.options %}
-                    <button type="button"
-                        class="variant-btn {% if forloop.first %}active{% endif %}"
-                        data-variant-id="{{ v.id }}"
-                        data-variant-type="{{ group.type }}"
-                        {% if v.price %}data-price="{{ v.price }}"{% endif %}
-                        onclick="selectVariant(this, '{{ group.type }}')">
-                        {{ v.label }}
-                    </button>
-                    {% endfor %}
-                </div>
+<!-- ── HERO IMAGE ──────────────────────────────────── -->
+{% if images %}
+<div class="pd-hero">
+    <div class="pd-slider" id="pdSlider">
+        <div class="pd-track" id="pdTrack">
+            {% for img in images %}
+            <div class="pd-slide">
+                <img src="{{ img.image_url }}" alt="{{ product.name }}">
             </div>
             {% endfor %}
+        </div>
+        {% if images|length > 1 %}
+        <button class="pd-arrow pd-arrow-prev" onclick="pdSlide(-1)">&#8249;</button>
+        <button class="pd-arrow pd-arrow-next" onclick="pdSlide(1)">&#8250;</button>
+        {% endif %}
+    </div>
+    {% if images|length > 1 %}
+    <div class="pd-thumbs">
+        {% for img in images %}
+        <button class="pd-thumb {% if forloop.first %}active{% endif %}" onclick="pdGoto({{ forloop.counter0 }})">
+            <img src="{{ img.image_url }}" alt="{{ product.name }}">
+        </button>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% elif product.image_url %}
+<div class="pd-hero">
+    <div class="pd-hero-single">
+        <img src="{{ product.image_url }}" alt="{{ product.name }}">
+    </div>
+</div>
+{% endif %}
 
-            {% if product.category == 'perruques' %}
-            <label class="installation-toggle">
-                <input type="checkbox" id="installationCheck" onchange="toggleInstallation(this)">
-                <div class="installation-toggle-box">
-                    <div class="installation-toggle-info">
-                        <span class="installation-toggle-title">Pose chez Glow by Riri</span>
-                        <span class="installation-toggle-sub">Réservez votre rdv après l'achat</span>
-                    </div>
-                    <span class="installation-badge">-5%</span>
-                </div>
-            </label>
-            {% endif %}
+<!-- ── PRODUCT INFO ────────────────────────────────── -->
+<div class="pd-info-wrap">
 
-            <form method="post" action="{% url 'add_to_cart' product.id %}" id="addToCartForm">
-                {% csrf_token %}
-                {% if variant_groups %}
-                <input type="hidden" name="variant_id" id="variantInput" value="{{ variant_groups.0.options.0.id }}">
-                {% endif %}
-                <input type="hidden" name="with_installation" id="installationInput" value="0">
-                <button type="submit" class="btn btn-black" id="addToCartBtn"
-                    style="margin-top: 1.5rem; width: 100%; justify-content: center;"
-                    onclick="cartAnimation(this)">
-                    Ajouter au panier
-                </button>
-            </form>
+    <p class="pd-category">{{ product.get_category_display }}</p>
+    <h1 class="pd-name">{{ product.name }}</h1>
 
-            <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
+    <div class="pd-price-wrap">
+        <p class="pd-price" id="displayPrice">
+            {% if variant_groups %}{{ variant_groups.0.options.0.price|default:product.price }}{% else %}{{ product.price }}{% endif %} $
+        </p>
+        <p class="pd-price-discounted" id="displayPriceDiscounted" style="display:none;"></p>
+    </div>
+
+    {% if product.description %}
+    <p class="pd-desc">{{ product.description }}</p>
+    {% endif %}
+
+    <!-- Variantes -->
+    {% for group in variant_groups %}
+    <div class="pd-variant-group">
+        <p class="pd-variant-label">{{ group.label }}</p>
+        <div class="pd-variant-options">
+            {% for v in group.options %}
+            <button type="button"
+                class="variant-btn {% if forloop.first %}active{% endif %}"
+                data-variant-id="{{ v.id }}"
+                data-variant-type="{{ group.type }}"
+                {% if v.price %}data-price="{{ v.price }}"{% endif %}
+                onclick="selectVariant(this, '{{ group.type }}')">
+                {{ v.label }}
+            </button>
+            {% endfor %}
         </div>
     </div>
+    {% endfor %}
+
+    <!-- Installation -5% -->
+    {% if product.category == 'perruques' %}
+    <label class="installation-toggle">
+        <input type="checkbox" id="installationCheck" onchange="toggleInstallation(this)">
+        <div class="installation-toggle-box">
+            <div class="installation-toggle-info">
+                <span class="installation-toggle-title">Pose chez Glow by Riri</span>
+                <span class="installation-toggle-sub">Réservez votre rdv après l'achat</span>
+            </div>
+            <span class="installation-badge">-5%</span>
+        </div>
+    </label>
+    {% endif %}
+
+    <!-- Add to cart -->
+    <form method="post" action="{% url 'add_to_cart' product.id %}" id="addToCartForm">
+        {% csrf_token %}
+        {% if variant_groups %}
+        <input type="hidden" name="variant_id" id="variantInput" value="{{ variant_groups.0.options.0.id }}">
+        {% endif %}
+        <input type="hidden" name="with_installation" id="installationInput" value="0">
+        <button type="submit" class="btn btn-black pd-cta" onclick="cartAnimation(this)">
+            Ajouter au panier
+        </button>
+    </form>
+
+    <!-- Vidéo -->
+    {% if product.video_url %}
+    <div class="pd-video">
+        <p class="pd-video-label">Vidéo</p>
+        <video controls>
+            <source src="{{ product.video_url }}">
+        </video>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
 </div>
 
 <script>
 var currentPrice = {{ variant_groups.0.options.0.price|default:product.price }};
+var pdIndex = 0;
 
-var productSlideIndex = 0;
-function slideProduct(dir) {
-    var track = document.getElementById('productTrack');
-    var slides = track.querySelectorAll('.product-slide');
-    productSlideIndex = (productSlideIndex + dir + slides.length) % slides.length;
-    goToProductSlide(productSlideIndex);
+function pdSlide(dir) {
+    var slides = document.querySelectorAll('.pd-slide');
+    pdIndex = (pdIndex + dir + slides.length) % slides.length;
+    pdGoto(pdIndex);
 }
-function goToProductSlide(index) {
-    productSlideIndex = index;
-    document.getElementById('productTrack').style.transform = 'translateX(-' + (index * 100) + '%)';
-    document.querySelectorAll('.product-thumb').forEach(function(t, i) {
-        t.classList.toggle('active', i === index);
+function pdGoto(i) {
+    pdIndex = i;
+    document.getElementById('pdTrack').style.transform = 'translateX(-' + (i * 100) + '%)';
+    document.querySelectorAll('.pd-thumb').forEach(function(t, idx) {
+        t.classList.toggle('active', idx === i);
     });
 }
 
 function selectVariant(btn, type) {
-    btn.closest('.variant-options').querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+    btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     if (type === 'longueur' && btn.dataset.price) {
         currentPrice = parseFloat(btn.dataset.price);
@@ -135,27 +148,23 @@ function toggleInstallation(checkbox) {
 
 function updatePriceDisplay() {
     var withInstall = document.getElementById('installationCheck') && document.getElementById('installationCheck').checked;
+    var priceEl = document.getElementById('displayPrice');
+    var discEl = document.getElementById('displayPriceDiscounted');
     if (withInstall) {
-        var discounted = (currentPrice * 0.95).toFixed(2);
-        document.getElementById('displayPrice').style.textDecoration = 'line-through';
-        document.getElementById('displayPrice').style.opacity = '0.4';
-        document.getElementById('displayPrice').style.fontSize = '1rem';
-        document.getElementById('displayPriceDiscounted').style.display = 'block';
-        document.getElementById('displayPriceDiscounted').textContent = discounted + ' $';
+        priceEl.style.textDecoration = 'line-through';
+        priceEl.style.opacity = '0.4';
+        priceEl.style.fontSize = '1rem';
+        discEl.style.display = 'block';
+        discEl.textContent = (currentPrice * 0.95).toFixed(2) + ' $';
     } else {
-        document.getElementById('displayPrice').style.textDecoration = '';
-        document.getElementById('displayPrice').style.opacity = '';
-        document.getElementById('displayPrice').style.fontSize = '';
-        document.getElementById('displayPriceDiscounted').style.display = 'none';
+        priceEl.style.textDecoration = '';
+        priceEl.style.opacity = '';
+        priceEl.style.fontSize = '';
+        discEl.style.display = 'none';
     }
-    document.getElementById('displayPrice').textContent = currentPrice.toFixed(2) + ' $';
+    priceEl.textContent = currentPrice.toFixed(2) + ' $';
 }
 
-function toggleZoom(img) {
-    img.classList.toggle('zoomed');
-}
-function cartAnimation(btn) {
-    btn.textContent = '✦ Ajouté !';
-}
+function cartAnimation(btn) { btn.textContent = '✦ Ajouté !'; }
 </script>
 {% endblock %}
