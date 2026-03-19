@@ -6,7 +6,7 @@
 {% block content %}
 
 <!-- BANNIÈRE BOUTIQUE -->
-{% if current_category == 'perruques' %}
+{% if current_category == 'perruques' or current_category == 'lace' %}
 <div class="shop-banner shop-banner-hero">
     <img src="{% static 'images/photo_perruque.png' %}" alt="Perruques" class="shop-banner-bg shop-banner-photo">
     <div class="shop-banner-hero-text">
