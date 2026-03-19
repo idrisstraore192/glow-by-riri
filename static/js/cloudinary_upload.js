@@ -15,36 +15,37 @@ function addCloudinaryButton(urlField) {
     if (urlField.value) preview.src = urlField.value;
     btn.parentNode.insertBefore(preview, btn.nextSibling);
 
-    var pendingUrls = [];
+    btn.addEventListener('click', function() {
+        var pendingUrls = [];
 
-    var widget = cloudinary.createUploadWidget({
-        cloudName: 'dsyvh6owc',
-        uploadPreset: 'glow_products',
-        sources: ['local', 'url'],
-        multiple: true,
-        folder: 'products',
-        cropping: false,
-    }, function(error, result) {
-        if (!error && result && result.event === 'success') {
-            pendingUrls.push(result.info.secure_url);
-        }
-        if (!error && result && result.event === 'close') {
-            if (pendingUrls.length === 0) return;
-
-            // Première URL dans le champ actuel
-            urlField.value = pendingUrls[0];
-            preview.src = pendingUrls[0];
-
-            // URLs supplémentaires → nouvelles lignes inline
-            if (pendingUrls.length > 1) {
-                var addLink = findAddRowLink(urlField);
-                fillNextRows(addLink, pendingUrls, 1);
+        // Recréer le widget à chaque clic pour éviter les bugs après annulation
+        var widget = cloudinary.createUploadWidget({
+            cloudName: 'dsyvh6owc',
+            uploadPreset: 'glow_products',
+            sources: ['local', 'url'],
+            multiple: true,
+            folder: 'products',
+            cropping: false,
+        }, function(error, result) {
+            if (!error && result && result.event === 'success') {
+                pendingUrls.push(result.info.secure_url);
             }
-            pendingUrls = [];
-        }
-    });
+            if (!error && result && result.event === 'close') {
+                widget.destroy();
+                if (pendingUrls.length === 0) return;
 
-    btn.addEventListener('click', function() { widget.open(); });
+                urlField.value = pendingUrls[0];
+                preview.src = pendingUrls[0];
+
+                if (pendingUrls.length > 1) {
+                    var addLink = findAddRowLink(urlField);
+                    fillNextRows(addLink, pendingUrls, 1);
+                }
+            }
+        });
+
+        widget.open();
+    });
 }
 
 function findAddRowLink(urlField) {
