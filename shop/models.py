@@ -7,12 +7,17 @@ class Product(models.Model):
         ('produits', 'Nos produits'),
         ('perruques', 'Perruques & Lace'),
     ]
+    TYPE_CHOICES = [
+        ('perruque', 'Perruque'),
+        ('lace', 'Lace / Frontale'),
+    ]
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(blank=True)
     image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
     video_url = models.URLField(blank=True, null=True, verbose_name="URL de la vidéo (Cloudinary)")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='produits', verbose_name="Catégorie")
+    product_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='perruque', verbose_name="Type", help_text="Perruque ou Lace/Frontale (pour l'ordre d'affichage)")
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Rabais (%)", help_text="Ex: 20 pour -20%. Laisser 0 si aucun rabais.")
 
     @property
