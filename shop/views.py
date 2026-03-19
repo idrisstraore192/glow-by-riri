@@ -30,10 +30,13 @@ def product_detail(request, product_id):
             label = dict(product.variants.model.TYPE_CHOICES).get(vtype, vtype)
             ordered_groups.append({'type': vtype, 'label': label, 'options': variant_groups[vtype]})
     videos = list(product.videos.all())
+    images_count = len(images)
+    media_count = images_count + len(videos)
     return render(request, "shop/product_detail.html", {
         "product": product,
         "images": images,
-        "images_count": len(images),
+        "images_count": images_count,
+        "media_count": media_count,
         "videos": videos,
         "variant_groups": ordered_groups,
     })
