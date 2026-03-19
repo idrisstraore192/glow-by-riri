@@ -69,14 +69,18 @@
     {% endif %}
 
     {% for group in variant_groups %}
-    <div class="pd-variant-group">
-        <p class="pd-variant-label">{{ group.label }}</p>
+    <div class="pd-variant-group {% if forloop.first %}vg-visible{% endif %}" data-group-index="{{ forloop.counter0 }}">
+        <p class="pd-variant-label">
+            {{ group.label }}
+            {% if not forloop.first %}<span class="vg-step">— choisis d'abord la longueur</span>{% endif %}
+        </p>
         <div class="pd-variant-options">
             {% for v in group.options %}
             <button type="button"
-                class="variant-btn {% if forloop.first %}active{% endif %}"
+                class="variant-btn {% if forloop.first and forloop.parentloop.first %}active{% endif %}"
                 data-variant-id="{{ v.id }}"
                 data-variant-type="{{ group.type }}"
+                data-next-group="{{ forloop.parentloop.counter }}"
                 {% if v.price %}data-price="{{ v.price }}"{% endif %}
                 onclick="selectVariant(this)">
                 {{ v.label }}
@@ -168,16 +172,30 @@ if (_slider) {
 // Auto-slide 5s
 if (pdTotal > 1) setInterval(function(){ pdSlide(1); }, 5000);
 
-// ── Variantes ─────────────────────────────────────────────────
+// ── Variantes (cascade) ───────────────────────────────────────
 function selectVariant(btn) {
     btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
+
+    // Mettre à jour variantInput (longueur = prix)
     var vi = document.getElementById('variantInput');
     if (vi) vi.value = btn.dataset.variantId;
+
+    // Mettre à jour le prix si longueur
     if (btn.dataset.price) {
         var p = parseFloat(btn.dataset.price);
         currentPrice = DISCOUNT > 0 ? Math.round(p * (1 - DISCOUNT/100) * 100) / 100 : p;
         refreshPrice();
+    }
+
+    // Révéler le groupe suivant en cascade
+    var nextIndex = parseInt(btn.dataset.nextGroup);
+    var groups = document.querySelectorAll('.pd-variant-group');
+    if (groups[nextIndex]) {
+        groups[nextIndex].classList.add('vg-visible');
+        // Enlever le message d'attente
+        var hint = groups[nextIndex].querySelector('.vg-step');
+        if (hint) hint.remove();
     }
 }
 

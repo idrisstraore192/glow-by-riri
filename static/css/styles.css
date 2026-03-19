@@ -642,9 +642,11 @@ footer span { color: var(--rose); }
 .pd-price-discounted { font-size: 1.35rem; font-family: 'Playfair Display', serif; color: var(--rose-dark); font-weight: 700; }
 .pd-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.9; margin-bottom: 1.5rem; }
 
-/* Variant groups */
-.pd-variant-group { margin-bottom: 1.25rem; text-align: left; }
-.pd-variant-label { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; }
+/* Variant groups — cascade */
+.pd-variant-group { margin-bottom: 1.25rem; text-align: left; opacity: 0; max-height: 0; overflow: hidden; transition: opacity 0.4s ease, max-height 0.4s ease; pointer-events: none; }
+.pd-variant-group.vg-visible { opacity: 1; max-height: 300px; pointer-events: auto; }
+.pd-variant-label { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+.vg-step { font-size: 0.7rem; font-weight: 400; color: var(--muted); text-transform: none; letter-spacing: 0; }
 .pd-variant-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
 /* CTA */
