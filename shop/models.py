@@ -32,17 +32,23 @@ class ProductImage(models.Model):
 
 
 class ProductVariant(models.Model):
+    TYPE_CHOICES = [
+        ('longueur', 'Longueur'),
+        ('fermeture', 'Type de lace'),
+        ('densite', 'Densité'),
+    ]
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="Produit")
-    size = models.CharField(max_length=50, verbose_name="Taille", help_text="Ex: 12 pouces")
-    price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Prix")
+    variant_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='longueur', verbose_name="Type")
+    label = models.CharField(max_length=50, default='', verbose_name="Option", help_text="Ex: 12 pouces, 13x4 HD, 180%")
+    price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name="Prix (longueur seulement)")
 
     class Meta:
         verbose_name = "Variante"
         verbose_name_plural = "Variantes"
-        ordering = ['price']
+        ordering = ['variant_type', 'price', 'label']
 
     def __str__(self):
-        return f"{self.product.name} — {self.size}"
+        return f"{self.product.name} — {self.get_variant_type_display()} : {self.label}"
 
 
 class Order(models.Model):

@@ -45,27 +45,28 @@
             <p class="product-detail-desc">{{ product.description }}</p>
             {% endif %}
 
-            {% if variants %}
+            {% for group in variant_groups %}
             <div class="variant-selector">
-                <p class="variant-label">Taille</p>
-                <div class="variant-options" id="variantOptions">
-                    {% for v in variants %}
+                <p class="variant-label">{{ group.label }}</p>
+                <div class="variant-options">
+                    {% for v in group.options %}
                     <button type="button"
                         class="variant-btn {% if forloop.first %}active{% endif %}"
                         data-variant-id="{{ v.id }}"
-                        data-price="{{ v.price }}"
-                        onclick="selectVariant(this)">
-                        {{ v.size }}
+                        data-variant-type="{{ group.type }}"
+                        {% if v.price %}data-price="{{ v.price }}"{% endif %}
+                        onclick="selectVariant(this, '{{ group.type }}')">
+                        {{ v.label }}
                     </button>
                     {% endfor %}
                 </div>
             </div>
-            {% endif %}
+            {% endfor %}
 
             <form method="post" action="{% url 'add_to_cart' product.id %}" id="addToCartForm">
                 {% csrf_token %}
-                {% if variants %}
-                <input type="hidden" name="variant_id" id="variantInput" value="{{ variants.0.id }}">
+                {% if variant_groups %}
+                <input type="hidden" name="variant_id" id="variantInput" value="{{ variant_groups.0.options.0.id }}">
                 {% endif %}
                 <button type="submit" class="btn" id="addToCartBtn"
                     style="margin-top: 2rem; min-width: 220px; justify-content: center;"
@@ -97,11 +98,18 @@ function goToProductSlide(index) {
     });
 }
 
-function selectVariant(btn) {
-    document.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+function selectVariant(btn, type) {
+    // Désactiver seulement les boutons du même groupe
+    btn.closest('.variant-options').querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('displayPrice').textContent = btn.dataset.price + ' $';
-    document.getElementById('variantInput').value = btn.dataset.variantId;
+    // Mettre à jour le prix si c'est une longueur
+    if (type === 'longueur' && btn.dataset.price) {
+        document.getElementById('displayPrice').textContent = btn.dataset.price + ' $';
+    }
+    // Stocker la variante sélectionnée pour longueur
+    if (type === 'longueur') {
+        document.getElementById('variantInput').value = btn.dataset.variantId;
+    }
 }
 
 function toggleZoom(wrap) {

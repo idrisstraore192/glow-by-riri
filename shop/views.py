@@ -17,9 +17,23 @@ def product_list(request):
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    variants = product.variants.all()
     images = product.images.all()
-    return render(request, "shop/product_detail.html", {"product": product, "variants": variants, "images": images})
+    # Grouper les variantes par type
+    from collections import defaultdict
+    variant_groups = defaultdict(list)
+    for v in product.variants.all():
+        variant_groups[v.variant_type].append(v)
+    # Ordre d'affichage
+    ordered_groups = []
+    for vtype in ['longueur', 'fermeture', 'densite']:
+        if vtype in variant_groups:
+            label = dict(product.variants.model.TYPE_CHOICES).get(vtype, vtype)
+            ordered_groups.append({'type': vtype, 'label': label, 'options': variant_groups[vtype]})
+    return render(request, "shop/product_detail.html", {
+        "product": product,
+        "images": images,
+        "variant_groups": ordered_groups,
+    })
 
 
 def update_cart(request, product_id):
