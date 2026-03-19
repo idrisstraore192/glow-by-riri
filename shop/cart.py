@@ -8,18 +8,21 @@ class Cart:
         self.session = request.session
         self.cart = self.session.setdefault(CART_SESSION_KEY, {})
 
-    def add(self, product, quantity=1, variant=None):
+    def add(self, product, quantity=1, variant=None, with_installation=False):
         key = f"{product.id}_{variant.id}" if variant else str(product.id)
-        price = str(variant.price) if variant else str(product.price)
-        size = variant.size if variant else None
+        base_price = float(variant.price) if (variant and variant.price) else float(product.price)
+        if with_installation:
+            base_price = round(base_price * 0.95, 2)
+        label = variant.label if variant else None
         if key in self.cart:
             self.cart[key]['quantity'] += quantity
         else:
             self.cart[key] = {
                 'quantity': quantity,
-                'price': price,
+                'price': str(base_price),
                 'product_id': product.id,
-                'size': size,
+                'label': label,
+                'installation': with_installation,
             }
         self.save()
 

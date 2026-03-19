@@ -52,9 +52,11 @@ def add_to_cart(request, product_id):
     cart = Cart(request)
     variant_id = request.POST.get('variant_id') or request.GET.get('variant_id')
     variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
-    cart.add(product, variant=variant)
-    size_label = f' — {variant.size}' if variant else ''
-    messages.success(request, f'{product.name}{size_label} ajouté au panier ✦')
+    with_installation = request.POST.get('with_installation') == '1'
+    cart.add(product, variant=variant, with_installation=with_installation)
+    label = f' — {variant.label}' if variant else ''
+    promo = ' (-5% pose incluse)' if with_installation else ''
+    messages.success(request, f'{product.name}{label}{promo} ajouté au panier ✦')
     return redirect(request.META.get('HTTP_REFERER', 'products'))
 
 

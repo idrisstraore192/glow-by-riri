@@ -608,6 +608,19 @@ footer span { color: var(--rose); }
 .product-detail-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.85; }
 .product-detail-back { display: inline-block; margin-top: 1.5rem; font-size: 0.75rem; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
 .product-detail-back:hover { color: var(--rose-dark); }
+/* ── INSTALLATION TOGGLE ── */
+.installation-toggle { display: block; cursor: pointer; margin: 1.25rem 0 0; }
+.installation-toggle input { display: none; }
+.installation-toggle-box { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border: 1.5px solid var(--border); border-radius: 8px; transition: border-color 0.2s, background 0.2s; }
+.installation-toggle input:checked + .installation-toggle-box { border-color: var(--black); background: var(--gray); }
+.installation-toggle-info { display: flex; flex-direction: column; gap: 0.15rem; }
+.installation-toggle-title { font-size: 0.88rem; font-weight: 600; }
+.installation-toggle-sub { font-size: 0.75rem; color: var(--muted); }
+.installation-badge { background: var(--black); color: var(--white); font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 999px; white-space: nowrap; }
+.installation-toggle input:checked + .installation-toggle-box .installation-badge { background: var(--rose-dark); }
+.price-wrap { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1rem; }
+.price-discounted { font-size: 1.4rem; font-family: 'Playfair Display', serif; color: var(--black); font-weight: 700; }
+
 .variant-selector { margin-bottom: 1.25rem; }
 .variant-label { font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 0.6rem; }
 .variant-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
