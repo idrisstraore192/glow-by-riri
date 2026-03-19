@@ -115,15 +115,15 @@
 
 <script>
 // ── Config ────────────────────────────────────────────────────
-var DISCOUNT = {{ product.discount_percent|default:0 }};
-var BASE_PRICE = {{ product.price }};
+var DISCOUNT = parseFloat('{{ product.discount_percent|default:0 }}'.replace(',','.')) || 0;
+var BASE_PRICE = parseFloat('{{ product.price|stringformat:".2f" }}') || 0;
 var currentPrice = BASE_PRICE;
 var pdIndex = 0;
 var pdTotal = {{ media_count }};
 
 // Initialiser le prix avec le premier variant s'il existe
 {% if variant_groups %}{% if variant_groups.0.options.0.price %}
-currentPrice = {{ variant_groups.0.options.0.price }};
+currentPrice = parseFloat('{{ variant_groups.0.options.0.price|stringformat:".2f" }}') || BASE_PRICE;
 {% endif %}{% endif %}
 if (DISCOUNT > 0) currentPrice = Math.round(currentPrice * (1 - DISCOUNT/100) * 100) / 100;
 
