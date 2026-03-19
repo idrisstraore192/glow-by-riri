@@ -144,6 +144,17 @@ body {
     padding: 0;
     background: #1a1008;
 }
+.banner-slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+.banner-slide-1 { animation: bannerCross 10s ease-in-out infinite; z-index: 1; }
+.banner-slide-2 { animation: bannerCross 10s ease-in-out infinite 5s; z-index: 2; }
+@keyframes bannerCross {
+    0%   { opacity: 0; }
+    10%  { opacity: 1; }
+    45%  { opacity: 1; }
+    55%  { opacity: 0; }
+    100% { opacity: 0; }
+}
+.shop-banner-hero-text { z-index: 10; }
 .shop-banner-hero .shop-banner-photo {
     object-fit: cover;
     object-position: center 20%;

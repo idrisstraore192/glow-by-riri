@@ -44,7 +44,7 @@ class OrderAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price', 'display_discount']
     list_filter = ['category']
-    fields = ['name', 'category', 'price', 'discount_percent', 'description']
+    fields = ['name', 'category', 'product_type', 'price', 'discount_percent', 'description']
     inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline]
 
     def display_discount(self, obj):

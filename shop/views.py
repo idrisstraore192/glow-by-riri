@@ -11,7 +11,11 @@ SITE_URL = "https://web-production-ff3c4.up.railway.app"
 
 def product_list(request):
     category = request.GET.get('category')
-    products = Product.objects.filter(category=category) if category else Product.objects.all()
+    if category:
+        # Perruques d'abord, puis laces — chaque groupe par prix croissant
+        products = Product.objects.filter(category=category).order_by('product_type', 'price')
+    else:
+        products = Product.objects.all().order_by('category', 'product_type', 'price')
     return render(request, "shop/products.html", {"products": products, "current_category": category})
 
 
