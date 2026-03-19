@@ -64,10 +64,20 @@
                 <div class="product-img-placeholder">✦</div>
                 {% endif %}
                 {% endwith %}
+                {% if p.discount_percent and p.discount_percent > 0 %}
+                <span class="product-discount-badge">-{{ p.discount_percent|floatformat:0 }}%</span>
+                {% endif %}
             </div>
             <div class="product-info">
                 <h3>{{ p.name }}</h3>
+                {% if p.discount_percent and p.discount_percent > 0 %}
+                <p class="product-price">
+                    <span class="price-original">{{ p.price }} $</span>
+                    <span class="price-promo">{{ p.final_price }} $</span>
+                </p>
+                {% else %}
                 <p class="product-price">{{ p.price }} $</p>
+                {% endif %}
             </div>
         </a>
         {% endfor %}
