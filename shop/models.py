@@ -18,6 +18,20 @@ class Product(models.Model):
         return self.name
 
 
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="Produit")
+    size = models.CharField(max_length=50, verbose_name="Taille", help_text="Ex: 12 pouces")
+    price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Prix")
+
+    class Meta:
+        verbose_name = "Variante"
+        verbose_name_plural = "Variantes"
+        ordering = ['price']
+
+    def __str__(self):
+        return f"{self.product.name} — {self.size}"
+
+
 class Order(models.Model):
     customer_name = models.CharField(max_length=200)
     customer_email = models.EmailField()

@@ -2,7 +2,7 @@ import stripe
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib import messages
-from .models import Product, Order, OrderItem
+from .models import Product, ProductVariant, Order, OrderItem
 from .cart import Cart
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -17,7 +17,8 @@ def product_list(request):
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    return render(request, "shop/product_detail.html", {"product": product})
+    variants = product.variants.all()
+    return render(request, "shop/product_detail.html", {"product": product, "variants": variants})
 
 
 def update_cart(request, product_id):
@@ -34,8 +35,11 @@ def update_cart(request, product_id):
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     cart = Cart(request)
-    cart.add(product)
-    messages.success(request, f'{product.name} ajouté au panier ✦')
+    variant_id = request.POST.get('variant_id') or request.GET.get('variant_id')
+    variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
+    cart.add(product, variant=variant)
+    size_label = f' — {variant.size}' if variant else ''
+    messages.success(request, f'{product.name}{size_label} ajouté au panier ✦')
     return redirect(request.META.get('HTTP_REFERER', 'products'))
 
 

@@ -17,23 +17,60 @@
         <div class="product-detail-info">
             <p class="section-label">Boutique</p>
             <h1 class="product-detail-name">{{ product.name }}</h1>
-            <p class="product-detail-price">{{ product.price }} $</p>
+            <p class="product-detail-price" id="displayPrice">
+                {% if variants %}{{ variants.0.price }}{% else %}{{ product.price }}{% endif %} $
+            </p>
             {% if product.description %}
             <p class="product-detail-desc">{{ product.description }}</p>
             {% endif %}
-            <a href="{% url 'add_to_cart' product.id %}" class="btn" id="addToCartBtn" style="margin-top: 2rem; min-width: 220px; justify-content: center;" onclick="cartAnimation(this)">
-                Ajouter au panier
-            </a>
+
+            {% if variants %}
+            <div class="variant-selector">
+                <p class="variant-label">Taille</p>
+                <div class="variant-options" id="variantOptions">
+                    {% for v in variants %}
+                    <button type="button"
+                        class="variant-btn {% if forloop.first %}active{% endif %}"
+                        data-variant-id="{{ v.id }}"
+                        data-price="{{ v.price }}"
+                        onclick="selectVariant(this)">
+                        {{ v.size }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'add_to_cart' product.id %}" id="addToCartForm">
+                {% csrf_token %}
+                {% if variants %}
+                <input type="hidden" name="variant_id" id="variantInput" value="{{ variants.0.id }}">
+                {% endif %}
+                <button type="submit" class="btn" id="addToCartBtn"
+                    style="margin-top: 2rem; min-width: 220px; justify-content: center;"
+                    onclick="cartAnimation(this)">
+                    Ajouter au panier
+                </button>
+            </form>
+
             <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
         </div>
     </div>
 </div>
 
 <script>
+function selectVariant(btn) {
+    document.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('displayPrice').textContent = btn.dataset.price + ' $';
+    document.getElementById('variantInput').value = btn.dataset.variantId;
+}
+
 function toggleZoom(wrap) {
     const img = wrap.querySelector('img');
     if (img) img.classList.toggle('zoomed');
 }
+
 function cartAnimation(btn) {
     btn.textContent = '✦ Ajouté !';
     btn.style.background = '#1a1a1a';
