@@ -138,10 +138,13 @@ function pdGoto(i) {
 function selectVariant(btn, type) {
     btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    if (type === 'longueur' && btn.dataset.price) {
-        currentPrice = parseFloat(btn.dataset.price);
-        updatePriceDisplay();
-        document.getElementById('variantInput').value = btn.dataset.variantId;
+    var variantInput = document.getElementById('variantInput');
+    if (type === 'longueur') {
+        if (btn.dataset.price) {
+            currentPrice = parseFloat(btn.dataset.price);
+            updatePriceDisplay();
+        }
+        if (variantInput) variantInput.value = btn.dataset.variantId;
     }
 }
 
