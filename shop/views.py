@@ -29,9 +29,12 @@ def product_detail(request, product_id):
         if vtype in variant_groups:
             label = dict(product.variants.model.TYPE_CHOICES).get(vtype, vtype)
             ordered_groups.append({'type': vtype, 'label': label, 'options': variant_groups[vtype]})
+    videos = list(product.videos.all())
     return render(request, "shop/product_detail.html", {
         "product": product,
         "images": images,
+        "images_count": len(images),
+        "videos": videos,
         "variant_groups": ordered_groups,
     })
 

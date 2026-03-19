@@ -61,7 +61,15 @@
                 <h3 class="service-item-name">{{ service.name }}</h3>
                 <div class="service-item-meta">
                     {% if service.duration %}<span>{{ service.duration }}</span>{% endif %}
+                    {% if service.discount_percent and service.discount_percent > 0 %}
+                    <span class="service-item-price">
+                        <span class="price-original">{{ service.price }} $</span>
+                        <span class="price-promo">{{ service.final_price }} $</span>
+                        <span class="service-discount-badge">-{{ service.discount_percent|floatformat:0 }}%</span>
+                    </span>
+                    {% else %}
                     <span class="service-item-price">{{ service.price }} $</span>
+                    {% endif %}
                 </div>
                 {% if service.description %}
                 <p class="service-expand-desc">{{ service.description }}</p>

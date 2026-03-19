@@ -13,10 +13,16 @@ class ServiceImageInline(admin.TabularInline):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price', 'duration']
+    list_display = ['name', 'category', 'price', 'display_discount', 'duration']
     list_filter = ['category']
+    fields = ['name', 'category', 'price', 'discount_percent', 'duration', 'description']
     inlines = [ServiceImageInline]
-    exclude = ['image_url']
+
+    def display_discount(self, obj):
+        if obj.discount_percent and obj.discount_percent > 0:
+            return f"-{obj.discount_percent:.0f}%"
+        return "—"
+    display_discount.short_description = "Rabais"
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')

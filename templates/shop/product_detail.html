@@ -5,8 +5,8 @@
 
 {% block content %}
 
-<!-- ── HERO IMAGE ──────────────────────────────────── -->
-{% if images %}
+<!-- ── HERO SLIDER (photos + vidéos) ──────────────────────────── -->
+{% if images or videos %}
 <div class="pd-hero">
     <div class="pd-slider" id="pdSlider">
         <div class="pd-track" id="pdTrack">
@@ -15,27 +15,39 @@
                 <img src="{{ img.image_url }}" alt="{{ product.name }}">
             </div>
             {% endfor %}
+            {% for v in videos %}
+            <div class="pd-slide pd-slide-video">
+                <video loop playsinline>
+                    <source src="{{ v.video_url }}">
+                </video>
+                <button class="pd-video-play-btn" onclick="toggleVideoPlay(this)">▶</button>
+            </div>
+            {% endfor %}
         </div>
-        {% if images|length > 1 %}
+        {% with total=images|length|add:videos|length %}
+        {% if total > 1 %}
         <button class="pd-arrow pd-arrow-prev" onclick="pdSlide(-1)">&#8249;</button>
         <button class="pd-arrow pd-arrow-next" onclick="pdSlide(1)">&#8250;</button>
         {% endif %}
+        {% endwith %}
     </div>
-    {% if images|length > 1 %}
+
+    {% with total=images|length|add:videos|length %}
+    {% if total > 1 %}
     <div class="pd-thumbs">
         {% for img in images %}
         <button class="pd-thumb {% if forloop.first %}active{% endif %}" onclick="pdGoto({{ forloop.counter0 }})">
             <img src="{{ img.image_url }}" alt="{{ product.name }}">
         </button>
         {% endfor %}
+        {% for v in videos %}
+        <button class="pd-thumb pd-thumb-video" onclick="pdGoto({{ forloop.counter0|add:images_count }})">
+            <span>▶</span>
+        </button>
+        {% endfor %}
     </div>
     {% endif %}
-</div>
-{% elif product.image_url %}
-<div class="pd-hero">
-    <div class="pd-hero-single">
-        <img src="{{ product.image_url }}" alt="{{ product.name }}">
-    </div>
+    {% endwith %}
 </div>
 {% endif %}
 
@@ -44,6 +56,10 @@
 
     <p class="pd-category">{{ product.get_category_display }}</p>
     <h1 class="pd-name">{{ product.name }}</h1>
+
+    {% if product.discount_percent and product.discount_percent > 0 %}
+    <div class="pd-discount-badge">-{{ product.discount_percent|floatformat:0 }}%</div>
+    {% endif %}
 
     <div class="pd-price-wrap">
         <p class="pd-price" id="displayPrice">
@@ -56,7 +72,6 @@
     <p class="pd-desc">{{ product.description }}</p>
     {% endif %}
 
-    <!-- Variantes -->
     {% for group in variant_groups %}
     <div class="pd-variant-group">
         <p class="pd-variant-label">{{ group.label }}</p>
@@ -75,7 +90,6 @@
     </div>
     {% endfor %}
 
-    <!-- Installation -5% -->
     {% if product.category == 'perruques' %}
     <label class="installation-toggle">
         <input type="checkbox" id="installationCheck" onchange="toggleInstallation(this)">
@@ -89,7 +103,6 @@
     </label>
     {% endif %}
 
-    <!-- Add to cart -->
     <form method="post" action="{% url 'add_to_cart' product.id %}" id="addToCartForm">
         {% csrf_token %}
         {% if variant_groups %}
@@ -101,45 +114,66 @@
         </button>
     </form>
 
-    <!-- Vidéos -->
-    {% with videos=product.videos.all %}
-    {% if videos %}
-    <div class="pd-video">
-        <p class="pd-video-label">Vidéo{% if videos|length > 1 %}s{% endif %}</p>
-        {% for v in videos %}
-        <video controls style="{% if not forloop.first %}margin-top:0.75rem;{% endif %}">
-            <source src="{{ v.video_url }}">
-        </video>
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
-
     <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
 </div>
 
 <script>
-var currentPrice = parseFloat('{{ variant_groups.0.options.0.price|default:product.price }}') || {{ product.price }};
+var discountPercent = parseFloat('{{ product.discount_percent|default:0 }}') || 0;
+var baseVariantPrice = parseFloat('{{ variant_groups.0.options.0.price|default:product.price }}') || {{ product.price }};
+var currentPrice = discountPercent > 0 ? round2(baseVariantPrice * (1 - discountPercent/100)) : baseVariantPrice;
 var pdIndex = 0;
+var pdTotal = {{ images|length|add:videos|length }};
 
+function round2(n) { return Math.round(n * 100) / 100; }
+
+// ── Slider ──────────────────────────────────────────
 function pdSlide(dir) {
-    var slides = document.querySelectorAll('.pd-slide');
-    if (!slides.length) return;
-    pdIndex = (pdIndex + dir + slides.length) % slides.length;
+    if (pdTotal < 2) return;
+    pdIndex = (pdIndex + dir + pdTotal) % pdTotal;
     pdGoto(pdIndex);
 }
 function pdGoto(i) {
     pdIndex = i;
-    var track = document.getElementById('pdTrack');
     var slider = document.getElementById('pdSlider');
-    if (!track || !slider) return;
-    var w = slider.offsetWidth;
-    track.style.transform = 'translateX(-' + (i * w) + 'px)';
+    var track = document.getElementById('pdTrack');
+    if (!slider || !track) return;
+    track.style.transform = 'translateX(-' + (i * slider.offsetWidth) + 'px)';
+
+    // Pause toutes les vidéos, play la slide active si c'est une vidéo
+    document.querySelectorAll('.pd-slide video').forEach(function(v) { v.pause(); });
+    var activeSlide = document.querySelectorAll('.pd-slide')[i];
+    if (activeSlide && activeSlide.classList.contains('pd-slide-video')) {
+        var vid = activeSlide.querySelector('video');
+        if (vid) vid.play();
+    }
+
     document.querySelectorAll('.pd-thumb').forEach(function(t, idx) {
         t.classList.toggle('active', idx === i);
     });
 }
+function toggleVideoPlay(btn) {
+    var video = btn.previousElementSibling;
+    if (video.paused) { video.play(); btn.style.opacity = '0'; }
+    else { video.pause(); btn.style.opacity = '1'; }
+}
 
+// ── Swipe tactile ────────────────────────────────────
+var pdTouchX = 0;
+var sliderEl = document.getElementById('pdSlider');
+if (sliderEl) {
+    sliderEl.addEventListener('touchstart', function(e) { pdTouchX = e.touches[0].clientX; }, {passive:true});
+    sliderEl.addEventListener('touchend', function(e) {
+        if (Math.abs(pdTouchX - e.changedTouches[0].clientX) > 40)
+            pdSlide(pdTouchX > e.changedTouches[0].clientX ? 1 : -1);
+    }, {passive:true});
+}
+
+// Auto-slide toutes les 5s
+if (pdTotal > 1) {
+    setInterval(function() { pdSlide(1); }, 5000);
+}
+
+// ── Variantes ────────────────────────────────────────
 function selectVariant(btn, type) {
     btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(function(b) {
         b.classList.remove('active');
@@ -148,11 +182,13 @@ function selectVariant(btn, type) {
     var variantInput = document.getElementById('variantInput');
     if (variantInput) variantInput.value = btn.dataset.variantId;
     if (btn.dataset.price) {
-        currentPrice = parseFloat(btn.dataset.price);
+        var rawPrice = parseFloat(btn.dataset.price);
+        currentPrice = discountPercent > 0 ? round2(rawPrice * (1 - discountPercent/100)) : rawPrice;
         updatePriceDisplay();
     }
 }
 
+// ── Installation toggle ──────────────────────────────
 function toggleInstallation(checkbox) {
     document.getElementById('installationInput').value = checkbox.checked ? '1' : '0';
     updatePriceDisplay();
@@ -162,38 +198,29 @@ function updatePriceDisplay() {
     var withInstall = document.getElementById('installationCheck') && document.getElementById('installationCheck').checked;
     var priceEl = document.getElementById('displayPrice');
     var discEl = document.getElementById('displayPriceDiscounted');
-    if (withInstall) {
+
+    var finalPrice = withInstall ? round2(currentPrice * 0.95) : currentPrice;
+    var originalVariantPrice = parseFloat(document.querySelector('.variant-btn.active[data-price]') ? document.querySelector('.variant-btn.active[data-price]').dataset.price : '{{ product.price }}');
+
+    if (discountPercent > 0 || withInstall) {
         priceEl.style.textDecoration = 'line-through';
         priceEl.style.opacity = '0.4';
         priceEl.style.fontSize = '1rem';
+        priceEl.textContent = originalVariantPrice.toFixed(2) + ' $';
         discEl.style.display = 'block';
-        discEl.textContent = (currentPrice * 0.95).toFixed(2) + ' $';
+        discEl.textContent = finalPrice.toFixed(2) + ' $';
     } else {
         priceEl.style.textDecoration = '';
         priceEl.style.opacity = '';
         priceEl.style.fontSize = '';
+        priceEl.textContent = currentPrice.toFixed(2) + ' $';
         discEl.style.display = 'none';
     }
-    priceEl.textContent = currentPrice.toFixed(2) + ' $';
 }
+
+// Afficher le rabais dès le chargement si applicable
+if (discountPercent > 0) { updatePriceDisplay(); }
 
 function cartAnimation(btn) { btn.textContent = '✦ Ajouté !'; }
-
-// Swipe tactile mobile
-var pdTouchX = 0;
-var pdSlider = document.getElementById('pdSlider');
-if (pdSlider) {
-    pdSlider.addEventListener('touchstart', function(e) { pdTouchX = e.touches[0].clientX; }, {passive:true});
-    pdSlider.addEventListener('touchend', function(e) {
-        var diff = pdTouchX - e.changedTouches[0].clientX;
-        if (Math.abs(diff) > 40) pdSlide(diff > 0 ? 1 : -1);
-    }, {passive:true});
-}
-
-// Auto-slide toutes les 5 secondes
-var pdAutoInterval = setInterval(function() {
-    var slides = document.querySelectorAll('.pd-slide');
-    if (slides.length > 1) pdSlide(1);
-}, 5000);
 </script>
 {% endblock %}

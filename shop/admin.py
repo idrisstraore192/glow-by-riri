@@ -42,10 +42,16 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price']
+    list_display = ['name', 'category', 'price', 'display_discount']
     list_filter = ['category']
-    fields = ['name', 'category', 'price', 'description']
+    fields = ['name', 'category', 'price', 'discount_percent', 'description']
     inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline]
+
+    def display_discount(self, obj):
+        if obj.discount_percent and obj.discount_percent > 0:
+            return f"-{obj.discount_percent:.0f}%"
+        return "—"
+    display_discount.short_description = "Rabais"
 
     def get_changeform_initial_data(self, request):
         initial = super().get_changeform_initial_data(request)

@@ -10,10 +10,18 @@ class Service(models.Model):
     duration = models.CharField(max_length=100, blank=True, verbose_name="Durée", help_text="Ex: 1h30")
     description = models.TextField(blank=True, verbose_name="Description")
     image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Rabais (%)", help_text="Ex: 20 pour -20%. Laisser 0 si aucun rabais.")
 
     class Meta:
         verbose_name = "Service"
         verbose_name_plural = "Services"
+        ordering = ['price']
+
+    @property
+    def final_price(self):
+        if self.discount_percent and self.discount_percent > 0:
+            return round(float(self.price) * (1 - float(self.discount_percent) / 100), 2)
+        return float(self.price)
 
     def __str__(self):
         return self.name

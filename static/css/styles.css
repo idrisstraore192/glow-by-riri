@@ -748,6 +748,19 @@ footer span { color: var(--rose); }
 .shop-search svg { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 
 
+/* ── DISCOUNT BADGES ── */
+.product-discount-badge { position: absolute; top: 0.6rem; left: 0.6rem; background: var(--rose-dark); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px; letter-spacing: 0.05em; z-index: 2; }
+.price-original { text-decoration: line-through; opacity: 0.45; font-size: 0.85em; margin-right: 0.3rem; }
+.price-promo { color: var(--rose-dark); font-weight: 700; }
+.pd-discount-badge { display: inline-block; background: var(--rose-dark); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 999px; margin-bottom: 0.75rem; letter-spacing: 0.05em; }
+.service-discount-badge { background: var(--rose-dark); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.4rem; }
+/* ── VIDEO IN SLIDER ── */
+.pd-slide-video { position: relative; }
+.pd-slide video { width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block; background: #000; }
+.pd-video-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(255,255,255,0.85); border: none; width: 56px; height: 56px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s, background 0.2s; }
+.pd-video-play-btn:hover { background: #fff; }
+.pd-thumb-video { background: #1a1a1a; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; }
+
 /* ── CART BADGE ANIMATION ── */
 @keyframes cartPop { 0%{transform:scale(1)} 50%{transform:scale(1.5)} 100%{transform:scale(1)} }
 .cart-count.pop { animation: cartPop 0.3s ease; }
