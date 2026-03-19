@@ -52,6 +52,20 @@ class ProductVariant(models.Model):
         return f"{self.product.name} — {self.get_variant_type_display()} : {self.label}"
 
 
+class ProductVideo(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='videos', verbose_name="Produit")
+    video_url = models.URLField(verbose_name="URL de la vidéo (Cloudinary)")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre")
+
+    class Meta:
+        verbose_name = "Vidéo"
+        verbose_name_plural = "Vidéos"
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Vidéo de {self.product.name}"
+
+
 class Order(models.Model):
     customer_name = models.CharField(max_length=200)
     customer_email = models.EmailField()

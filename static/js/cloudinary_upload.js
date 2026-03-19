@@ -55,7 +55,7 @@ function addCloudinaryVideoButton(videoField) {
 
     var btn = document.createElement('button');
     btn.type = 'button';
-    btn.innerText = '🎥 Uploader une vidéo';
+    btn.innerText = '🎥 Uploader des vidéos';
     btn.style.cssText = 'margin-top:8px; padding:6px 14px; background:#7c3aed; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:13px; display:block;';
     videoField.parentNode.insertBefore(btn, videoField.nextSibling);
 
@@ -69,23 +69,33 @@ function addCloudinaryVideoButton(videoField) {
     btn.parentNode.insertBefore(preview, btn.nextSibling);
 
     btn.addEventListener('click', function() {
+        var pendingUrls = [];
+
         var widget = cloudinary.createUploadWidget({
             cloudName: 'dsyvh6owc',
             uploadPreset: 'glow_products',
             sources: ['local', 'url'],
-            multiple: false,
+            multiple: true,
             folder: 'products/videos',
             cropping: false,
             resourceType: 'video',
             clientAllowedFormats: ['mp4', 'mov', 'avi', 'webm'],
         }, function(error, result) {
             if (!error && result && result.event === 'success') {
-                videoField.value = result.info.secure_url;
-                preview.src = result.info.secure_url;
-                preview.style.display = 'block';
+                pendingUrls.push(result.info.secure_url);
             }
             if (!error && result && result.event === 'close') {
                 widget.destroy();
+                if (pendingUrls.length === 0) return;
+
+                videoField.value = pendingUrls[0];
+                preview.src = pendingUrls[0];
+                preview.style.display = 'block';
+
+                if (pendingUrls.length > 1) {
+                    var addLink = findAddRowLink(videoField);
+                    fillNextVideoRows(addLink, pendingUrls, 1);
+                }
             }
         });
 
@@ -122,6 +132,31 @@ function fillNextRows(addLink, urls, index) {
             }
         }
         fillNextRows(addLink, urls, index + 1);
+    }, 500);
+}
+
+function fillNextVideoRows(addLink, urls, index) {
+    if (!addLink || index >= urls.length) return;
+    addLink.click();
+    setTimeout(function() {
+        var emptyFields = Array.from(document.querySelectorAll('input[id*="video_url"]'))
+            .filter(function(f) { return f.value === ''; });
+        if (emptyFields.length > 0) {
+            var field = emptyFields[emptyFields.length - 1];
+            field.value = urls[index];
+            var existingPreview = field.parentNode.querySelector('video');
+            if (existingPreview) {
+                existingPreview.src = urls[index];
+                existingPreview.style.display = 'block';
+            } else {
+                var prev = document.createElement('video');
+                prev.controls = true;
+                prev.style.cssText = 'display:block; margin-top:10px; max-width:320px; max-height:200px; border-radius:4px;';
+                prev.src = urls[index];
+                field.parentNode.appendChild(prev);
+            }
+        }
+        fillNextVideoRows(addLink, urls, index + 1);
     }, 500);
 }
 

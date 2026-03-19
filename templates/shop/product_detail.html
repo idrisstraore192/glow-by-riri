@@ -101,15 +101,19 @@
         </button>
     </form>
 
-    <!-- Vidéo -->
-    {% if product.video_url %}
+    <!-- Vidéos -->
+    {% with videos=product.videos.all %}
+    {% if videos %}
     <div class="pd-video">
-        <p class="pd-video-label">Vidéo</p>
-        <video controls>
-            <source src="{{ product.video_url }}">
+        <p class="pd-video-label">Vidéo{% if videos|length > 1 %}s{% endif %}</p>
+        {% for v in videos %}
+        <video controls style="{% if not forloop.first %}margin-top:0.75rem;{% endif %}">
+            <source src="{{ v.video_url }}">
         </video>
+        {% endfor %}
     </div>
     {% endif %}
+    {% endwith %}
 
     <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
 </div>

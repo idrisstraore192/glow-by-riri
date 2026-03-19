@@ -1,11 +1,20 @@
 from django.contrib import admin
-from .models import Product, ProductImage, ProductVariant, Order, OrderItem
+from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem
 
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
     fields = ['image_url', 'order']
+
+    class Media:
+        js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
+
+
+class ProductVideoInline(admin.TabularInline):
+    model = ProductVideo
+    extra = 1
+    fields = ['video_url', 'order']
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
@@ -35,8 +44,8 @@ class OrderAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price']
     list_filter = ['category']
-    fields = ['name', 'category', 'price', 'description', 'video_url']
-    inlines = [ProductImageInline, ProductVariantInline]
+    fields = ['name', 'category', 'price', 'description']
+    inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline]
 
     def get_changeform_initial_data(self, request):
         initial = super().get_changeform_initial_data(request)
