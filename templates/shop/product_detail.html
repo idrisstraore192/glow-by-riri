@@ -119,32 +119,37 @@
 </div>
 
 <script>
-var currentPrice = {{ variant_groups.0.options.0.price|default:product.price }};
+var currentPrice = parseFloat('{{ variant_groups.0.options.0.price|default:product.price }}') || {{ product.price }};
 var pdIndex = 0;
 
 function pdSlide(dir) {
     var slides = document.querySelectorAll('.pd-slide');
+    if (!slides.length) return;
     pdIndex = (pdIndex + dir + slides.length) % slides.length;
     pdGoto(pdIndex);
 }
 function pdGoto(i) {
     pdIndex = i;
-    document.getElementById('pdTrack').style.transform = 'translateX(-' + (i * 100) + '%)';
+    var track = document.getElementById('pdTrack');
+    var slider = document.getElementById('pdSlider');
+    if (!track || !slider) return;
+    var w = slider.offsetWidth;
+    track.style.transform = 'translateX(-' + (i * w) + 'px)';
     document.querySelectorAll('.pd-thumb').forEach(function(t, idx) {
         t.classList.toggle('active', idx === i);
     });
 }
 
 function selectVariant(btn, type) {
-    btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+    btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
     btn.classList.add('active');
     var variantInput = document.getElementById('variantInput');
-    if (type === 'longueur') {
-        if (btn.dataset.price) {
-            currentPrice = parseFloat(btn.dataset.price);
-            updatePriceDisplay();
-        }
-        if (variantInput) variantInput.value = btn.dataset.variantId;
+    if (variantInput) variantInput.value = btn.dataset.variantId;
+    if (btn.dataset.price) {
+        currentPrice = parseFloat(btn.dataset.price);
+        updatePriceDisplay();
     }
 }
 
@@ -173,5 +178,22 @@ function updatePriceDisplay() {
 }
 
 function cartAnimation(btn) { btn.textContent = '✦ Ajouté !'; }
+
+// Swipe tactile mobile
+var pdTouchX = 0;
+var pdSlider = document.getElementById('pdSlider');
+if (pdSlider) {
+    pdSlider.addEventListener('touchstart', function(e) { pdTouchX = e.touches[0].clientX; }, {passive:true});
+    pdSlider.addEventListener('touchend', function(e) {
+        var diff = pdTouchX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) pdSlide(diff > 0 ? 1 : -1);
+    }, {passive:true});
+}
+
+// Auto-slide toutes les 5 secondes
+var pdAutoInterval = setInterval(function() {
+    var slides = document.querySelectorAll('.pd-slide');
+    if (slides.length > 1) pdSlide(1);
+}, 5000);
 </script>
 {% endblock %}

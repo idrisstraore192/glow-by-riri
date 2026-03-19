@@ -604,7 +604,7 @@ footer span { color: var(--rose); }
 /* Hero image plein écran */
 .pd-hero { width: 100vw; margin-left: calc(-50vw + 50%); background: #f4f4f4; }
 .pd-slider { position: relative; overflow: hidden; }
-.pd-track { display: flex; width: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); }
+.pd-track { display: flex; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); }
 .pd-slide { flex: 0 0 100%; width: 100%; }
 .pd-slide img { width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block; }
 .pd-hero-single img { width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block; }
