@@ -608,6 +608,12 @@ footer span { color: var(--rose); }
 .product-detail-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.85; }
 .product-detail-back { display: inline-block; margin-top: 1.5rem; font-size: 0.75rem; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
 .product-detail-back:hover { color: var(--rose-dark); }
+.variant-selector { margin-bottom: 1rem; }
+.variant-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+.variant-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.variant-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 4px; background: var(--white); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.variant-btn:hover { border-color: var(--black); }
+.variant-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
 
 /* ── CART QTY ── */
 .cart-qty-form { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.4rem; }
