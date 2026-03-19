@@ -59,21 +59,25 @@ function fillNextRows(addLink, urls, index) {
     if (!addLink || index >= urls.length) return;
     addLink.click();
     setTimeout(function() {
-        // Trouver tous les champs image_url vides
+        // Chercher le premier champ image_url vide (peu importe cloudinaryReady)
         var emptyFields = Array.from(document.querySelectorAll('input[id*="image_url"]'))
-            .filter(function(f) { return !f.value && !f.dataset.cloudinaryReady; });
+            .filter(function(f) { return f.value === ''; });
         if (emptyFields.length > 0) {
-            var field = emptyFields[0];
+            var field = emptyFields[emptyFields.length - 1];
             field.value = urls[index];
-            // Aperçu immédiat
-            var prev = document.createElement('img');
-            prev.style.cssText = 'display:block; margin-top:10px; max-height:160px; border-radius:4px;';
-            prev.src = urls[index];
-            field.parentNode.insertBefore(prev, field.nextSibling);
-            addCloudinaryButton(field);
+            // Mettre à jour l'aperçu existant si présent
+            var existingPreview = field.parentNode.querySelector('img');
+            if (existingPreview) {
+                existingPreview.src = urls[index];
+            } else {
+                var prev = document.createElement('img');
+                prev.style.cssText = 'display:block; margin-top:10px; max-height:160px; border-radius:4px;';
+                prev.src = urls[index];
+                field.parentNode.appendChild(prev);
+            }
         }
         fillNextRows(addLink, urls, index + 1);
-    }, 400);
+    }, 500);
 }
 
 function initAllCloudinaryFields() {
