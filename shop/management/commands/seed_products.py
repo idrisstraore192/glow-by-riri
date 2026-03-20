@@ -30,6 +30,11 @@ class Command(BaseCommand):
     help = "Ajoute les produits initiaux Glow by Riri"
 
     def handle(self, *args, **kwargs):
+        # Supprimer les Hold Glue s'ils existent encore
+        deleted, _ = Product.objects.filter(name__icontains='Hold Glue').delete()
+        if deleted:
+            self.stdout.write(self.style.WARNING(f"✗ {deleted} Hold Glue supprimé(s)"))
+
         created = 0
         for data in PRODUCTS:
             obj, is_new = Product.objects.get_or_create(
