@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
 from .forms import AppointmentForm
 from .models import Service
 from reviews.models import Review
@@ -9,8 +11,28 @@ def booking_page(request):
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
         if form.is_valid():
-            form.save()
+            appt = form.save()
             messages.success(request, 'Votre rendez-vous a été confirmé !')
+            try:
+                send_mail(
+                    subject=f"📅 Nouveau rendez-vous — {appt.customer_name}",
+                    message=(
+                        f"Tu as un nouveau rendez-vous ✦\n\n"
+                        f"Cliente     : {appt.customer_name}\n"
+                        f"Service     : {appt.service.name}\n"
+                        f"Prix        : {appt.service.final_price} $\n"
+                        f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
+                        f"Heure       : {appt.time.strftime('%H h %M')}\n\n"
+                        f"Consulte tous tes rendez-vous ici :\n"
+                        f"https://glowbyriri.up.railway.app/admin/booking/appointment/\n\n"
+                        f"Glow by Riri 💕"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[settings.ADMIN_EMAIL],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
             return redirect('booking_success')
     else:
         form = AppointmentForm()
