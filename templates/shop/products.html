@@ -16,9 +16,18 @@
         <p class="shop-banner-hero-sub">{{ products|length }} style{% if products|length > 1 %}s{% endif %} disponible{% if products|length > 1 %}s{% endif %}</p>
     </div>
 </div>
+{% elif current_category == 'bundles' %}
+<div class="shop-banner shop-banner-hero">
+    <img src="{% static 'images/photo_lace.png' %}" alt="Bundles & Laces" class="shop-banner-bg shop-banner-photo">
+    <div class="shop-banner-hero-text">
+        <span class="shop-banner-hero-label">Collection</span>
+        <h1 class="shop-banner-hero-title">Bundles<br>& Laces</h1>
+        <p class="shop-banner-hero-sub">{{ products|length }} article{% if products|length > 1 %}s{% endif %} disponible{% if products|length > 1 %}s{% endif %}</p>
+    </div>
+</div>
 {% else %}
-<div class="shop-banner">
-    <img src="{% static 'images/logo.png' %}" alt="" class="shop-banner-bg">
+<div class="shop-banner shop-banner-boutique">
+    <img src="{% static 'images/logo.png' %}" alt="" class="shop-banner-bg shop-banner-logo-bg">
 </div>
 {% endif %}
 
