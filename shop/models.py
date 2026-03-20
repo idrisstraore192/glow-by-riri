@@ -1,15 +1,17 @@
-
 from django.db import models
 
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
         ('produits', 'Nos produits'),
-        ('perruques', 'Perruques & Lace'),
+        ('perruques', 'Perruques'),
+        ('bundles', 'Bundles & Laces'),
     ]
     TYPE_CHOICES = [
+        ('produit', 'Produit'),
         ('perruque', 'Perruque'),
         ('lace', 'Lace / Frontale'),
+        ('bundle', 'Bundle'),
     ]
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=8, decimal_places=2)
@@ -17,8 +19,9 @@ class Product(models.Model):
     image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
     video_url = models.URLField(blank=True, null=True, verbose_name="URL de la vidéo (Cloudinary)")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='produits', verbose_name="Catégorie")
-    product_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='perruque', verbose_name="Type", help_text="Perruque ou Lace/Frontale (pour l'ordre d'affichage)")
+    product_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='produit', verbose_name="Type", help_text="Détermine la catégorie du produit et son ordre d'affichage.")
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Rabais (%)", help_text="Ex: 20 pour -20%. Laisser 0 si aucun rabais.")
+    disponible = models.BooleanField(default=True, verbose_name="Disponible", help_text="Décocher pour masquer ce produit du site.")
 
     @property
     def final_price(self):
@@ -47,7 +50,6 @@ class ProductImage(models.Model):
 class ProductVariant(models.Model):
     TYPE_CHOICES = [
         ('longueur', 'Longueur'),
-        ('fermeture', 'Type de lace'),
         ('densite', 'Densité'),
     ]
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="Produit")
@@ -84,10 +86,38 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2)
     stripe_session_id = models.CharField(max_length=200, blank=True)
     paid = models.BooleanField(default=False)
+    shipped = models.BooleanField(default=False, verbose_name="Expédiée")
+    tracking_number = models.CharField(max_length=200, blank=True, verbose_name="Numéro de suivi")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Commande #{self.id} — {self.customer_name}"
+
+
+class TutorialSection(models.Model):
+    class Meta:
+        verbose_name = "📹 Gérer les vidéos tutoriels"
+        verbose_name_plural = "📹 Gérer les vidéos tutoriels"
+
+    def __str__(self):
+        return "Vidéos tutoriels"
+
+
+class TutorialVideo(models.Model):
+    section = models.ForeignKey(TutorialSection, on_delete=models.CASCADE, related_name='videos', null=True)
+    title = models.CharField(max_length=200, verbose_name="Titre")
+    video_url = models.URLField(verbose_name="URL de la vidéo (Cloudinary)")
+    product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Produit lié")
+    badge = models.CharField(max_length=50, blank=True, verbose_name="Badge", help_text="Ex: NEW, POPULAIRE")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre")
+
+    class Meta:
+        verbose_name = "Vidéo tutoriel"
+        verbose_name_plural = "Vidéos tutoriels"
+        ordering = ['order']
+
+    def __str__(self):
+        return self.title
 
 
 class OrderItem(models.Model):
