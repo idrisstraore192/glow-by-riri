@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Suivi de commande — Glow by Riri{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Suivi de commande</h1>
+    <p>Entre ton adresse email pour retrouver tes commandes</p>
+</div>
+
+<div class="section" style="max-width:600px;margin:0 auto;padding-top:3rem;">
+    <form method="get" class="tracking-form">
+        <input type="email" name="email" value="{{ email }}" placeholder="ton@email.com" required class="tracking-input">
+        <button type="submit" class="btn btn-black">Rechercher</button>
+    </form>
+
+    {% if email %}
+        {% if orders %}
+            {% for order in orders %}
+            <div class="tracking-order">
+                <div class="tracking-order-header">
+                    <span class="tracking-order-id">Commande #{{ order.id }}</span>
+                    <span class="tracking-order-date">{{ order.created_at|date:"d/m/Y" }}</span>
+                    {% if order.shipped %}
+                    <span class="tracking-order-status shipped">📦 Expédiée</span>
+                    {% else %}
+                    <span class="tracking-order-status">⏳ En préparation</span>
+                    {% endif %}
+                </div>
+                <ul class="tracking-items">
+                    {% for item in order.items.all %}
+                    <li>{{ item.product_name }} × {{ item.quantity }} — {{ item.price }} $</li>
+                    {% endfor %}
+                </ul>
+                <p class="tracking-total">Total : <strong>{{ order.total }} $</strong></p>
+                {% if order.shipped and order.tracking_number %}
+                <p class="tracking-number">Numéro de suivi : <strong>{{ order.tracking_number }}</strong></p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="tracking-empty">Aucune commande trouvée pour cette adresse email.</p>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
