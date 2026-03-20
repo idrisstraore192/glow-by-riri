@@ -187,6 +187,46 @@
             if (window.scrollY > 400) btn.classList.add('visible');
             else btn.classList.remove('visible');
         });
+
+        // Lazy load images
+        const imgObserver = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    const img = e.target;
+                    if (img.dataset.src) img.src = img.dataset.src;
+                    img.classList.add('loaded');
+                    imgObserver.unobserve(img);
+                }
+            });
+        }, { rootMargin: '100px' });
+        document.querySelectorAll('img.img-lazy').forEach(img => imgObserver.observe(img));
+
+        // Animation d'entrée des cartes produits (stagger au scroll)
+        const cardObserver = new IntersectionObserver((entries) => {
+            const visible = entries.filter(e => e.isIntersecting).map(e => e.target);
+            if (!visible.length) return;
+            visible.sort((a, b) => {
+                const ay = a.getBoundingClientRect().top, by = b.getBoundingClientRect().top;
+                return Math.abs(ay - by) < 10
+                    ? a.getBoundingClientRect().left - b.getBoundingClientRect().left
+                    : ay - by;
+            });
+            visible.forEach((card, i) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, i * 80);
+                cardObserver.unobserve(card);
+            });
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(24px)';
+            card.style.transition = 'opacity 0.6s cubic-bezier(0.645,0.045,0.355,1), transform 0.6s cubic-bezier(0.645,0.045,0.355,1)';
+            card.style.animationName = 'none';
+            cardObserver.observe(card);
+        });
     </script>
 
 </body>

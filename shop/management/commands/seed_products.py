@@ -23,42 +23,6 @@ PRODUCTS = [
             "Format 75 g – parfait pour un usage quotidien ou en retouches."
         ),
     },
-    {
-        "name": "Hold Glue 38 ml",
-        "price": 20.00,
-        "description": (
-            "Hold Glue – 38 ml\n"
-            "La Hold Glue est une colle capillaire haute performance offrant une tenue extrême et durable. "
-            "Sa formule avancée résiste à l'humidité et à la chaleur, tout en assurant un confort optimal.\n\n"
-            "Caractéristiques :\n"
-            "• Waterproof\n"
-            "• Sans odeur\n"
-            "• Non toxique\n"
-            "• Convient aux peaux grasses et sensibles\n"
-            "• Compatible Lace & Poly\n"
-            "• Idéale frontales et closures\n\n"
-            "La colle capillaire Glow by Riri garantit une adhérence fiable, sans irritation ni résidus, "
-            "pour une pose sécurisée et un rendu naturel."
-        ),
-    },
-    {
-        "name": "Hold Glue 150 ml",
-        "price": 50.00,
-        "description": (
-            "Hold Glue – 150 ml\n"
-            "La Hold Glue est une colle capillaire haute performance offrant une tenue extrême et durable. "
-            "Sa formule avancée résiste à l'humidité et à la chaleur, tout en assurant un confort optimal.\n\n"
-            "Caractéristiques :\n"
-            "• Waterproof\n"
-            "• Sans odeur\n"
-            "• Non toxique\n"
-            "• Convient aux peaux grasses et sensibles\n"
-            "• Compatible Lace & Poly\n"
-            "• Idéale frontales et closures\n\n"
-            "La colle capillaire Glow by Riri garantit une adhérence fiable, sans irritation ni résidus, "
-            "pour une pose sécurisée et un rendu naturel."
-        ),
-    },
 ]
 
 
