@@ -570,12 +570,12 @@ footer span { color: var(--rose); }
 }
 .tuto-carousel::-webkit-scrollbar { display: none; }
 .tuto-card {
-    flex: 0 0 52%;
-    max-width: 260px;
+    flex: 0 0 68%;
+    max-width: 340px;
     scroll-snap-align: center;
     cursor: pointer;
     transition: transform 0.5s cubic-bezier(0.645,0.045,0.355,1), opacity 0.5s ease;
-    transform: scale(0.82);
+    transform: scale(0.84);
     opacity: 0.5;
 }
 .tuto-card.tuto-active { transform: scale(1); opacity: 1; }
