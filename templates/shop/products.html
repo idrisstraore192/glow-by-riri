@@ -22,8 +22,25 @@
 </div>
 {% endif %}
 
-<div class="section" style="padding-top: 3.5rem;">
+<!-- FILTRES CATÉGORIE -->
+<div class="shop-filters">
+    <a href="/shop/" class="shop-filter-btn {% if not current_category %}active{% endif %}">Tout</a>
+    <a href="/shop/?category=produits" class="shop-filter-btn {% if current_category == 'produits' %}active{% endif %}">Nos produits</a>
+    <a href="/shop/?category=perruques" class="shop-filter-btn {% if current_category == 'perruques' %}active{% endif %}">Perruques</a>
+    <a href="/shop/?category=bundles" class="shop-filter-btn {% if current_category == 'bundles' %}active{% endif %}">Bundles & Laces</a>
+</div>
+
+<div class="section" style="padding-top: 2rem;">
     {% if products %}
+
+    <!-- SOUS-FILTRES BUNDLES -->
+    {% if current_category == 'bundles' %}
+    <div class="shop-filters" id="bundleFilters" style="margin-bottom: 0.5rem;">
+        <button class="shop-filter-btn active" onclick="filterByType('all', this)">Tout</button>
+        <button class="shop-filter-btn" onclick="filterByType('bundle', this)">Bundles</button>
+        <button class="shop-filter-btn" onclick="filterByType('lace', this)">Laces</button>
+    </div>
+    {% endif %}
 
     <!-- SEARCH -->
     <div class="shop-search">
@@ -49,18 +66,21 @@
             <button class="view-btn" id="btnList" onclick="setView('list')" title="Liste">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2"/><rect x="0" y="6" width="14" height="2"/><rect x="0" y="12" width="14" height="2"/></svg>
             </button>
+            <button class="view-btn" id="btnSingle" onclick="setView('single')" title="Colonne unique">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="0" width="10" height="6"/><rect x="2" y="8" width="10" height="6"/></svg>
+            </button>
         </div>
     </div>
 
     <div class="product-grid" id="productGrid">
         {% for p in products %}
-        <a href="{% url 'product_detail' p.id %}" class="product-card" data-price="{{ p.price }}" data-name="{{ p.name }}">
+        <a href="{% url 'product_detail' p.id %}" class="product-card" data-price="{{ p.price }}" data-name="{{ p.name }}" data-type="{{ p.product_type }}">
             <div class="product-img-wrap">
                 {% with first_img=p.images.first %}
                 {% if first_img %}
-                <img class="product-img" src="{{ first_img.image_url }}" alt="{{ p.name }}">
+                <img class="product-img img-lazy" data-src="{{ first_img.image_url }}" src="{{ first_img.image_url }}" alt="{{ p.name }}">
                 {% elif p.image_url %}
-                <img class="product-img" src="{{ p.image_url }}" alt="{{ p.name }}">
+                <img class="product-img img-lazy" data-src="{{ p.image_url }}" src="{{ p.image_url }}" alt="{{ p.name }}">
                 {% else %}
                 <div class="product-img-placeholder">✦</div>
                 {% endif %}
@@ -88,26 +108,82 @@
     {% endif %}
 </div>
 
+<!-- SECTION TUTORIELS VIDÉO (visible uniquement sur "Nos produits") -->
+{% if tutorial_videos %}
+<section class="tuto-section">
+    <div class="tuto-header">
+        <p class="section-label">Tutoriels</p>
+        <h2 class="tuto-title">Comment les utiliser ?</h2>
+    </div>
+    <div class="tuto-carousel" id="tutoCarousel">
+        {% for video in tutorial_videos %}
+        <div class="tuto-card {% if forloop.first %}tuto-active{% endif %}" onclick="playTuto(this, '{{ video.video_url }}')">
+            <div class="tuto-video-wrap" id="tutoWrap{{ forloop.counter }}">
+                {% if video.badge %}
+                <span class="tuto-badge">{{ video.badge }}</span>
+                {% endif %}
+                <video class="tuto-thumb" id="tutoVid{{ forloop.counter }}"
+                    muted playsinline preload="metadata"
+                    style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+                <button class="tuto-play-btn" id="tutoPlay{{ forloop.counter }}" aria-label="Lire">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+                </button>
+            </div>
+            <div class="tuto-info">
+                <p class="tuto-card-title">{{ video.title }}</p>
+                {% if video.product %}
+                <a class="tuto-product-link" href="{% url 'product_detail' video.product.id %}" onclick="event.stopPropagation()">
+                    {{ video.product.name }} — <span class="tuto-product-price">{{ video.product.price }} $</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="tuto-dots" id="tutoDots">
+        {% for video in tutorial_videos %}
+        <button class="tuto-dot {% if forloop.first %}active{% endif %}" onclick="goToTuto({{ forloop.counter0 }})"></button>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
 <script>
 function setView(mode) {
     const grid = document.getElementById('productGrid');
     const btnGrid = document.getElementById('btnGrid');
     const btnList = document.getElementById('btnList');
+    const btnSingle = document.getElementById('btnSingle');
+    grid.classList.remove('list-view', 'single-view');
+    [btnGrid, btnList, btnSingle].forEach(b => b && b.classList.remove('active'));
     if (mode === 'list') {
         grid.classList.add('list-view');
         btnList.classList.add('active');
-        btnGrid.classList.remove('active');
+    } else if (mode === 'single') {
+        grid.classList.add('single-view');
+        btnSingle.classList.add('active');
     } else {
-        grid.classList.remove('list-view');
         btnGrid.classList.add('active');
-        btnList.classList.remove('active');
     }
 }
 
 function filterProducts() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     document.querySelectorAll('.product-card').forEach(card => {
-        card.style.display = card.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+        const matchesName = card.dataset.name.toLowerCase().includes(q);
+        card.style.display = matchesName ? '' : 'none';
+    });
+}
+
+function filterByType(type, btn) {
+    document.querySelectorAll('#bundleFilters .shop-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.product-card').forEach(card => {
+        if (type === 'all') {
+            card.style.display = '';
+        } else {
+            card.style.display = card.dataset.type === type ? '' : 'none';
+        }
     });
 }
 
@@ -123,6 +199,58 @@ function sortProducts() {
     });
     cards.forEach(c => grid.appendChild(c));
 }
+
+// Tutorial carousel
+var tutoIndex = 0;
+function updateTutoActive() {
+    const cards = document.querySelectorAll('.tuto-card');
+    const dots = document.querySelectorAll('.tuto-dot');
+    cards.forEach((c, i) => c.classList.toggle('tuto-active', i === tutoIndex));
+    dots.forEach((d, i) => d.classList.toggle('active', i === tutoIndex));
+}
+function goToTuto(i) {
+    tutoIndex = i;
+    updateTutoActive();
+    const carousel = document.getElementById('tutoCarousel');
+    if (!carousel) return;
+    const card = carousel.querySelectorAll('.tuto-card')[i];
+    if (card) card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+}
+function playTuto(card, url) {
+    const wrap = card.querySelector('.tuto-video-wrap');
+    const vid = wrap.querySelector('video');
+    const playBtn = wrap.querySelector('.tuto-play-btn');
+    if (!vid) return;
+    if (!vid.src || vid.paused) {
+        if (!vid.src) vid.src = url;
+        if (playBtn) playBtn.style.display = 'none';
+        vid.play().catch(() => {});
+    } else {
+        vid.pause();
+        if (playBtn) playBtn.style.display = '';
+    }
+}
+
+// Snap scroll → update active dot
+document.addEventListener('DOMContentLoaded', () => {
+    const carousel = document.getElementById('tutoCarousel');
+    if (!carousel) return;
+    let scrollTimer;
+    carousel.addEventListener('scroll', () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+            const cards = Array.from(carousel.querySelectorAll('.tuto-card'));
+            const center = carousel.scrollLeft + carousel.offsetWidth / 2;
+            let closest = 0, minDist = Infinity;
+            cards.forEach((c, i) => {
+                const dist = Math.abs(c.offsetLeft + c.offsetWidth / 2 - center);
+                if (dist < minDist) { minDist = dist; closest = i; }
+            });
+            tutoIndex = closest;
+            updateTutoActive();
+        }, 80);
+    });
+});
 </script>
 
 {% endblock %}
