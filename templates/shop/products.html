@@ -150,10 +150,18 @@
         </div>
         {% endfor %}
     </div>
-    <div class="tuto-dots" id="tutoDots">
-        {% for video in tutorial_videos %}
-        <button class="tuto-dot {% if forloop.first %}active{% endif %}" onclick="goToTuto({{ forloop.counter0 }})"></button>
-        {% endfor %}
+    <div class="tuto-nav">
+        <button class="tuto-arrow" onclick="goToTuto(tutoIndex - 1)" aria-label="Précédent">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="tuto-dots" id="tutoDots">
+            {% for video in tutorial_videos %}
+            <button class="tuto-dot {% if forloop.first %}active{% endif %}" onclick="goToTuto({{ forloop.counter0 }})"></button>
+            {% endfor %}
+        </div>
+        <button class="tuto-arrow" onclick="goToTuto(tutoIndex + 1)" aria-label="Suivant">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
     </div>
 </section>
 {% endif %}
@@ -219,11 +227,12 @@ function updateTutoActive() {
     dots.forEach((d, i) => d.classList.toggle('active', i === tutoIndex));
 }
 function goToTuto(i) {
-    tutoIndex = i;
+    const cards = document.querySelectorAll('.tuto-card');
+    tutoIndex = Math.max(0, Math.min(i, cards.length - 1));
     updateTutoActive();
     const carousel = document.getElementById('tutoCarousel');
     if (!carousel) return;
-    const card = carousel.querySelectorAll('.tuto-card')[i];
+    const card = cards[tutoIndex];
     if (card) card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 }
 function playTuto(card) {
