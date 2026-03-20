@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem, TutorialVideo, TutorialSection
 
 
 class ProductImageInline(admin.TabularInline):
@@ -34,18 +36,52 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'customer_email', 'total', 'paid', 'created_at']
-    list_filter = ['paid']
+    list_display = ['id', 'customer_name', 'customer_email', 'total', 'paid', 'shipped', 'created_at']
+    list_filter = ['paid', 'shipped']
     readonly_fields = ['stripe_session_id', 'created_at']
+    fields = ['customer_name', 'customer_email', 'total', 'paid', 'shipped', 'tracking_number', 'stripe_session_id', 'created_at']
     inlines = [OrderItemInline]
+
+    def save_model(self, request, obj, form, change):
+        was_shipped = change and Order.objects.filter(pk=obj.pk, shipped=True).exists()
+        super().save_model(request, obj, form, change)
+        if obj.shipped and not was_shipped and obj.customer_email:
+            tracking_info = f"\nNuméro de suivi : {obj.tracking_number}" if obj.tracking_number else ""
+            message = f"""Bonjour {obj.customer_name} ✦
+
+Bonne nouvelle — ta commande #{obj.id} a été expédiée ! 📦{tracking_info}
+
+Tu peux suivre l'état de ta commande ici :
+https://glowbyriri.up.railway.app/shop/suivi/
+
+Si tu as des questions, réponds à cet email ou écris-nous à glowbyririi@gmail.com.
+
+À bientôt,
+Riri — Glow by Riri 💕
+"""
+            try:
+                send_mail(
+                    subject=f"📦 Ta commande #{obj.id} est en route — Glow by Riri",
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[obj.customer_email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price', 'display_discount']
-    list_filter = ['category']
-    fields = ['name', 'category', 'product_type', 'price', 'discount_percent', 'description']
+    list_display = ['name', 'display_type', 'price', 'display_discount', 'disponible']
+    list_filter = ['product_type', 'disponible']
+    ordering = ['product_type', 'price']
+    fields = ['name', 'product_type', 'category', 'disponible', 'price', 'discount_percent', 'description', 'image_url', 'video_url']
     inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline]
+
+    def display_type(self, obj):
+        return obj.get_product_type_display()
+    display_type.short_description = "Type"
 
     def display_discount(self, obj):
         if obj.discount_percent and obj.discount_percent > 0:
@@ -53,11 +89,28 @@ class ProductAdmin(admin.ModelAdmin):
         return "—"
     display_discount.short_description = "Rabais"
 
-    def get_changeform_initial_data(self, request):
-        initial = super().get_changeform_initial_data(request)
-        if request.GET.get('category'):
-            initial['category'] = request.GET.get('category')
-        return initial
+    class Media:
+        js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
+
+
+class TutorialVideoInline(admin.TabularInline):
+    model = TutorialVideo
+    extra = 1
+    fields = ['title', 'video_url', 'product', 'badge', 'order']
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
+
+
+@admin.register(TutorialSection)
+class TutorialSectionAdmin(admin.ModelAdmin):
+    inlines = [TutorialVideoInline]
+
+    def has_add_permission(self, _request):
+        return not TutorialSection.objects.exists()
+
+    def changelist_view(self, request, extra_context=None):
+        if not TutorialSection.objects.exists():
+            TutorialSection.objects.create()
+        obj = TutorialSection.objects.first()
+        return self.changeform_view(request, str(obj.pk), extra_context=extra_context)
