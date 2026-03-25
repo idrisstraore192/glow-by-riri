@@ -137,9 +137,19 @@ currentPrice = parseFloat('{{ variant_groups.0.options.0.price|stringformat:".2f
 if (DISCOUNT > 0) currentPrice = Math.round(currentPrice * (1 - DISCOUNT/100) * 100) / 100;
 
 // ── Slider ────────────────────────────────────────────────────
+var _pdLock = false;
+var _pdAutoTimer = null;
+
+function pdResetAuto() {
+    if (_pdAutoTimer) clearInterval(_pdAutoTimer);
+    if (pdTotal > 1) _pdAutoTimer = setInterval(function(){ pdGoto((pdIndex + 1) % pdTotal); }, 5000);
+}
 function pdSlide(dir) {
-    pdIndex = (pdIndex + dir + pdTotal) % pdTotal;
-    pdGoto(pdIndex);
+    if (_pdLock) return;
+    _pdLock = true;
+    setTimeout(function(){ _pdLock = false; }, 400);
+    pdGoto((pdIndex + dir + pdTotal) % pdTotal);
+    pdResetAuto();
 }
 function pdGoto(i) {
     pdIndex = i;
@@ -171,11 +181,14 @@ var _tx = 0;
 var _slider = document.getElementById('pdSlider');
 if (_slider) {
     _slider.addEventListener('touchstart', function(e){ _tx = e.touches[0].clientX; }, {passive:true});
-    _slider.addEventListener('touchend',   function(e){ var d = _tx - e.changedTouches[0].clientX; if(Math.abs(d)>40) pdSlide(d>0?1:-1); }, {passive:true});
+    _slider.addEventListener('touchend', function(e){
+        var d = _tx - e.changedTouches[0].clientX;
+        if (Math.abs(d) > 40) pdSlide(d > 0 ? 1 : -1);
+    }, {passive:true});
 }
 
 // Auto-slide 5s
-if (pdTotal > 1) setInterval(function(){ pdSlide(1); }, 5000);
+pdResetAuto();
 
 // ── Variantes (cascade) ───────────────────────────────────────
 function selectVariant(btn) {
