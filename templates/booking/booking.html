@@ -9,6 +9,12 @@
     <p>Choisissez votre prestation et réservez en quelques secondes</p>
 </div>
 
+{% if payment_error %}
+<div style="max-width:600px;margin:0 auto 1.5rem;padding:1rem 1.5rem;background:#fff0f0;border-left:3px solid #c0392b;font-size:0.9rem;color:#c0392b;">
+    Le paiement de l'acompte est temporairement indisponible. Veuillez réessayer plus tard.
+</div>
+{% endif %}
+
 <!-- LISTE DES SERVICES -->
 <div class="section" style="padding-bottom: 0;">
     <div class="section-header">
@@ -37,9 +43,9 @@
                 <p class="filter-panel-label">Tranche de prix</p>
                 <div class="filter-panel-options">
                     <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}{% if active_sort %}sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if not active_price %}active{% endif %}">Tout prix</a>
-                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=0-50{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '0-50' %}active{% endif %}">Moins de 50 $</a>
-                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=50-100{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '50-100' %}active{% endif %}">50 $ — 100 $</a>
-                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=100+{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '100+' %}active{% endif %}">Plus de 100 $</a>
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=0-50{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '0-50' %}active{% endif %}">Moins de 50 $ CAD</a>
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=50-100{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '50-100' %}active{% endif %}">50 $ — 100 $ CAD</a>
+                    <a href="/booking/?{% if active_category %}category={{ active_category }}&{% endif %}price=100+{% if active_sort %}&sort={{ active_sort }}{% endif %}" class="service-filter-btn {% if active_price == '100+' %}active{% endif %}">Plus de 100 $ CAD</a>
                 </div>
             </div>
             <div class="filter-panel-section">
@@ -63,12 +69,12 @@
                     {% if service.duration %}<span>{{ service.duration }}</span>{% endif %}
                     {% if service.discount_percent and service.discount_percent > 0 %}
                     <span class="service-item-price">
-                        <span class="price-original">{{ service.price }} $</span>
-                        <span class="price-promo">{{ service.final_price }} $</span>
+                        <span class="price-original">{{ service.price }} $ CAD</span>
+                        <span class="price-promo">{{ service.final_price }} $ CAD</span>
                         <span class="service-discount-badge">-{{ service.discount_percent|floatformat:0 }}%</span>
                     </span>
                     {% else %}
-                    <span class="service-item-price">{{ service.price }} $</span>
+                    <span class="service-item-price">{{ service.price }} $ CAD</span>
                     {% endif %}
                 </div>
                 {% if service.description %}
@@ -112,6 +118,12 @@
 <div class="section" id="reserver">
     <div class="booking-form-box" style="max-width: 560px;">
         <h3>Votre réservation</h3>
+        {% if form.slot.field.queryset.count == 0 %}
+        <div style="padding:1.25rem;background:#fdf8f5;border-left:3px solid #c9a96e;font-size:0.9rem;color:#888;">
+            Aucun créneau disponible pour le moment. Revenez bientôt ✦
+        </div>
+        {% else %}
+        <p style="font-size:0.82rem;color:#888;margin-bottom:1.25rem;">Un acompte de <strong>20 $ CAD</strong> est requis pour confirmer votre réservation. Le reste sera réglé sur place.</p>
         <form method="post">
             {% csrf_token %}
             {% for field in form %}
@@ -125,8 +137,9 @@
                 {% endif %}
             </div>
             {% endfor %}
-            <button type="submit" class="btn form-submit">Confirmer le rendez-vous</button>
+            <button type="submit" class="btn form-submit">Payer l'acompte (20 $ CAD) et confirmer</button>
         </form>
+        {% endif %}
     </div>
 </div>
 

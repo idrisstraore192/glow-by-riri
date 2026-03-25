@@ -40,11 +40,34 @@ class ServiceImage(models.Model):
         return f"Photo de {self.service.name}"
 
 
-class Appointment(models.Model):
-    customer_name = models.CharField(max_length=200, verbose_name="Nom")
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name="Service")
+class AvailabilitySlot(models.Model):
     date = models.DateField(verbose_name="Date")
     time = models.TimeField(verbose_name="Heure")
+    is_booked = models.BooleanField(default=False, verbose_name="Réservé")
+
+    class Meta:
+        ordering = ['date', 'time']
+        verbose_name = "Créneau disponible"
+        verbose_name_plural = "Créneaux disponibles"
+        unique_together = ['date', 'time']
+
+    def __str__(self):
+        days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+        months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+        day_name = days[self.date.weekday()]
+        month_name = months[self.date.month - 1]
+        return f"{day_name} {self.date.day} {month_name} {self.date.year} à {self.time.strftime('%H h %M')}"
+
+
+class Appointment(models.Model):
+    customer_name = models.CharField(max_length=200, verbose_name="Nom")
+    customer_email = models.EmailField(blank=True, verbose_name="Email")
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name="Service")
+    slot = models.ForeignKey(AvailabilitySlot, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Créneau")
+    date = models.DateField(verbose_name="Date")
+    time = models.TimeField(verbose_name="Heure")
+    deposit_paid = models.BooleanField(default=False, verbose_name="Acompte payé (20 $)")
+    stripe_session_id = models.CharField(max_length=200, blank=True, verbose_name="Session Stripe")
 
     class Meta:
         verbose_name = "Rendez-vous"

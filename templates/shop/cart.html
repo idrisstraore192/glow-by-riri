@@ -16,16 +16,20 @@
             {% for item in cart %}
             <div class="cart-item">
                 <div class="cart-item-img">
-                    {% if item.product.image_url %}
+                    {% with first_img=item.product.images.first %}
+                    {% if first_img %}
+                    <img src="{{ first_img.image_url }}" alt="{{ item.product.name }}">
+                    {% elif item.product.image_url %}
                     <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
                     {% else %}
                     <div class="cart-img-placeholder">✦</div>
                     {% endif %}
+                    {% endwith %}
                 </div>
                 <div class="cart-item-info">
-                    <h3>{{ item.product.name }}</h3>
-                    <p class="cart-item-price">{{ item.price }} $ / unité</p>
-                    <form method="post" action="{% url 'update_cart' item.product.id %}" class="cart-qty-form">
+                    <h3>{{ item.product.name }}{% if item.label %} — {{ item.label }}{% endif %}</h3>
+                    <p class="cart-item-price">{{ item.price }} $ CAD / unité</p>
+                    <form method="post" action="{% url 'update_cart_item' item.key %}" class="cart-qty-form">
                         {% csrf_token %}
                         <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}" class="qty-btn">−</button>
                         <span class="qty-val">{{ item.quantity }}</span>
@@ -33,8 +37,8 @@
                     </form>
                 </div>
                 <div class="cart-item-total">
-                    <span>{{ item.total }} $</span>
-                    <a href="{% url 'remove_from_cart' item.product.id %}" class="cart-remove">Retirer</a>
+                    <span>{{ item.total }} $ CAD</span>
+                    <a href="{% url 'remove_cart_item' item.key %}" class="cart-remove">Retirer</a>
                 </div>
             </div>
             {% endfor %}
@@ -44,7 +48,7 @@
             <h3>Récapitulatif</h3>
             <div class="summary-row">
                 <span>Sous-total</span>
-                <span>{{ cart.get_total }} $</span>
+                <span>{{ cart.get_total }} $ CAD</span>
             </div>
             <div class="summary-row">
                 <span>Livraison</span>
@@ -52,7 +56,7 @@
             </div>
             <div class="summary-total">
                 <span>Total</span>
-                <span>{{ cart.get_total }} $</span>
+                <span>{{ cart.get_total }} $ CAD</span>
             </div>
             <a href="{% url 'checkout' %}" class="btn" style="width:100%;text-align:center;margin-top:1.5rem;display:block;">
                 Payer maintenant

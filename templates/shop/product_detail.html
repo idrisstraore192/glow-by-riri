@@ -6,7 +6,7 @@
 {% block content %}
 
 <!-- ── HERO SLIDER ──────────────────────────────────────────── -->
-{% if media_count %}
+{% if media_count or product.image_url %}
 <div class="pd-hero">
     <div class="pd-slider" id="pdSlider">
         <div class="pd-track" id="pdTrack">
@@ -15,6 +15,11 @@
                 <img src="{{ img.image_url }}" alt="{{ product.name }}">
             </div>
             {% endfor %}
+            {% if not images and product.image_url %}
+            <div class="pd-slide">
+                <img src="{{ product.image_url }}" alt="{{ product.name }}">
+            </div>
+            {% endif %}
             {% for v in videos %}
             <div class="pd-slide pd-slide-video">
                 <video loop playsinline muted>
@@ -24,24 +29,24 @@
             </div>
             {% endfor %}
         </div>
-        {% if media_count > 1 %}
-        <button class="pd-arrow pd-arrow-prev" onclick="pdSlide(-1)">&#8249;</button>
-        <button class="pd-arrow pd-arrow-next" onclick="pdSlide(1)">&#8250;</button>
-        {% endif %}
     </div>
 
     {% if media_count > 1 %}
-    <div class="pd-thumbs">
-        {% for img in images %}
-        <button class="pd-thumb {% if forloop.first %}active{% endif %}" onclick="pdGoto({{ forloop.counter0 }})">
-            <img src="{{ img.image_url }}" alt="{{ product.name }}">
-        </button>
-        {% endfor %}
-        {% for v in videos %}
-        <button class="pd-thumb pd-thumb-video" onclick="pdGoto({{ forloop.counter0|add:images_count }})">
-            <span>▶</span>
-        </button>
-        {% endfor %}
+    <div class="pd-controls">
+        <button class="pd-arrow pd-arrow-prev" onclick="pdSlide(-1)">&#8249;</button>
+        <div class="pd-thumbs">
+            {% for img in images %}
+            <button class="pd-thumb {% if forloop.first %}active{% endif %}" onclick="pdGoto({{ forloop.counter0 }})">
+                <img src="{{ img.image_url }}" alt="{{ product.name }}">
+            </button>
+            {% endfor %}
+            {% for v in videos %}
+            <button class="pd-thumb pd-thumb-video" onclick="pdGoto({{ forloop.counter0|add:images_count }})">
+                <span>▶</span>
+            </button>
+            {% endfor %}
+        </div>
+        <button class="pd-arrow pd-arrow-next" onclick="pdSlide(1)">&#8250;</button>
     </div>
     {% endif %}
 </div>
@@ -59,7 +64,7 @@
 
     <div class="pd-price-wrap">
         <p class="pd-price" id="displayPrice">
-            {% if variant_groups %}{{ variant_groups.0.options.0.price|default:product.price }}{% else %}{{ product.price }}{% endif %} $
+            {% if variant_groups %}{{ variant_groups.0.options.0.price|default:product.price }}{% else %}{{ product.price }}{% endif %} $ CAD
         </p>
         <p class="pd-price-discounted" id="displayPriceDiscounted" style="display:none;"></p>
     </div>
@@ -216,12 +221,12 @@ function refreshPrice() {
 
     if (DISCOUNT > 0 || withInstall) {
         priceEl.style.cssText = 'text-decoration:line-through;opacity:0.4;font-size:1rem;';
-        priceEl.textContent   = origRaw.toFixed(2) + ' $';
+        priceEl.textContent   = origRaw.toFixed(2) + ' $ CAD';
         discEl.style.display  = 'block';
-        discEl.textContent    = final.toFixed(2) + ' $';
+        discEl.textContent    = final.toFixed(2) + ' $ CAD';
     } else {
         priceEl.style.cssText = '';
-        priceEl.textContent   = currentPrice.toFixed(2) + ' $';
+        priceEl.textContent   = currentPrice.toFixed(2) + ' $ CAD';
         discEl.style.display  = 'none';
     }
 }

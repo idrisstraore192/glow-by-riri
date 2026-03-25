@@ -32,7 +32,7 @@ def product_list(request):
             default=Value(3),
             output_field=IntegerField(),
         )
-    ).order_by('type_order', 'price')
+    ).order_by('type_order', 'order', 'price')
     tutorial_videos = TutorialVideo.objects.select_related('product').all() if category == 'produits' else []
     return render(request, "shop/products.html", {"products": products, "current_category": category, "tutorial_videos": tutorial_videos})
 
@@ -45,7 +45,7 @@ def product_detail(request, product_id):
     for v in product.variants.all():
         variant_groups[v.variant_type].append(v)
     ordered_groups = []
-    for vtype in ['longueur', 'densite']:
+    for vtype in ['longueur', 'lace', 'densite']:
         if vtype in variant_groups:
             label = dict(product.variants.model.TYPE_CHOICES).get(vtype, vtype)
             ordered_groups.append({'type': vtype, 'label': label, 'options': variant_groups[vtype]})
@@ -118,6 +118,29 @@ def remove_from_cart(request, product_id):
     return redirect('cart')
 
 
+def remove_cart_item(request, item_key):
+    cart = Cart(request)
+    try:
+        product_id = int(item_key.split('_')[0])
+        product = get_object_or_404(Product, id=product_id)
+        cart.remove(product, item_key=item_key)
+    except (ValueError, IndexError):
+        pass
+    return redirect('cart')
+
+
+def update_cart_item(request, item_key):
+    cart = Cart(request)
+    try:
+        product_id = int(item_key.split('_')[0])
+        product = get_object_or_404(Product, id=product_id)
+        quantity = int(request.POST.get('quantity', 1))
+        cart.update(product, quantity, item_key=item_key)
+    except (ValueError, IndexError):
+        pass
+    return redirect('cart')
+
+
 def cart_view(request):
     cart = Cart(request)
     return render(request, "shop/cart.html", {"cart": cart})
@@ -132,7 +155,7 @@ def checkout(request):
     for item in cart:
         line_items.append({
             'price_data': {
-                'currency': 'eur',
+                'currency': 'cad',
                 'product_data': {'name': item['product'].name},
                 'unit_amount': int(float(item['price']) * 100),
             },
@@ -140,7 +163,7 @@ def checkout(request):
         })
 
     session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
+        payment_method_types=['card', 'afterpay_clearpay', 'klarna', 'affirm'],
         line_items=line_items,
         mode='payment',
         success_url=SITE_URL + '/shop/payment/success/?session_id={CHECKOUT_SESSION_ID}',

@@ -73,10 +73,12 @@ Riri — Glow by Riri 💕
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'display_type', 'price', 'display_discount', 'disponible']
+    list_display = ['order', 'name', 'display_type', 'price', 'display_discount', 'disponible']
+    list_display_links = ['name']
+    list_editable = ['order', 'disponible']
     list_filter = ['product_type', 'disponible']
-    ordering = ['product_type', 'price']
-    fields = ['name', 'product_type', 'category', 'disponible', 'price', 'discount_percent', 'description', 'image_url', 'video_url']
+    ordering = ['order', 'product_type', 'price']
+    fields = ['name', 'product_type', 'category', 'disponible', 'order', 'price', 'discount_percent', 'description', 'image_url', 'video_url']
     inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline]
 
     def display_type(self, obj):

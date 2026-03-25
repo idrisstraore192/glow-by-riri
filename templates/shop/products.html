@@ -102,11 +102,11 @@
                 <h3>{{ p.name }}</h3>
                 {% if p.discount_percent and p.discount_percent > 0 %}
                 <p class="product-price">
-                    <span class="price-original">{{ p.price }} $</span>
-                    <span class="price-promo">{{ p.final_price }} $</span>
+                    <span class="price-original">{{ p.price }} $ CAD</span>
+                    <span class="price-promo">{{ p.final_price }} $ CAD</span>
                 </p>
                 {% else %}
-                <p class="product-price">{{ p.price }} $</p>
+                <p class="product-price">{{ p.price }} $ CAD</p>
                 {% endif %}
             </div>
         </a>
@@ -143,7 +143,7 @@
                 <p class="tuto-card-title">{{ video.title }}</p>
                 {% if video.product %}
                 <a class="tuto-product-link" href="{% url 'product_detail' video.product.id %}" onclick="event.stopPropagation()">
-                    {{ video.product.name }} — <span class="tuto-product-price">{{ video.product.price }} $</span>
+                    {{ video.product.name }} — <span class="tuto-product-price">{{ video.product.price }} $ CAD</span>
                 </a>
                 {% endif %}
             </div>

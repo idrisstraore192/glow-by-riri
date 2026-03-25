@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Service, ServiceImage, Appointment
+from .models import Service, ServiceImage, Appointment, AvailabilitySlot
 
 
 class ServiceImageInline(admin.TabularInline):
@@ -28,4 +28,18 @@ class ServiceAdmin(admin.ModelAdmin):
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
 
 
-admin.site.register(Appointment)
+@admin.register(AvailabilitySlot)
+class AvailabilitySlotAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'date', 'time', 'is_booked']
+    list_filter = ['is_booked', 'date']
+    list_editable = ['is_booked']
+    ordering = ['date', 'time']
+    date_hierarchy = 'date'
+
+
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ['customer_name', 'customer_email', 'service', 'date', 'time', 'deposit_paid']
+    list_filter = ['deposit_paid', 'date']
+    readonly_fields = ['stripe_session_id', 'deposit_paid', 'slot']
+    ordering = ['-date', '-time']

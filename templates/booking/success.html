@@ -6,7 +6,19 @@
 <div class="success-box">
     <div class="success-icon">✓</div>
     <h1>Rendez-vous confirmé !</h1>
+    {% if appt %}
+    <p>Votre acompte de <strong>20,00 $ CAD</strong> a bien été reçu. ✦</p>
+    <p style="margin-top:0.75rem;">
+        <strong>{{ appt.service.name }}</strong><br>
+        {{ appt.date|date:"l d F Y" }} à {{ appt.time|time:"H\hi" }}<br>
+        Reste à régler sur place : <strong>{{ remainder }} $ CAD</strong>
+    </p>
+    {% if appt.customer_email %}
+    <p style="margin-top:0.75rem;font-size:0.85rem;opacity:0.6;">Un email de confirmation a été envoyé à {{ appt.customer_email }}.</p>
+    {% endif %}
+    {% else %}
     <p>Merci pour votre réservation. Nous vous contacterons rapidement pour confirmer votre créneau. À très bientôt ✦</p>
-    <a class="btn btn-outline" href="/">Retour à l'accueil</a>
+    {% endif %}
+    <a class="btn btn-outline" href="/" style="margin-top:2rem;">Retour à l'accueil</a>
 </div>
 {% endblock %}

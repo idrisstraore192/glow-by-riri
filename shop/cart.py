@@ -28,19 +28,25 @@ class Cart:
             }
         self.save()
 
-    def update(self, product, quantity):
-        pid = str(product.id)
-        if pid in self.cart:
+    def update(self, product, quantity, item_key=None):
+        key = item_key or str(product.id)
+        if key in self.cart:
             if quantity > 0:
-                self.cart[pid]['quantity'] = quantity
+                self.cart[key]['quantity'] = quantity
             else:
-                del self.cart[pid]
+                del self.cart[key]
             self.save()
 
-    def remove(self, product):
-        pid = str(product.id)
-        if pid in self.cart:
-            del self.cart[pid]
+    def remove(self, product, item_key=None):
+        key = item_key or str(product.id)
+        if key in self.cart:
+            del self.cart[key]
+            self.save()
+        else:
+            # fallback: remove all entries for this product
+            keys = [k for k, v in self.cart.items() if v['product_id'] == product.id]
+            for k in keys:
+                del self.cart[k]
             self.save()
 
     def save(self):
@@ -53,8 +59,9 @@ class Cart:
     def __iter__(self):
         product_ids = [item['product_id'] for item in self.cart.values()]
         products = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
-        for item in self.cart.values():
+        for key, item in self.cart.items():
             item = item.copy()
+            item['key'] = key
             item['product'] = products.get(item['product_id'])
             item['total'] = float(item['price']) * item['quantity']
             yield item

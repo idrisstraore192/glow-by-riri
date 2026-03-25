@@ -28,10 +28,10 @@
                 </div>
                 <ul class="tracking-items">
                     {% for item in order.items.all %}
-                    <li>{{ item.product_name }} × {{ item.quantity }} — {{ item.price }} $</li>
+                    <li>{{ item.product_name }} × {{ item.quantity }} — {{ item.price }} $ CAD</li>
                     {% endfor %}
                 </ul>
-                <p class="tracking-total">Total : <strong>{{ order.total }} $</strong></p>
+                <p class="tracking-total">Total : <strong>{{ order.total }} $ CAD</strong></p>
                 {% if order.shipped and order.tracking_number %}
                 <p class="tracking-number">Numéro de suivi : <strong>{{ order.tracking_number }}</strong></p>
                 {% endif %}

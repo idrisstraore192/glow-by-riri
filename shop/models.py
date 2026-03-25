@@ -22,6 +22,7 @@ class Product(models.Model):
     product_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='produit', verbose_name="Type", help_text="Détermine la catégorie du produit et son ordre d'affichage.")
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Rabais (%)", help_text="Ex: 20 pour -20%. Laisser 0 si aucun rabais.")
     disponible = models.BooleanField(default=True, verbose_name="Disponible", help_text="Décocher pour masquer ce produit du site.")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage", help_text="0 = en premier. Plus le chiffre est grand, plus le produit apparaît en bas.")
 
     @property
     def final_price(self):
@@ -50,6 +51,7 @@ class ProductImage(models.Model):
 class ProductVariant(models.Model):
     TYPE_CHOICES = [
         ('longueur', 'Longueur'),
+        ('lace', 'Taille de lace'),
         ('densite', 'Densité'),
     ]
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="Produit")
