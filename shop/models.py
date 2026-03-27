@@ -91,6 +91,7 @@ class Order(models.Model):
     paid = models.BooleanField(default=False)
     shipped = models.BooleanField(default=False, verbose_name="Expédiée")
     tracking_number = models.CharField(max_length=200, blank=True, verbose_name="Numéro de suivi")
+    shipping_address = models.TextField(blank=True, verbose_name="Adresse de livraison")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -174,6 +174,31 @@ def checkout(request):
         payment_method_types=['card', 'klarna'],
         line_items=line_items,
         mode='payment',
+        shipping_address_collection={'allowed_countries': ['CA']},
+        shipping_options=[
+            {
+                'shipping_rate_data': {
+                    'type': 'fixed_amount',
+                    'fixed_amount': {'amount': 500, 'currency': 'cad'},
+                    'display_name': 'Livraison — Trois-Rivières',
+                    'delivery_estimate': {
+                        'minimum': {'unit': 'business_day', 'value': 1},
+                        'maximum': {'unit': 'business_day', 'value': 2},
+                    },
+                },
+            },
+            {
+                'shipping_rate_data': {
+                    'type': 'fixed_amount',
+                    'fixed_amount': {'amount': 2100, 'currency': 'cad'},
+                    'display_name': 'Livraison — Partout au Canada',
+                    'delivery_estimate': {
+                        'minimum': {'unit': 'business_day', 'value': 3},
+                        'maximum': {'unit': 'business_day', 'value': 7},
+                    },
+                },
+            },
+        ],
         success_url=SITE_URL + '/shop/payment/success/?session_id={CHECKOUT_SESSION_ID}',
         cancel_url=SITE_URL + '/shop/payment/cancel/',
     )
@@ -186,11 +211,17 @@ def payment_success(request):
     if session_id:
         try:
             session = stripe.checkout.Session.retrieve(session_id)
+            addr = session.shipping_details.address if session.shipping_details else None
+            shipping_address = ''
+            if addr:
+                parts = [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
+                shipping_address = ', '.join(p for p in parts if p)
             order = Order.objects.create(
                 customer_name=session.customer_details.name or "Cliente",
                 customer_email=session.customer_details.email or "",
                 total=session.amount_total / 100,
                 stripe_session_id=session_id,
+                shipping_address=shipping_address,
                 paid=True,
             )
             items_list = list(cart)

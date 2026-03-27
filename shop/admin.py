@@ -38,8 +38,8 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'customer_name', 'customer_email', 'total', 'paid', 'shipped', 'created_at']
     list_filter = ['paid', 'shipped']
-    readonly_fields = ['stripe_session_id', 'created_at']
-    fields = ['customer_name', 'customer_email', 'total', 'paid', 'shipped', 'tracking_number', 'stripe_session_id', 'created_at']
+    readonly_fields = ['stripe_session_id', 'created_at', 'shipping_address']
+    fields = ['customer_name', 'customer_email', 'total', 'paid', 'shipped', 'tracking_number', 'shipping_address', 'stripe_session_id', 'created_at']
     inlines = [OrderItemInline]
 
     def save_model(self, request, obj, form, change):
