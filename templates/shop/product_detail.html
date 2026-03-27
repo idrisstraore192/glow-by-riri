@@ -112,6 +112,7 @@
         {% csrf_token %}
         {% if variant_groups %}
         <input type="hidden" name="variant_id" id="variantInput" value="{{ variant_groups.0.options.0.id }}">
+        <input type="hidden" name="lace_size_variant_id" id="laceSizeInput" value="">
         {% endif %}
         <input type="hidden" name="with_installation" id="installationInput" value="0">
         <button type="submit" class="btn btn-black pd-cta" onclick="cartAnimation(this)">
@@ -195,15 +196,21 @@ function selectVariant(btn) {
     btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
 
-    // Mettre à jour variantInput (longueur = prix)
-    var vi = document.getElementById('variantInput');
-    if (vi) vi.value = btn.dataset.variantId;
+    var variantType = btn.dataset.variantType;
 
-    // Mettre à jour le prix si longueur
-    if (btn.dataset.price) {
-        var p = parseFloat(btn.dataset.price);
-        currentPrice = DISCOUNT > 0 ? Math.round(p * (1 - DISCOUNT/100) * 100) / 100 : p;
-        refreshPrice();
+    if (variantType === 'lace') {
+        // Taille de lace — input séparé, pas de changement de prix
+        var li = document.getElementById('laceSizeInput');
+        if (li) li.value = btn.dataset.variantId;
+    } else {
+        // Longueur ou densité — met à jour variantInput et le prix
+        var vi = document.getElementById('variantInput');
+        if (vi) vi.value = btn.dataset.variantId;
+        if (btn.dataset.price) {
+            var p = parseFloat(btn.dataset.price);
+            currentPrice = DISCOUNT > 0 ? Math.round(p * (1 - DISCOUNT/100) * 100) / 100 : p;
+            refreshPrice();
+        }
     }
 
     // Révéler le groupe suivant en cascade

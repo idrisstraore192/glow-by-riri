@@ -93,7 +93,15 @@ def add_to_cart(request, product_id):
     variant_id = request.POST.get('variant_id') or request.GET.get('variant_id')
     variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
     with_installation = request.POST.get('with_installation') == '1'
-    cart.add(product, variant=variant, with_installation=with_installation)
+    lace_size_variant_id = request.POST.get('lace_size_variant_id')
+    lace_label = None
+    if lace_size_variant_id:
+        try:
+            lace_size_variant = ProductVariant.objects.get(id=lace_size_variant_id, variant_type='lace')
+            lace_label = lace_size_variant.label
+        except ProductVariant.DoesNotExist:
+            pass
+    cart.add(product, variant=variant, with_installation=with_installation, lace_label=lace_label)
     label = f' — {variant.label}' if variant else ''
     promo = ' (-5% pose incluse)' if with_installation else ''
     messages.success(request, f'{product.name}{label}{promo} ajouté au panier ✦')
