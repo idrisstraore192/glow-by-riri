@@ -68,6 +68,7 @@ class Appointment(models.Model):
     time = models.TimeField(verbose_name="Heure")
     deposit_paid = models.BooleanField(default=False, verbose_name="Acompte payé (20 $)")
     stripe_session_id = models.CharField(max_length=200, blank=True, verbose_name="Session Stripe")
+    reminder_sent = models.BooleanField(default=False, verbose_name="Rappel envoyé")
 
     class Meta:
         verbose_name = "Rendez-vous"
