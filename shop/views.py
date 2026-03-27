@@ -45,7 +45,7 @@ def product_detail(request, product_id):
     for v in product.variants.all():
         variant_groups[v.variant_type].append(v)
     ordered_groups = []
-    for vtype in ['longueur', 'lace', 'densite']:
+    for vtype in ['longueur', 'lace', 'densite', 'couleur']:
         if vtype in variant_groups:
             label = dict(product.variants.model.TYPE_CHOICES).get(vtype, vtype)
             ordered_groups.append({'type': vtype, 'label': label, 'options': variant_groups[vtype]})

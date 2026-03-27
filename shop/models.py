@@ -53,6 +53,7 @@ class ProductVariant(models.Model):
         ('longueur', 'Longueur'),
         ('lace', 'Taille de lace'),
         ('densite', 'Densité'),
+        ('couleur', 'Couleur'),
     ]
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="Produit")
     variant_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='longueur', verbose_name="Type")
