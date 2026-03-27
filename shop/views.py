@@ -171,7 +171,7 @@ def checkout(request):
         })
 
     session = stripe.checkout.Session.create(
-        payment_method_types=['card', 'afterpay_clearpay', 'klarna', 'affirm'],
+        payment_method_types=['card'],
         line_items=line_items,
         mode='payment',
         success_url=SITE_URL + '/shop/payment/success/?session_id={CHECKOUT_SESSION_ID}',
