@@ -236,10 +236,11 @@ body {
 
 /* ── HEADER ── */
 header {
-    background: var(--black);
+    background: var(--white);
     position: sticky;
     top: 0;
     z-index: 300;
+    border-bottom: 1px solid var(--border);
 }
 .header-inner {
     max-width: var(--max);
@@ -267,9 +268,9 @@ header {
     gap: 5px;
     padding: 4px;
 }
-.burger span { display: block; width: 24px; height: 1.5px; background: #fff; }
+.burger span { display: block; width: 24px; height: 1.5px; background: var(--black); }
 .header-icons { display: flex; align-items: center; gap: 1rem; }
-.icon-cart { color: #fff; text-decoration: none; position: relative; display: flex; align-items: center; }
+.icon-cart { color: var(--black); text-decoration: none; position: relative; display: flex; align-items: center; }
 .cart-count {
     position: absolute;
     top: -6px; right: -6px;
