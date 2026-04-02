@@ -58,7 +58,7 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="Produit")
     variant_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='longueur', verbose_name="Type")
     label = models.CharField(max_length=50, default='', verbose_name="Option", help_text="Ex: 12 pouces, 13x4 HD, 180%")
-    price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name="Prix (longueur seulement)")
+    price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name="Prix")
 
     class Meta:
         verbose_name = "Variante"
