@@ -52,6 +52,7 @@ class ProductVariant(models.Model):
     TYPE_CHOICES = [
         ('longueur', 'Longueur'),
         ('lace', 'Taille de lace'),
+        ('type_lace', 'Type de lace'),
         ('densite', 'Densité'),
         ('couleur', 'Couleur'),
     ]

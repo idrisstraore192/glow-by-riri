@@ -45,7 +45,7 @@ def product_detail(request, product_id):
     for v in product.variants.all():
         variant_groups[v.variant_type].append(v)
     ordered_groups = []
-    for vtype in ['longueur', 'lace', 'densite', 'couleur']:
+    for vtype in ['longueur', 'lace', 'type_lace', 'densite', 'couleur']:
         if vtype in variant_groups:
             label = dict(product.variants.model.TYPE_CHOICES).get(vtype, vtype)
             ordered_groups.append({'type': vtype, 'label': label, 'options': variant_groups[vtype]})
@@ -101,7 +101,15 @@ def add_to_cart(request, product_id):
             lace_label = lace_size_variant.label
         except ProductVariant.DoesNotExist:
             pass
-    cart.add(product, variant=variant, with_installation=with_installation, lace_label=lace_label)
+    type_lace_variant_id = request.POST.get('type_lace_variant_id')
+    type_lace_label = None
+    if type_lace_variant_id:
+        try:
+            type_lace_variant = ProductVariant.objects.get(id=type_lace_variant_id, variant_type='type_lace')
+            type_lace_label = type_lace_variant.label
+        except ProductVariant.DoesNotExist:
+            pass
+    cart.add(product, variant=variant, with_installation=with_installation, lace_label=lace_label, type_lace_label=type_lace_label)
     label = f' — {variant.label}' if variant else ''
     promo = ' (-5% pose incluse)' if with_installation else ''
     messages.success(request, f'{product.name}{label}{promo} ajouté au panier ✦')

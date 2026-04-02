@@ -8,7 +8,7 @@ class Cart:
         self.session = request.session
         self.cart = self.session.setdefault(CART_SESSION_KEY, {})
 
-    def add(self, product, quantity=1, variant=None, with_installation=False, lace_label=None):
+    def add(self, product, quantity=1, variant=None, with_installation=False, lace_label=None, type_lace_label=None):
         key = f"{product.id}_{variant.id}" if variant else str(product.id)
         base_price = float(variant.price) if (variant and variant.price) else float(product.price)
         if product.discount_percent and product.discount_percent > 0:
@@ -25,6 +25,7 @@ class Cart:
                 'product_id': product.id,
                 'label': label,
                 'lace_label': lace_label,
+                'type_lace_label': type_lace_label,
                 'installation': with_installation,
             }
         self.save()
