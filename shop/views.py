@@ -179,6 +179,13 @@ def checkout(request):
             {
                 'shipping_rate_data': {
                     'type': 'fixed_amount',
+                    'fixed_amount': {'amount': 0, 'currency': 'cad'},
+                    'display_name': 'Remise en main propre — Trois-Rivières',
+                },
+            },
+            {
+                'shipping_rate_data': {
+                    'type': 'fixed_amount',
                     'fixed_amount': {'amount': 500, 'currency': 'cad'},
                     'display_name': 'Livraison — Trois-Rivières',
                     'delivery_estimate': {
@@ -210,12 +217,19 @@ def payment_success(request):
     cart = Cart(request)
     if session_id:
         try:
-            session = stripe.checkout.Session.retrieve(session_id)
-            addr = session.shipping_details.address if session.shipping_details else None
-            shipping_address = ''
-            if addr:
-                parts = [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
-                shipping_address = ', '.join(p for p in parts if p)
+            session = stripe.checkout.Session.retrieve(session_id, expand=['shipping_cost.shipping_rate'])
+            shipping_name = ''
+            if session.shipping_cost and session.shipping_cost.shipping_rate:
+                shipping_name = session.shipping_cost.shipping_rate.display_name or ''
+            is_pickup = 'main propre' in shipping_name.lower()
+            if is_pickup:
+                shipping_address = 'Remise en main propre'
+            else:
+                addr = session.shipping_details.address if session.shipping_details else None
+                shipping_address = ''
+                if addr:
+                    parts = [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
+                    shipping_address = ', '.join(p for p in parts if p)
             order = Order.objects.create(
                 customer_name=session.customer_details.name or "Cliente",
                 customer_email=session.customer_details.email or "",
@@ -249,6 +263,13 @@ def _send_order_emails(order, items):
     )
     total = f"{float(order.total):.2f} $"
 
+    is_pickup = order.shipping_address == 'Remise en main propre'
+    livraison_msg = (
+        "Tu peux venir récupérer ta commande en main propre à Trois-Rivières. Riri te contactera pour convenir d'un moment."
+        if is_pickup else
+        "Ta commande est en cours de traitement. Tu recevras un message dès qu'elle est expédiée."
+    )
+
     if order.customer_email:
         client_msg = f"""Bonjour {order.customer_name} ✦
 
@@ -259,7 +280,7 @@ Voici ton récapitulatif :
 
 Total payé : {total}
 
-Ta commande est en cours de traitement. Tu recevras un message dès qu'elle est expédiée.
+{livraison_msg}
 
 Des questions ? Écris-nous à glowbyririi@gmail.com
 
@@ -277,6 +298,7 @@ Riri — Glow by Riri 💕
         except Exception:
             pass
 
+    livraison_admin = "📦 REMISE EN MAIN PROPRE — à contacter pour convenir d'un moment." if is_pickup else f"🚚 Livraison\nAdresse : {order.shipping_address}"
     admin_msg = f"""Nouvelle commande #{order.id} 🛍️
 
 Cliente : {order.customer_name} ({order.customer_email})
@@ -285,6 +307,8 @@ Articles :
 {lines}
 
 Total : {total}
+
+{livraison_admin}
 """
     try:
         send_mail(
