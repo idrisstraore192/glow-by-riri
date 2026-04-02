@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facture — Glow by Riri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --black:  #0f0f0f;
+  --white:  #ffffff;
+  --gold:   #c9a96e;
+  --rose:   #f9f1ee;
+  --border: #e5d9d3;
+  --muted:  #888;
+  --bg:     #fdf8f5;
+  --text:   #1a1a1a;
+}
+
+@media print {
+  body { background: white; }
+  .no-print { display: none; }
+  .page { box-shadow: none; margin: 0; }
+}
+
+body {
+  font-family: 'Jost', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  font-size: 14px;
+  padding: 2rem 1rem;
+}
+
+.page {
+  max-width: 780px;
+  margin: 0 auto;
+  background: var(--white);
+  box-shadow: 0 4px 40px rgba(0,0,0,0.1);
+}
+
+/* ── HEADER ── */
+.inv-header {
+  background: var(--black);
+  padding: 2.5rem 2.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+.inv-brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.7rem;
+  font-weight: 400;
+  color: var(--white);
+  letter-spacing: 0.02em;
+}
+.inv-brand-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 0.25rem;
+}
+.inv-meta { text-align: right; }
+.inv-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+.inv-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--white);
+  font-weight: 400;
+}
+.inv-date {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.4);
+  margin-top: 0.25rem;
+}
+
+/* ── GOLD BAR ── */
+.gold-bar { height: 3px; background: linear-gradient(to right, var(--gold), #e8c98a, var(--gold)); }
+
+/* ── PARTIES ── */
+.parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem 2.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.party-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+}
+.party-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
+.party-detail { font-size: 0.85rem; color: var(--muted); line-height: 1.75; }
+
+/* ── TABLE ── */
+.inv-table-wrap { padding: 2rem 2.5rem 0; }
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.inv-table thead tr {
+  background: var(--black);
+}
+.inv-table thead th {
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.inv-table thead th:last-child { text-align: right; }
+.inv-table tbody tr { border-bottom: 1px solid var(--border); }
+.inv-table tbody tr:nth-child(even) td { background: var(--rose); }
+.inv-table tbody td {
+  padding: 0.75rem 0.85rem;
+  font-size: 0.88rem;
+  vertical-align: top;
+}
+.inv-table tbody td:last-child { text-align: right; font-weight: 600; white-space: nowrap; }
+.item-title { font-weight: 600; color: var(--text); margin-bottom: 0.15rem; }
+.item-desc { font-size: 0.78rem; color: var(--muted); font-weight: 300; }
+
+/* ── TOTAUX ── */
+.totals-wrap {
+  padding: 1.5rem 2.5rem 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+.totals { width: 280px; }
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.45rem 0;
+  font-size: 0.88rem;
+  border-bottom: 1px solid var(--border);
+}
+.total-row:last-child { border-bottom: none; }
+.total-label { color: var(--muted); }
+.total-val { font-weight: 600; }
+.total-row.discount .total-val { color: #c0392b; }
+.total-row.final {
+  background: var(--black);
+  padding: 0.85rem 1rem;
+  margin-top: 0.5rem;
+  border-bottom: none;
+}
+.total-row.final .total-label { color: var(--gold); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.total-row.final .total-val { color: var(--white); font-size: 1.2rem; font-family: 'Playfair Display', serif; font-weight: 400; }
+
+/* ── NOTES ── */
+.inv-notes {
+  padding: 1.5rem 2.5rem 2rem;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+.note-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+.note-text { font-size: 0.83rem; color: var(--muted); line-height: 1.75; }
+
+/* ── FOOTER ── */
+.inv-footer {
+  background: var(--black);
+  padding: 1.25rem 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.inv-footer p { font-size: 0.75rem; color: rgba(255,255,255,0.3); }
+.inv-footer span { color: var(--gold); }
+
+/* PRINT BTN */
+.no-print {
+  text-align: center;
+  padding: 1.5rem 0;
+  max-width: 780px;
+  margin: 0 auto;
+}
+.print-btn {
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  padding: 0.7rem 2rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.print-btn:hover { background: #333; }
+
+@media(max-width:560px){
+  .inv-header { flex-direction: column; gap: 1rem; }
+  .inv-meta { text-align: left; }
+  .parties { grid-template-columns: 1fr; gap: 1.25rem; }
+  .inv-notes { grid-template-columns: 1fr; }
+  .inv-table-wrap, .parties, .inv-notes, .inv-footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .totals { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <button class="print-btn" onclick="window.print()">🖨 Imprimer / Enregistrer en PDF</button>
+</div>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="inv-header">
+    <div>
+      <div class="inv-brand-name">Glow by Riri</div>
+      <div class="inv-brand-tag">Développement web</div>
+    </div>
+    <div class="inv-meta">
+      <div class="inv-title">Facture</div>
+      <div class="inv-num">#GBR-2026-01</div>
+      <div class="inv-date">20 mars 2026</div>
+    </div>
+  </div>
+  <div class="gold-bar"></div>
+
+  <!-- PARTIES -->
+  <div class="parties">
+    <div>
+      <div class="party-label">Émis par</div>
+      <div class="party-name">Développeur Web</div>
+      <div class="party-detail">
+        Services de développement<br>
+        web & e-commerce<br>
+        Canada
+      </div>
+    </div>
+    <div>
+      <div class="party-label">Facturé à</div>
+      <div class="party-name">Glow by Riri</div>
+      <div class="party-detail">
+        glowbyririi@gmail.com<br>
+        glowbyriri.up.railway.app<br>
+        Canada
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="inv-table-wrap">
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th style="width:55%;">Prestation</th>
+          <th style="width:15%; text-align:center;">Qté</th>
+          <th style="width:15%; text-align:right;">Prix unit.</th>
+          <th style="width:15%;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td>
+            <div class="item-title">Architecture & base de données Django</div>
+            <div class="item-desc">Modèles Product, Order, OrderItem, ProductVariant, ProductImage, ProductVideo, TutorialVideo, TutorialSection, Service, Appointment, Review — migrations complètes (0001→0018) — administration Django configurée en français avec gestion inline</div>
+          </td>
+          <td style="text-align:center;">1</td>
+          <td style="text-align:right;">180,00 $</td>
+          <td>180,00 $</td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="item-title">Boutique e-commerce complète</div>
+            <div class="item-desc">Catalogue multi-catégories (Nos produits / Perruques / Bundles & Laces), filtres, tri, recherche, vue grille / liste / colonne unique, badges rabais, variantes longueur & densité en cascade, panier session, page produit avec slider photos + vidéos</div>
+          </td>
+          <td style="text-align:center;">1</td>
+          <td style="text-align:right;">200,00 $</td>
+          <td>200,00 $</td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="item-title">Intégration Stripe & emails automatiques</div>
+            <div class="item-desc">Paiement sécurisé Stripe Checkout, création automatique des commandes, email de confirmation cliente, notification admin à chaque achat, email d'expédition avec numéro de suivi, page suivi de commande par email</div>
+          </td>
+          <td style="text-align:center;">1</td>
+          <td style="text-align:right;">160,00 $</td>
+          <td>160,00 $</td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="item-title">Carousel tutoriels vidéo</div>
+            <div class="item-desc">Section tutoriels sur la page Nos produits — vidéos Cloudinary avec son, flèches ← →, swipe mobile, drag desktop, dots interactifs, lecture/pause multi-vidéos, gestion depuis l'admin</div>
+          </td>
+          <td style="text-align:center;">1</td>
+          <td style="text-align:right;">120,00 $</td>
+          <td>120,00 $</td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="item-title">Design CSS & animations</div>
+            <div class="item-desc">Banners hero avec slideshow (Perruques, Bundles), sidebar mobile animée, animations staggerées au scroll, lazy loading, prix soldés, boutons filtres, responsive mobile complet, palette Glow by Riri</div>
+          </td>
+          <td style="text-align:center;">1</td>
+          <td style="text-align:right;">150,00 $</td>
+          <td>150,00 $</td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="item-title">Configuration serveur & déploiement</div>
+            <div class="item-desc">start.sh, railway.toml, WhiteNoise, variables d'environnement, Cloudinary, PostgreSQL, déploiements et corrections en production</div>
+          </td>
+          <td style="text-align:center;">1</td>
+          <td style="text-align:right;">80,00 $</td>
+          <td>80,00 $</td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="item-title">Fonctionnalités additionnelles</div>
+            <div class="item-desc">Notifications email rendez-vous, champ "Disponible" pour masquer les produits, lace add-on sur perruques, modération des avis clients</div>
+          </td>
+          <td style="text-align:center;">1</td>
+          <td style="text-align:right;">60,00 $</td>
+          <td>60,00 $</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TOTAUX -->
+  <div class="totals-wrap">
+    <div class="totals">
+      <div class="total-row">
+        <span class="total-label">Sous-total</span>
+        <span class="total-val">950,00 $</span>
+      </div>
+      <div class="total-row discount">
+        <span class="total-label">Rabais client — lancement boutique (−29%)</span>
+        <span class="total-val">− 275,00 $</span>
+      </div>
+      <div class="total-row">
+        <span class="total-label">TPS / TVQ</span>
+        <span class="total-val">0,00 $</span>
+      </div>
+      <div class="total-row final">
+        <span class="total-label">Total dû</span>
+        <span class="total-val">675,00 $</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="inv-notes">
+    <div>
+      <div class="note-label">Modalités de paiement</div>
+      <div class="note-text">
+        Paiement unique à réception<br>
+        Virement bancaire / PayPal / Interac<br>
+        Échéance : 30 jours
+      </div>
+    </div>
+    <div>
+      <div class="note-label">Notes</div>
+      <div class="note-text">
+        Merci pour ta confiance ✦<br>
+        Site : glowbyriri.up.railway.app<br>
+        Tous les travaux ont été livrés et déployés en production.
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="inv-footer">
+    <p>Facture <span>#GBR-2026-01</span> &nbsp;·&nbsp; 20 mars 2026</p>
+    <p><span>Glow by Riri</span> &nbsp;✦&nbsp; glowbyriri.up.railway.app</p>
+  </div>
+
+</div>
+
+<div class="no-print" style="padding-top:1rem;">
+  <button class="print-btn" onclick="window.print()">🖨 Imprimer / Enregistrer en PDF</button>
+</div>
+
+</body>
+</html>

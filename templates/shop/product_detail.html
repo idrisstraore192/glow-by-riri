@@ -74,18 +74,14 @@
     {% endif %}
 
     {% for group in variant_groups %}
-    <div class="pd-variant-group {% if forloop.first %}vg-visible{% endif %}" data-group-index="{{ forloop.counter0 }}">
-        <p class="pd-variant-label">
-            {{ group.label }}
-            {% if not forloop.first %}<span class="vg-step">— choisis d'abord la longueur</span>{% endif %}
-        </p>
+    <div class="pd-variant-group vg-visible" data-group-index="{{ forloop.counter0 }}">
+        <p class="pd-variant-label">{{ group.label }}</p>
         <div class="pd-variant-options">
             {% for v in group.options %}
             <button type="button"
                 class="variant-btn {% if forloop.first and forloop.parentloop.first %}active{% endif %}"
                 data-variant-id="{{ v.id }}"
                 data-variant-type="{{ group.type }}"
-                data-next-group="{{ forloop.parentloop.counter }}"
                 {% if v.price %}data-price="{{ v.price }}"{% endif %}
                 onclick="selectVariant(this)">
                 {{ v.label }}
@@ -113,6 +109,7 @@
         {% if variant_groups %}
         <input type="hidden" name="variant_id" id="variantInput" value="{{ variant_groups.0.options.0.id }}">
         <input type="hidden" name="lace_size_variant_id" id="laceSizeInput" value="">
+        <input type="hidden" name="type_lace_variant_id" id="typeLaceInput" value="">
         {% endif %}
         <input type="hidden" name="with_installation" id="installationInput" value="0">
         <button type="submit" class="btn btn-black pd-cta" onclick="cartAnimation(this)">
@@ -201,30 +198,17 @@ function selectVariant(btn) {
     if (variantType === 'lace') {
         var li = document.getElementById('laceSizeInput');
         if (li) li.value = btn.dataset.variantId;
-        if (btn.dataset.price) {
-            var p = parseFloat(btn.dataset.price);
-            currentPrice = DISCOUNT > 0 ? Math.round(p * (1 - DISCOUNT/100) * 100) / 100 : p;
-            refreshPrice();
-        }
+    } else if (variantType === 'type_lace') {
+        var tl = document.getElementById('typeLaceInput');
+        if (tl) tl.value = btn.dataset.variantId;
     } else {
-        // Longueur ou densité — met à jour variantInput et le prix
         var vi = document.getElementById('variantInput');
         if (vi) vi.value = btn.dataset.variantId;
-        if (btn.dataset.price) {
-            var p = parseFloat(btn.dataset.price);
-            currentPrice = DISCOUNT > 0 ? Math.round(p * (1 - DISCOUNT/100) * 100) / 100 : p;
-            refreshPrice();
-        }
     }
-
-    // Révéler le groupe suivant en cascade
-    var nextIndex = parseInt(btn.dataset.nextGroup);
-    var groups = document.querySelectorAll('.pd-variant-group');
-    if (groups[nextIndex]) {
-        groups[nextIndex].classList.add('vg-visible');
-        // Enlever le message d'attente
-        var hint = groups[nextIndex].querySelector('.vg-step');
-        if (hint) hint.remove();
+    if (btn.dataset.price) {
+        var p = parseFloat(btn.dataset.price);
+        currentPrice = DISCOUNT > 0 ? Math.round(p * (1 - DISCOUNT/100) * 100) / 100 : p;
+        refreshPrice();
     }
 }
 

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ton guide — Glow by Riri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --black:     #0f0f0f;
+  --white:     #ffffff;
+  --rose:      #f9f1ee;
+  --rose-mid:  #edddd6;
+  --rose-dark: #c9856a;
+  --gold:      #c9a96e;
+  --gold-bg:   #f8f0e0;
+  --border:    #e5d9d3;
+  --text:      #1a1a1a;
+  --muted:     #888;
+  --bg:        #fdf8f5;
+  --green:     #2d6a4f;
+  --green-bg:  #edf5f0;
+  --warn:      #9a4200;
+  --warn-bg:   #fff4eb;
+}
+body { font-family: 'Jost', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; font-size: 15px; }
+
+/* COVER */
+.cover { background: var(--black); color: var(--white); text-align: center; padding: 5.5rem 2rem 5rem; position: relative; overflow: hidden; }
+.cover::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 25% 60%, rgba(201,169,110,.18) 0%, transparent 55%), radial-gradient(ellipse at 75% 25%, rgba(201,133,106,.13) 0%, transparent 55%); }
+.cover-inner { position: relative; z-index: 1; max-width: 620px; margin: 0 auto; }
+.cover-eye { font-size: .63rem; font-weight: 700; letter-spacing: .35em; text-transform: uppercase; color: var(--gold); margin-bottom: 2rem; display: flex; align-items: center; justify-content: center; gap: .75rem; }
+.cover-eye::before, .cover-eye::after { content: ''; width: 28px; height: 1px; background: var(--gold); opacity: .5; }
+.cover h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 6vw, 3.5rem); font-weight: 400; line-height: 1.15; margin-bottom: 1.25rem; }
+.cover h1 em { font-style: italic; color: var(--gold); }
+.cover-sub { color: rgba(255,255,255,.45); font-size: .9rem; font-weight: 300; max-width: 420px; margin: 0 auto 2.5rem; }
+.cover-pill { display: inline-block; background: rgba(201,169,110,.15); border: 1px solid rgba(201,169,110,.35); color: var(--gold); font-size: .72rem; font-weight: 600; letter-spacing: .12em; padding: .4rem 1.1rem; border-radius: 99px; }
+
+/* LAYOUT */
+.page { max-width: 820px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* SOMMAIRE */
+.toc { background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--gold); padding: 1.75rem 2rem; margin: 2.5rem auto; max-width: 820px; }
+.toc-h { font-size: .65rem; font-weight: 700; letter-spacing: .25em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.1rem; }
+.toc ol { padding-left: 1.4rem; }
+.toc li { margin-bottom: .45rem; }
+.toc a { color: var(--text); text-decoration: none; font-weight: 500; font-size: .9rem; }
+.toc a:hover { color: var(--rose-dark); }
+
+/* CHAPITRE */
+.ch { max-width: 820px; margin: 4rem auto 0; padding: 0 1.5rem; }
+.ch-tag { font-size: .62rem; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; color: var(--rose-dark); display: flex; align-items: center; gap: .5rem; margin-bottom: .7rem; }
+.ch-tag::after { content: ''; width: 20px; height: 1px; background: var(--rose-dark); opacity: .6; }
+.ch h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 3.5vw, 2rem); font-weight: 400; margin-bottom: .55rem; }
+.ch .lead { color: var(--muted); font-size: .92rem; font-weight: 300; margin-bottom: 2rem; padding-bottom: 1.75rem; border-bottom: 1px solid var(--border); }
+
+/* STEPS */
+.steps { display: flex; flex-direction: column; gap: 1px; }
+.step { display: flex; gap: 1.5rem; background: var(--white); border: 1px solid var(--border); padding: 1.6rem 1.75rem; transition: border-color .2s; }
+.step:first-child { border-radius: 6px 6px 0 0; }
+.step:last-child  { border-radius: 0 0 6px 6px; }
+.step:only-child  { border-radius: 6px; }
+.step:hover { border-color: var(--gold); z-index: 1; position: relative; }
+.sn { background: var(--black); color: var(--white); font-weight: 700; font-size: .8rem; min-width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 3px; }
+.step h3 { font-size: .97rem; font-weight: 600; margin-bottom: .45rem; }
+.step p, .step li { font-size: .9rem; color: #2c2c2c; margin-bottom: .4rem; }
+.step p:last-child { margin-bottom: 0; }
+.step ul, .step ol { padding-left: 1.25rem; margin-top: .4rem; }
+.step li { margin-bottom: .3rem; }
+
+/* CALLOUTS */
+.tip  { background: var(--green-bg); border-left: 3px solid var(--green); padding: .9rem 1.1rem; font-size: .87rem; margin: .85rem 0; border-radius: 0 4px 4px 0; }
+.tip strong { color: var(--green); }
+.warn { background: var(--warn-bg); border-left: 3px solid var(--warn); padding: .9rem 1.1rem; font-size: .87rem; margin: .85rem 0; border-radius: 0 4px 4px 0; }
+.warn strong { color: var(--warn); }
+.rose { background: var(--rose); border: 1px solid var(--rose-mid); padding: .9rem 1.1rem; font-size: .87rem; margin: .85rem 0; border-radius: 4px; }
+
+/* ÉCRAN */
+.screen { background: #f7f1ee; border: 1.5px solid var(--border); border-radius: 8px; padding: 1.2rem 1.4rem; margin: .85rem 0; }
+.screen-bar { font-size: .63rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: .55rem; margin-bottom: .9rem; display: flex; align-items: center; gap: .5rem; }
+.screen-bar::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+.screen p { font-size: .87rem; margin-bottom: .4rem; }
+.screen p:last-child { margin-bottom: 0; }
+.screen table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.screen th { background: var(--rose-mid); padding: .42rem .7rem; text-align: left; font-size: .72rem; letter-spacing: .06em; font-weight: 600; }
+.screen td { padding: .48rem .7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.screen tr:last-child td { border-bottom: none; }
+
+/* CODE */
+.code { display: inline-block; background: var(--black); color: #b8f0a0; font-family: 'Courier New', monospace; font-size: .77rem; padding: .12rem .5rem; border-radius: 3px; }
+.codeblock { display: block; background: var(--black); color: #b8f0a0; font-family: 'Courier New', monospace; font-size: .82rem; padding: 1rem 1.2rem; border-radius: 6px; margin: .7rem 0; word-break: break-all; line-height: 1.65; border-left: 3px solid var(--gold); }
+
+/* BOUTONS */
+.btn { display: inline-block; padding: .38rem .95rem; border-radius: 3px; font-weight: 600; font-size: .79rem; letter-spacing: .03em; }
+.btn-k { background: var(--black); color: var(--white); }
+.btn-b { background: #1a56db; color: var(--white); }
+.btn-g { background: #2e7d32; color: var(--white); }
+
+/* CHEMIN */
+.path { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin: .55rem 0; }
+.path .p { background: var(--rose); border: 1px solid var(--border); padding: .18rem .65rem; border-radius: 99px; font-size: .8rem; font-weight: 600; }
+.path .a { color: var(--gold); font-weight: 700; }
+
+/* TABLE */
+.tbl { width: 100%; border-collapse: collapse; font-size: .87rem; margin: .75rem 0; overflow: hidden; border-radius: 5px; }
+.tbl th { background: var(--black); color: var(--white); padding: .52rem .8rem; text-align: left; font-size: .7rem; letter-spacing: .1em; font-weight: 600; text-transform: uppercase; }
+.tbl td { padding: .58rem .8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.tbl tr:nth-child(even) td { background: var(--rose); }
+.tbl tr:last-child td { border-bottom: none; }
+
+/* BOX OR */
+.gold-box { border: 1.5px solid var(--gold); background: var(--gold-bg); padding: 1.5rem 1.75rem; border-radius: 6px; margin: 1.75rem 0; }
+.gold-box-t { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; margin-bottom: .65rem; display: flex; align-items: center; gap: .5rem; }
+
+/* IDENTIFIANTS */
+.creds { background: var(--black); border-radius: 8px; padding: 1.5rem 1.75rem; margin: 1rem 0; }
+.creds-t { font-size: .63rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+.cred-row { display: flex; align-items: center; gap: 1rem; margin-bottom: .75rem; flex-wrap: wrap; }
+.cred-row:last-child { margin-bottom: 0; }
+.cred-label { color: rgba(255,255,255,.45); font-size: .8rem; min-width: 140px; }
+.cred-val { color: var(--white); font-weight: 700; font-size: .95rem; font-family: 'Courier New', monospace; background: rgba(201,169,110,.15); border: 1px solid rgba(201,169,110,.3); padding: .3rem .75rem; border-radius: 4px; letter-spacing: .04em; }
+
+/* CHECKLIST */
+.chklist { list-style: none; }
+.chklist li { padding: .62rem 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: .85rem; font-size: .9rem; }
+.chklist li:last-child { border-bottom: none; }
+.chk { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; border: 2px solid var(--rose-dark); border-radius: 3px; background: var(--white); }
+
+/* DIVIDER */
+.div { border: none; border-top: 1px solid var(--border); margin: 4rem auto; max-width: 820px; }
+
+/* FOOTER */
+.foot { background: var(--black); color: rgba(255,255,255,.3); text-align: center; padding: 2.5rem 1rem; margin-top: 5rem; font-size: .78rem; }
+.foot span { color: var(--gold); }
+
+/* RESPONSIVE */
+@media(max-width:560px){ .step{ flex-direction:column; gap:.75rem; } .cover{padding:3.5rem 1.5rem;} .ch{margin-top:3rem;} .cred-row{flex-direction:column;gap:.35rem;} }
+</style>
+</head>
+<body>
+
+<!-- ══ COVER ══ -->
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-eye">Glow by Riri</div>
+    <h1>Ton guide pour<br><em>gérer ton site</em></h1>
+    <p class="cover-sub">Tout ce dont tu as besoin pour activer tes paiements et gérer ta boutique au quotidien — expliqué simplement, étape par étape.</p>
+    <span class="cover-pill">Fait juste pour toi ✦</span>
+  </div>
+</div>
+
+<!-- ══ SOMMAIRE ══ -->
+<div class="toc page">
+  <p class="toc-h">Dans ce guide</p>
+  <ol>
+    <li><a href="#stripe">Activer tes vrais paiements Stripe (ce que toi tu fais)</a></li>
+    <li><a href="#admin">Accéder à l'administration de ton site</a></li>
+    <li><a href="#produits">Ajouter ou modifier un produit</a></li>
+    <li><a href="#commandes">Gérer les commandes</a></li>
+    <li><a href="#tutos">Ajouter des vidéos tutoriels</a></li>
+    <li><a href="#services">Gérer tes services et rendez-vous</a></li>
+    <li><a href="#avis">Modérer les avis clients</a></li>
+    <li><a href="#couts">Combien ça coûte ? (Stripe, Railway…)</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  1 — STRIPE                                -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch" id="stripe">
+  <p class="ch-tag">Ce que toi tu fais</p>
+  <h2>Activer tes vrais paiements Stripe</h2>
+  <p class="lead">En ce moment Stripe est en mode "Bac à sable" — l'argent n'est pas réel, c'est un mode de test. Tu dois passer en mode réel (production) et m'envoyer deux codes. Je m'occupe du reste.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="sn">1</div>
+      <div>
+        <h3>Ouvre Stripe dans ton navigateur</h3>
+        <p>Tape cette adresse dans Safari ou Chrome :</p>
+        <div class="codeblock">dashboard.stripe.com</div>
+        <p>Connecte-toi avec l'email et le mot de passe de ton compte Stripe.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">2</div>
+      <div>
+        <h3>Clique sur "Basculer sur le compte de production"</h3>
+        <p>Tu vois une barre bleue en haut de la page. Clique sur ce bouton :</p>
+        <div class="screen">
+          <div class="screen-bar">Ce que tu vois sur l'écran Stripe</div>
+          <span class="btn btn-b">Basculer sur le compte de production</span>
+        </div>
+        <div class="warn"><strong>⚠️ Tu ne vois pas ce bouton ?</strong> Cherche un interrupteur en haut à droite qui dit "Mode test" et désactive-le.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">3</div>
+      <div>
+        <h3>Confirme ton adresse email</h3>
+        <p>Stripe t'envoie un email. Ouvre ta boîte mail et clique sur le bouton de confirmation dans l'email de Stripe.</p>
+        <div class="tip"><strong>✅ Tu ne trouves pas l'email ?</strong> Regarde dans tes Spams. L'expéditeur est <em>support@stripe.com</em>.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">4</div>
+      <div>
+        <h3>Complète ton profil si Stripe te le demande</h3>
+        <table class="tbl">
+          <tr><th>Champ</th><th>Quoi écrire</th></tr>
+          <tr><td>Nom légal</td><td>Ton prénom et nom de famille</td></tr>
+          <tr><td>Type d'activité</td><td>Particulier / Travailleur autonome</td></tr>
+          <tr><td>Pays</td><td>Canada</td></tr>
+          <tr><td>Devise</td><td>CAD — Dollar canadien</td></tr>
+          <tr><td>Compte bancaire</td><td>Ton compte où tu veux recevoir l'argent</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">5</div>
+      <div>
+        <h3>Va dans Développeurs → Clés API</h3>
+        <p>Dans le menu de gauche, clique sur :</p>
+        <div class="path">
+          <span class="p">Développeurs</span><span class="a">→</span>
+          <span class="p">Clés API</span>
+        </div>
+        <div class="tip"><strong>✅ Important :</strong> Assure-toi que tu es en mode <strong>Production</strong> (pas Test) avant de copier les codes.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">6</div>
+      <div>
+        <h3>Copie tes deux codes et envoie-les moi</h3>
+        <p><strong>Code 1 — Clé publiable</strong> (commence par pk_live_) :</p>
+        <div class="codeblock">pk_live_51... (exemple — le tien sera différent)</div>
+        <p><strong>Code 2 — Clé secrète</strong> — clique sur <span class="btn btn-k" style="font-size:.75rem;">Révéler la clé secrète</span> puis copie le code (commence par sk_live_) :</p>
+        <div class="codeblock">sk_live_51... (exemple — le tien sera différent)</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  2 — ADMIN                                 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch" id="admin">
+  <p class="ch-tag">Gestion quotidienne</p>
+  <h2>Accéder à l'administration de ton site</h2>
+  <p class="lead">L'administration c'est ton espace privé pour tout gérer : produits, commandes, rendez-vous, vidéos. Voici comment y accéder.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="sn">1</div>
+      <div>
+        <h3>Ouvre cette adresse dans ton navigateur</h3>
+        <div class="codeblock">https://glowbyriri.up.railway.app/admin/</div>
+        <div class="tip"><strong>✅ Astuce :</strong> Enregistre cette adresse dans tes favoris pour y accéder en un seul clic à tout moment.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">2</div>
+      <div>
+        <h3>Connecte-toi avec tes identifiants</h3>
+        <p>Entre le nom d'utilisateur et le mot de passe ci-dessous :</p>
+        <div class="creds">
+          <p class="creds-t">Tes identifiants administrateur</p>
+          <div class="cred-row">
+            <span class="cred-label">Nom d'utilisateur</span>
+            <span class="cred-val">riri</span>
+          </div>
+          <div class="cred-row">
+            <span class="cred-label">Mot de passe</span>
+            <span class="cred-val">GlowRiri2026</span>
+          </div>
+        </div>
+        <div class="warn"><strong>🔒 Garde ces identifiants précieusement.</strong> Ne les partage avec personne d'autre — ils donnent accès à toute ta boutique.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">3</div>
+      <div>
+        <h3>Ce que tu vois une fois connectée</h3>
+        <div class="screen">
+          <div class="screen-bar">Tableau de bord administration</div>
+          <table>
+            <tr><th>Section</th><th>Ce que tu peux faire</th></tr>
+            <tr><td>📦 <strong>Produits</strong></td><td>Ajouter, modifier, cacher tes produits et perruques</td></tr>
+            <tr><td>🛍️ <strong>Commandes</strong></td><td>Voir les achats, marquer expédié, numéro de suivi</td></tr>
+            <tr><td>📹 <strong>Vidéos tutoriels</strong></td><td>Ajouter des vidéos "Comment utiliser"</td></tr>
+            <tr><td>💆 <strong>Services</strong></td><td>Modifier tes services de pose et leurs prix</td></tr>
+            <tr><td>📅 <strong>Rendez-vous</strong></td><td>Voir toutes les réservations de tes clientes</td></tr>
+            <tr><td>⭐ <strong>Avis</strong></td><td>Approuver ou supprimer les avis clients</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  3 — PRODUITS                              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch" id="produits">
+  <p class="ch-tag">Produits</p>
+  <h2>Ajouter ou modifier un produit</h2>
+  <p class="lead">Tu peux ajouter des perruques, bundles, laces et produits de soin avec photos et prix. Tout se fait depuis l'admin.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="sn">1</div>
+      <div>
+        <h3>Clique sur "Produits" dans le menu</h3>
+        <p>Pour créer un nouveau produit, clique sur :</p>
+        <span class="btn btn-g">+ Ajouter un produit</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">2</div>
+      <div>
+        <h3>Remplis les informations</h3>
+        <table class="tbl">
+          <tr><th>Champ</th><th>Quoi mettre</th></tr>
+          <tr><td><strong>Nom</strong></td><td>Le nom du produit. Ex : "Perruque Bouclée Naturelle"</td></tr>
+          <tr><td><strong>Type</strong></td><td>Produit (soins) / Perruque / Lace-Frontale / Bundle</td></tr>
+          <tr><td><strong>Prix</strong></td><td>Le prix en dollars. Ex : 150</td></tr>
+          <tr><td><strong>Rabais (%)</strong></td><td>Si en solde, le pourcentage. Ex : 20 pour -20%. Laisser 0 sinon.</td></tr>
+          <tr><td><strong>Description</strong></td><td>Décris le produit en détail pour tes clientes</td></tr>
+          <tr><td><strong>Disponible</strong></td><td>✅ Coché = visible sur le site &nbsp;|&nbsp; ☐ Décoché = caché du site</td></tr>
+        </table>
+        <div class="tip"><strong>✅ Le champ "Type" est important !</strong> Il détermine dans quelle catégorie le produit s'affiche sur ton site.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">3</div>
+      <div>
+        <h3>Ajoute des photos</h3>
+        <p>En bas du formulaire, dans la section <strong>Photos</strong> :</p>
+        <ol>
+          <li>Clique sur <strong>"Uploader une image"</strong></li>
+          <li>Choisis une photo depuis ton téléphone ou ordinateur</li>
+          <li>Dans le champ <strong>"Ordre"</strong> : mets 1 pour la photo principale, 2 pour la suivante…</li>
+          <li>Clique sur "Ajouter une photo" pour en mettre plusieurs</li>
+        </ol>
+        <div class="tip"><strong>✅ La photo en ordre 1</strong> est celle qui s'affiche dans la boutique et en premier sur la page produit. Mets ta plus belle photo en 1.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">4</div>
+      <div>
+        <h3>Ajoute des longueurs ou densités (pour les perruques)</h3>
+        <p>En bas, dans la section <strong>Variantes</strong>, clique sur <strong>"Ajouter une variante"</strong> :</p>
+        <div class="screen">
+          <div class="screen-bar">Exemple — Perruque avec 3 longueurs</div>
+          <table>
+            <tr><th>Type</th><th>Option</th><th>Prix</th></tr>
+            <tr><td>Longueur</td><td>16 pouces</td><td>150 $</td></tr>
+            <tr><td>Longueur</td><td>18 pouces</td><td>180 $</td></tr>
+            <tr><td>Longueur</td><td>20 pouces</td><td>220 $</td></tr>
+            <tr><td>Densité</td><td>150%</td><td>—</td></tr>
+            <tr><td>Densité</td><td>180%</td><td>—</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">5</div>
+      <div>
+        <h3>Sauvegarde</h3>
+        <span class="btn btn-b">Enregistrer</span>
+        <p style="margin-top:.5rem;">Ton produit apparaît immédiatement sur ton site ✦</p>
+        <div class="rose" style="margin-top:.75rem;"><strong>👻 Rupture de stock ?</strong> Ne supprime pas le produit. Décoche juste <strong>"Disponible"</strong> et sauvegarde — il disparaît du site mais reste dans ta base. Recoche quand il revient.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  4 — COMMANDES                             -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch" id="commandes">
+  <p class="ch-tag">Commandes</p>
+  <h2>Gérer les commandes de tes clientes</h2>
+  <p class="lead">À chaque achat tu reçois un email. Voici comment traiter une commande de A à Z.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="sn">1</div>
+      <div>
+        <h3>Tu reçois un email automatique</h3>
+        <p>Dès qu'une cliente achète, tu reçois un email à <strong>glowbyririi@gmail.com</strong> avec son nom, les articles et le montant payé.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">2</div>
+      <div>
+        <h3>Ouvre la commande dans l'admin</h3>
+        <p>Admin → <strong>Commandes</strong>. Tu vois la liste de toutes les commandes.</p>
+        <div class="screen">
+          <div class="screen-bar">Liste des commandes</div>
+          <table>
+            <tr><th>#</th><th>Cliente</th><th>Total</th><th>Payée</th><th>Expédiée</th></tr>
+            <tr><td>12</td><td>Marie</td><td>150 $</td><td>✅ Oui</td><td>❌ Non</td></tr>
+            <tr><td>11</td><td>Sofia</td><td>32 $</td><td>✅ Oui</td><td>✅ Oui</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">3</div>
+      <div>
+        <h3>Prépare le colis et va à la poste</h3>
+        <p>Emballe la commande et rends-toi à la poste (Canada Post, Purolator…). Récupère bien le <strong>numéro de suivi</strong> — tu en auras besoin.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">4</div>
+      <div>
+        <h3>Marque la commande comme expédiée</h3>
+        <p>Clique sur la commande → coche <strong>"Expédiée"</strong> → colle le numéro de suivi → <span class="btn btn-b" style="font-size:.75rem;">Enregistrer</span></p>
+        <div class="tip"><strong>✅ C'est automatique !</strong> Dès que tu sauvegardes, ton site envoie un email à ta cliente avec le numéro de suivi. Tu n'as rien d'autre à faire.</div>
+        <div class="screen" style="margin-top:.85rem;">
+          <div class="screen-bar">Email automatique reçu par ta cliente</div>
+          <p>Bonjour <strong>Marie</strong> ✦</p>
+          <p>Bonne nouvelle — ta commande #12 a été expédiée ! 📦</p>
+          <p>Numéro de suivi : <strong>1234 5678 9012</strong></p>
+          <p style="color:var(--muted);">glowbyriri.up.railway.app/shop/suivi/</p>
+          <p>À bientôt,<br>Riri — Glow by Riri 💕</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  5 — TUTORIELS VIDÉO                       -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch" id="tutos">
+  <p class="ch-tag">Tutoriels</p>
+  <h2>Ajouter des vidéos tutoriels</h2>
+  <p class="lead">Sur la page "Nos produits", il y a un carousel de vidéos — parfait pour montrer comment utiliser le Lace Spray, le Stick Wax, etc.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="sn">1</div>
+      <div>
+        <h3>Upload ta vidéo sur Cloudinary d'abord</h3>
+        <ol>
+          <li>Va sur <strong>cloudinary.com</strong> → connecte-toi</li>
+          <li>Clique sur <strong>Media Library</strong> → <strong>Upload</strong></li>
+          <li>Choisis ta vidéo depuis ton téléphone</li>
+          <li>Attends que le chargement soit terminé</li>
+          <li>Clique sur ta vidéo uploadée → copie le lien URL</li>
+        </ol>
+        <div class="tip"><strong>✅ Les vidéos verticales</strong> (format TikTok / Reels) s'affichent mieux dans le carousel.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">2</div>
+      <div>
+        <h3>Dans l'admin → Gérer les vidéos tutoriels</h3>
+        <p>Clique sur la section existante → puis sur <strong>"+ Ajouter une vidéo tutoriel"</strong>.</p>
+        <table class="tbl">
+          <tr><th>Champ</th><th>Quoi mettre</th></tr>
+          <tr><td><strong>Titre</strong></td><td>Ex : "Comment poser ton Lace Spray"</td></tr>
+          <tr><td><strong>URL de la vidéo</strong></td><td>Colle le lien Cloudinary</td></tr>
+          <tr><td><strong>Produit lié</strong></td><td>Choisis le produit concerné (facultatif)</td></tr>
+          <tr><td><strong>Badge</strong></td><td>Ex : NEW, POPULAIRE (facultatif)</td></tr>
+          <tr><td><strong>Ordre</strong></td><td>1 = première vidéo, 2 = deuxième…</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">3</div>
+      <div>
+        <h3>Sauvegarde</h3>
+        <span class="btn btn-b">Enregistrer</span>
+        <p style="margin-top:.5rem;">Ta vidéo apparaît dans le carousel sur la page "Nos produits". Tes clientes peuvent la lire, glisser entre les vidéos et cliquer sur le produit lié ✦</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  6 — SERVICES & RDV                        -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch" id="services">
+  <p class="ch-tag">Rendez-vous</p>
+  <h2>Gérer tes services et rendez-vous</h2>
+  <p class="lead">Tes clientes peuvent réserver une pose directement sur ton site. Voici comment gérer tout ça.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="sn">1</div>
+      <div>
+        <h3>Modifier tes services</h3>
+        <p>Admin → <strong>Services</strong> → clique sur un service pour le modifier.</p>
+        <table class="tbl">
+          <tr><th>Champ</th><th>Quoi mettre</th></tr>
+          <tr><td>Nom</td><td>Ex : "Pose closure 13x4"</td></tr>
+          <tr><td>Prix</td><td>Le prix en dollars</td></tr>
+          <tr><td>Durée</td><td>Ex : "1h30" (facultatif)</td></tr>
+          <tr><td>Description</td><td>Ce qui est inclus dans la pose</td></tr>
+          <tr><td>Rabais (%)</td><td>Si en promo, sinon laisser 0</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">2</div>
+      <div>
+        <h3>Tu reçois un email automatique à chaque réservation</h3>
+        <p>Dès qu'une cliente réserve sur ton site, tu reçois un email à <strong>glowbyririi@gmail.com</strong> avec tous les détails :</p>
+        <div class="screen">
+          <div class="screen-bar">Email que tu reçois automatiquement</div>
+          <p>📅 <strong>Nouveau rendez-vous — Marie Dupont</strong></p>
+          <br>
+          <p>Tu as un nouveau rendez-vous ✦</p>
+          <br>
+          <p>Cliente &nbsp;: <strong>Marie Dupont</strong></p>
+          <p>Service &nbsp;: <strong>Pose closure 13x4</strong></p>
+          <p>Prix &nbsp;&nbsp;&nbsp;&nbsp;: <strong>60 $</strong></p>
+          <p>Date &nbsp;&nbsp;&nbsp;&nbsp;: <strong>Lundi 24 mars 2026</strong></p>
+          <p>Heure &nbsp;&nbsp;&nbsp;: <strong>14 h 30</strong></p>
+          <br>
+          <p style="color:var(--muted); font-size:.82rem;">Consulte tous tes rendez-vous dans ton admin →</p>
+        </div>
+        <div class="tip"><strong>✅ Conseil :</strong> Note chaque rendez-vous dans ton calendrier téléphonique (Google Calendar, Agenda iPhone…) pour ne rien oublier.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">3</div>
+      <div>
+        <h3>Annuler un rendez-vous</h3>
+        <p>Si tu dois annuler, contacte la cliente directement par email (son adresse est visible dans les détails du rendez-vous) pour lui proposer de reporter.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  7 — AVIS                                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch" id="avis">
+  <p class="ch-tag">Avis clients</p>
+  <h2>Modérer les avis de tes clientes</h2>
+  <p class="lead">Les avis laissés sur ton site ne sont pas publiés automatiquement — tu dois les approuver d'abord. C'est toi qui décides ce qui s'affiche.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="sn">1</div>
+      <div>
+        <h3>Voir les avis en attente</h3>
+        <p>Admin → <strong>Avis</strong>. Les avis avec "Approuvé : Non" ne sont pas encore visibles sur ton site.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">2</div>
+      <div>
+        <h3>Approuver un avis</h3>
+        <p>Clique sur l'avis → coche <strong>"Approuvé"</strong> → <span class="btn btn-b" style="font-size:.75rem;">Enregistrer</span></p>
+        <p>L'avis s'affiche immédiatement sur ta page Rendez-vous.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn">3</div>
+      <div>
+        <h3>Supprimer un avis</h3>
+        <p>Si un avis est inapproprié, ouvre-le et clique sur <strong style="color:var(--warn);">Supprimer</strong>. Il disparaît définitivement.</p>
+        <div class="tip"><strong>✅ Tu n'es pas obligée</strong> de publier un avis qui ne te convient pas.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  COÛTS                                     -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch" id="couts">
+  <p class="ch-tag">Combien ça coûte ?</p>
+  <h2>Est-ce que tu paies quelque chose chaque mois ?</h2>
+  <p class="lead">Bonne nouvelle — il n'y a pas d'abonnement mensuel fixe. Tu ne paies que quand tu vends.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="sn" style="background:var(--gold); color:var(--black);">$</div>
+      <div>
+        <h3>Stripe — Gratuit, sauf quand tu vends</h3>
+        <p>Stripe ne te charge <strong>aucun abonnement mensuel</strong>. Il prend juste une petite commission sur chaque vente :</p>
+        <div class="screen">
+          <div class="screen-bar">Commission Stripe par transaction</div>
+          <table>
+            <tr><th>Montant de la vente</th><th>Commission Stripe</th><th>Tu reçois</th></tr>
+            <tr><td>16 $ (Lace Spray)</td><td>0,76 $</td><td><strong>15,24 $</strong></td></tr>
+            <tr><td>50 $</td><td>1,75 $</td><td><strong>48,25 $</strong></td></tr>
+            <tr><td>150 $ (Perruque)</td><td>4,65 $</td><td><strong>145,35 $</strong></td></tr>
+            <tr><td>200 $</td><td>6,10 $</td><td><strong>193,90 $</strong></td></tr>
+          </table>
+        </div>
+        <div class="tip"><strong>✅ Formule :</strong> Stripe prend <strong>2,9% + 0,30 $</strong> sur chaque vente. Exemple : tu vends 100 $ → Stripe garde 3,20 $ → toi tu reçois 96,80 $.</div>
+        <div class="rose"><strong>Si tu ne vends rien ce mois-ci</strong> → tu ne paies rien du tout à Stripe. C'est 0 $.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn" style="background:var(--gold); color:var(--black);">$</div>
+      <div>
+        <h3>Railway — Le serveur de ton site</h3>
+        <p>Railway héberge ton site web. Il a deux options :</p>
+        <div class="screen">
+          <div class="screen-bar">Plans Railway</div>
+          <table>
+            <tr><th>Plan</th><th>Prix</th><th>Pour qui ?</th></tr>
+            <tr><td><strong>Gratuit</strong></td><td>0 $ / mois</td><td>Pour débuter — peut suffire au début</td></tr>
+            <tr><td><strong>Pro</strong></td><td>~5 $ / mois</td><td>Si ton site reçoit beaucoup de visites</td></tr>
+          </table>
+        </div>
+        <div class="tip"><strong>✅ Conseil :</strong> Commence avec le plan gratuit. Si ton site devient lent ou tombe, passe au plan Pro à 5 $ / mois.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn" style="background:var(--gold); color:var(--black);">$</div>
+      <div>
+        <h3>Cloudinary — Tes photos et vidéos</h3>
+        <p>Cloudinary stocke toutes tes photos de produits et tes vidéos tutoriels.</p>
+        <div class="rose"><strong>Le plan gratuit de Cloudinary</strong> est très généreux et suffit largement pour ta boutique. Tu n'as rien à payer.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="sn" style="background:var(--gold); color:var(--black);">∑</div>
+      <div>
+        <h3>En résumé — Ce que tu paies vraiment</h3>
+        <div class="screen">
+          <div class="screen-bar">Récapitulatif des coûts mensuels</div>
+          <table>
+            <tr><th>Service</th><th>Coût fixe / mois</th><th>Variable</th></tr>
+            <tr><td>Stripe (paiements)</td><td><strong style="color:var(--green);">0 $</strong></td><td>2,9% + 0,30 $ par vente</td></tr>
+            <tr><td>Railway (site web)</td><td><strong style="color:var(--green);">0 $</strong> (gratuit) ou 5 $ (Pro)</td><td>—</td></tr>
+            <tr><td>Cloudinary (médias)</td><td><strong style="color:var(--green);">0 $</strong></td><td>—</td></tr>
+            <tr style="background:var(--rose-mid);"><td><strong>Total minimum</strong></td><td><strong>0 $ / mois</strong></td><td>Juste la commission Stripe sur tes ventes</td></tr>
+          </table>
+        </div>
+        <div class="tip"><strong>✅ Conclusion :</strong> Ta boutique en ligne ne te coûte rien tant que tu ne vends pas. Et quand tu vends, Stripe prend une toute petite partie — tu gardes plus de 97% de chaque vente.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  CHECKLIST FINALE                          -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="ch">
+  <div class="gold-box">
+    <div class="gold-box-t">✦ Checklist — Tout est prêt ?</div>
+    <ul class="chklist">
+      <li><span class="chk"></span>J'ai basculé Stripe en mode production</li>
+      <li><span class="chk"></span>J'ai confirmé mon email Stripe</li>
+      <li><span class="chk"></span>J'ai ajouté mon compte bancaire sur Stripe</li>
+      <li><span class="chk"></span>J'ai envoyé mes deux clés (pk_live et sk_live) pour qu'elles soient configurées</li>
+      <li><span class="chk"></span>Tous mes produits ont une belle photo</li>
+      <li><span class="chk"></span>Les prix sont corrects</li>
+      <li><span class="chk"></span>J'ai testé un vrai achat sur mon site</li>
+    </ul>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div class="ch" style="margin-top:2rem; margin-bottom:5rem;">
+  <div style="background:var(--black); border-radius:8px; padding:2.5rem 2rem; text-align:center;">
+    <p style="font-size:.65rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:var(--gold); margin-bottom:1.25rem;">Glow by Riri</p>
+    <p style="font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:400; color:var(--white); margin-bottom:.75rem;">Votre glow commence ici ✦</p>
+    <p style="color:rgba(255,255,255,.4); font-size:.88rem; font-weight:300;">glowbyriri.up.railway.app &nbsp;·&nbsp; glowbyririi@gmail.com</p>
+  </div>
+</div>
+
+<div class="foot">
+  Créé spécialement pour <span>Riri</span> &nbsp;✦&nbsp; 2026
+</div>
+
+</body>
+</html>
