@@ -101,3 +101,6 @@ class TutorialVideoAdmin(admin.ModelAdmin):
     list_display = ['title', 'product', 'badge', 'order']
     list_editable = ['order']
     fields = ['title', 'video_url', 'product', 'badge', 'order', 'section']
+
+    class Media:
+        js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
