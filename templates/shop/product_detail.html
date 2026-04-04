@@ -124,13 +124,16 @@
 // ── Config ────────────────────────────────────────────────────
 var DISCOUNT = parseFloat('{{ product.discount_percent|default:0 }}'.replace(',','.')) || 0;
 var BASE_PRICE = parseFloat('{{ product.price|stringformat:".2f" }}') || 0;
+var longueurPrice = BASE_PRICE;
+var lacePrice = null;   // null = pas de prix lace sélectionné
 var currentPrice = BASE_PRICE;
 var pdIndex = 0;
 var pdTotal = {{ media_count }};
 
 // Initialiser le prix avec le premier variant s'il existe
 {% if variant_groups %}{% if variant_groups.0.options.0.price %}
-currentPrice = parseFloat('{{ variant_groups.0.options.0.price|stringformat:".2f" }}') || BASE_PRICE;
+longueurPrice = parseFloat('{{ variant_groups.0.options.0.price|stringformat:".2f" }}') || BASE_PRICE;
+currentPrice = longueurPrice;
 {% endif %}{% endif %}
 if (DISCOUNT > 0) currentPrice = Math.round(currentPrice * (1 - DISCOUNT/100) * 100) / 100;
 
@@ -198,18 +201,24 @@ function selectVariant(btn) {
     if (variantType === 'lace') {
         var li = document.getElementById('laceSizeInput');
         if (li) li.value = btn.dataset.variantId;
+        // La lace peut avoir un prix absolu
+        lacePrice = btn.dataset.price ? parseFloat(btn.dataset.price) : null;
     } else if (variantType === 'type_lace') {
         var tl = document.getElementById('typeLaceInput');
         if (tl) tl.value = btn.dataset.variantId;
+        // type_lace ne change pas le prix
     } else {
+        // longueur ou densité — met à jour le prix de base
         var vi = document.getElementById('variantInput');
         if (vi) vi.value = btn.dataset.variantId;
+        longueurPrice = btn.dataset.price ? parseFloat(btn.dataset.price) : BASE_PRICE;
+        lacePrice = null; // on remet lace à null quand on change de longueur
     }
-    if (btn.dataset.price) {
-        var p = parseFloat(btn.dataset.price);
-        currentPrice = DISCOUNT > 0 ? Math.round(p * (1 - DISCOUNT/100) * 100) / 100 : p;
-        refreshPrice();
-    }
+
+    // Le prix affiché : lace l'emporte si défini, sinon longueur
+    var rawPrice = lacePrice !== null ? lacePrice : longueurPrice;
+    currentPrice = DISCOUNT > 0 ? Math.round(rawPrice * (1 - DISCOUNT/100) * 100) / 100 : rawPrice;
+    refreshPrice();
 }
 
 // ── Prix ──────────────────────────────────────────────────────
