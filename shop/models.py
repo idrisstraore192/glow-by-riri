@@ -60,6 +60,7 @@ class ProductVariant(models.Model):
     variant_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='longueur', verbose_name="Type")
     label = models.CharField(max_length=50, default='', verbose_name="Option", help_text="Ex: 12 pouces, 13x4 HD, 180%")
     price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name="Prix")
+    photo_url = models.URLField(blank=True, default='', verbose_name="Photo (optionnel)", help_text="Photo qui s'affiche automatiquement quand cette option est sélectionnée")
 
     class Meta:
         verbose_name = "Variante"

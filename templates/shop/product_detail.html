@@ -83,6 +83,7 @@
                 data-variant-id="{{ v.id }}"
                 data-variant-type="{{ group.type }}"
                 {% if v.price %}data-price="{{ v.price }}"{% endif %}
+                {% if v.photo_url %}data-photo="{{ v.photo_url }}"{% endif %}
                 onclick="selectVariant(this)">
                 {{ v.label }}
             </button>
@@ -124,6 +125,31 @@
 // ── Config ────────────────────────────────────────────────────
 var DISCOUNT = parseFloat('{{ product.discount_percent|default:0 }}'.replace(',','.')) || 0;
 var BASE_PRICE = parseFloat('{{ product.price|stringformat:".2f" }}') || 0;
+// Photo variant
+var _originalSlide0Src = null;
+
+function showVariantPhoto(url) {
+    var track = document.getElementById('pdTrack');
+    if (!track) return;
+    var firstSlide = track.querySelector('.pd-slide:not(.pd-slide-video)');
+    if (!firstSlide) return;
+    var img = firstSlide.querySelector('img');
+    if (!img) return;
+    if (!_originalSlide0Src) _originalSlide0Src = img.src;
+    img.src = url;
+    pdGoto(0);
+}
+
+function restoreOriginalPhoto() {
+    if (!_originalSlide0Src) return;
+    var track = document.getElementById('pdTrack');
+    if (!track) return;
+    var firstSlide = track.querySelector('.pd-slide:not(.pd-slide-video)');
+    if (!firstSlide) return;
+    var img = firstSlide.querySelector('img');
+    if (img) img.src = _originalSlide0Src;
+}
+
 var longueurPrice = BASE_PRICE;
 var lacePrice = null;   // null = pas de prix lace sélectionné
 var currentPrice = BASE_PRICE;
@@ -201,21 +227,25 @@ function selectVariant(btn) {
     if (variantType === 'lace') {
         var li = document.getElementById('laceSizeInput');
         if (li) li.value = btn.dataset.variantId;
-        // La lace peut avoir un prix absolu
         lacePrice = btn.dataset.price ? parseFloat(btn.dataset.price) : null;
     } else if (variantType === 'type_lace') {
         var tl = document.getElementById('typeLaceInput');
         if (tl) tl.value = btn.dataset.variantId;
-        // type_lace ne change pas le prix
     } else {
-        // longueur ou densité — met à jour le prix de base
         var vi = document.getElementById('variantInput');
         if (vi) vi.value = btn.dataset.variantId;
         longueurPrice = btn.dataset.price ? parseFloat(btn.dataset.price) : BASE_PRICE;
-        lacePrice = null; // on remet lace à null quand on change de longueur
+        lacePrice = null;
     }
 
-    // Le prix affiché : lace l'emporte si défini, sinon longueur
+    // Photo associée à la variante
+    if (btn.dataset.photo) {
+        showVariantPhoto(btn.dataset.photo);
+    } else {
+        restoreOriginalPhoto();
+    }
+
+    // Prix : lace l'emporte si défini, sinon longueur
     var rawPrice = lacePrice !== null ? lacePrice : longueurPrice;
     currentPrice = DISCOUNT > 0 ? Math.round(rawPrice * (1 - DISCOUNT/100) * 100) / 100 : rawPrice;
     refreshPrice();

@@ -25,7 +25,10 @@ class ProductVideoInline(admin.TabularInline):
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ['variant_type', 'label', 'price']
+    fields = ['variant_type', 'label', 'price', 'photo_url']
+
+    class Media:
+        js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
 
 
 class OrderItemInline(admin.TabularInline):
