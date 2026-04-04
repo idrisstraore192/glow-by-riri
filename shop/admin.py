@@ -116,3 +116,10 @@ class TutorialSectionAdmin(admin.ModelAdmin):
             TutorialSection.objects.create()
         obj = TutorialSection.objects.first()
         return self.changeform_view(request, str(obj.pk), extra_context=extra_context)
+
+
+@admin.register(TutorialVideo)
+class TutorialVideoAdmin(admin.ModelAdmin):
+    list_display = ['title', 'product', 'badge', 'order']
+    list_editable = ['order']
+    fields = ['title', 'video_url', 'product', 'badge', 'order', 'section']
