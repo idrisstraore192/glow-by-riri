@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem, TutorialVideo, TutorialSection
+from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem, TutorialVideo
 
 
 class ProductImageInline(admin.TabularInline):
@@ -94,28 +94,6 @@ class ProductAdmin(admin.ModelAdmin):
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
 
-
-class TutorialVideoInline(admin.TabularInline):
-    model = TutorialVideo
-    extra = 1
-    fields = ['title', 'video_url', 'product', 'badge', 'order']
-
-    class Media:
-        js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
-
-
-@admin.register(TutorialSection)
-class TutorialSectionAdmin(admin.ModelAdmin):
-    inlines = [TutorialVideoInline]
-
-    def has_add_permission(self, _request):
-        return not TutorialSection.objects.exists()
-
-    def changelist_view(self, request, extra_context=None):
-        if not TutorialSection.objects.exists():
-            TutorialSection.objects.create()
-        obj = TutorialSection.objects.first()
-        return self.changeform_view(request, str(obj.pk), extra_context=extra_context)
 
 
 @admin.register(TutorialVideo)
