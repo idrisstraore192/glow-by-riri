@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path("", views.product_list, name="products"),
     path("<int:product_id>/", views.product_detail, name="product_detail"),
+    path("produit/<slug:slug>/", views.product_detail_slug, name="product_detail_slug"),
     path("cart/", views.cart_view, name="cart"),
     path("cart/add/<int:product_id>/", views.add_to_cart, name="add_to_cart"),
     path("cart/remove/<int:product_id>/", views.remove_from_cart, name="remove_from_cart"),
@@ -14,4 +15,10 @@ urlpatterns = [
     path("payment/success/", views.payment_success, name="payment_success"),
     path("payment/cancel/", views.payment_cancel, name="payment_cancel"),
     path("suivi/", views.order_tracking, name="order_tracking"),
+    path("stripe/webhook/", views.stripe_webhook, name="stripe_webhook"),
+    path("apply-promo/", views.apply_promo, name="apply_promo"),
+    path("order/<int:order_id>/invoice.pdf/", views.invoice_pdf, name="invoice_pdf"),
+    path("mon-compte/", views.mon_compte, name="mon_compte"),
+    path("wishlist/", views.wishlist_view, name="wishlist"),
+    path("wishlist/toggle/<int:product_id>/", views.wishlist_toggle, name="wishlist_toggle"),
 ]

@@ -7,45 +7,43 @@ import datetime
 
 
 class Command(BaseCommand):
-    help = 'Envoie un rappel par email aux clientes 1h avant leur rendez-vous'
+    help = 'Envoie un rappel par email aux clientes dont le RDV est demain'
 
     def handle(self, *args, **options):
-        now = timezone.localtime()
-        window_start = (now + datetime.timedelta(minutes=55)).time()
-        window_end   = (now + datetime.timedelta(minutes=70)).time()
-        today = now.date()
+        tomorrow = timezone.localdate() + datetime.timedelta(days=1)
 
         appointments = Appointment.objects.filter(
-            date=today,
+            date=tomorrow,
             deposit_paid=True,
             reminder_sent=False,
-            time__gte=window_start,
-            time__lte=window_end,
-        )
+        ).select_related('service')
 
+        sent = 0
         for appt in appointments:
             if not appt.customer_email:
                 continue
             try:
                 send_mail(
-                    subject="⏰ Rappel — Ton rendez-vous chez Glow by Riri dans 1h",
-                    message=f"""Bonjour {appt.customer_name} ✦
-
-C'est ton rappel ! Ton rendez-vous est dans environ 1 heure.
-
-Service  : {appt.service.name}
-Date     : {appt.date.strftime('%d/%m/%Y')}
-Heure    : {appt.time.strftime('%H h %M')}
-
-À tout à l'heure !
-Riri — Glow by Riri 💕
-""",
+                    subject="Rappel — Votre rendez-vous demain chez Glow by Riri",
+                    message=(
+                        f"Bonjour {appt.customer_name},\n\n"
+                        f"Rappel : votre rendez-vous est demain à {appt.time.strftime('%H h %M')} "
+                        f"pour {appt.service.name}.\n\n"
+                        f"Date    : {appt.date.strftime('%d/%m/%Y')}\n"
+                        f"Heure   : {appt.time.strftime('%H h %M')}\n"
+                        f"Service : {appt.service.name}\n\n"
+                        f"À demain !\n"
+                        f"Riri — Glow by Riri"
+                    ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[appt.customer_email],
                     fail_silently=False,
                 )
                 appt.reminder_sent = True
                 appt.save(update_fields=['reminder_sent'])
-                self.stdout.write(f"Rappel envoyé à {appt.customer_email}")
+                sent += 1
+                self.stdout.write(f"Rappel envoyé à {appt.customer_email} pour le {appt.date}")
             except Exception as e:
-                self.stderr.write(f"Erreur rappel {appt.id}: {e}")
+                self.stderr.write(f"Erreur rappel RDV #{appt.id}: {e}")
+
+        self.stdout.write(self.style.SUCCESS(f"{sent} rappel(s) envoyé(s)."))

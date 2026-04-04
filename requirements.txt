@@ -7,3 +7,4 @@ Pillow
 stripe
 psycopg2-binary
 cloudinary
+reportlab

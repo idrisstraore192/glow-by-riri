@@ -1,6 +1,7 @@
 import stripe
 from django.shortcuts import render, redirect, get_object_or_404
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.conf import settings
 from .forms import AppointmentForm
 from .models import Service, Appointment
@@ -9,7 +10,6 @@ from reviews.forms import ReviewForm
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 SITE_URL = "https://glowbyriri.up.railway.app"
-DEPOSIT_AMOUNT = 2000  # 20.00 $ en centimes
 
 
 def booking_page(request):
@@ -31,14 +31,15 @@ def booking_page(request):
                             'currency': 'cad',
                             'product_data': {
                                 'name': f'Acompte — {appt.service.name}',
-                                'description': f'Rendez-vous le {appt.date.strftime("%d/%m/%Y")} à {appt.time.strftime("%H:%M")} · Reste à payer sur place : {appt.service.final_price - 20:.2f} $',
+                                'description': f'Rendez-vous le {appt.date.strftime("%d/%m/%Y")} à {appt.time.strftime("%H:%M")} · Reste à payer sur place : {appt.service.final_price - float(appt.service.deposit_amount):.2f} $',
                             },
-                            'unit_amount': DEPOSIT_AMOUNT,
+                            'unit_amount': int(appt.service.deposit_amount * 100),
                         },
                         'quantity': 1,
                     }],
                     mode='payment',
                     customer_email=appt.customer_email or None,
+                    metadata={'type': 'deposit', 'appt_id': str(appt.id)},
                     success_url=SITE_URL + f'/booking/deposit/success/?session_id={{CHECKOUT_SESSION_ID}}&appt_id={appt.id}',
                     cancel_url=SITE_URL + f'/booking/deposit/cancel/?appt_id={appt.id}',
                 )
@@ -119,8 +120,8 @@ def booking_deposit_success(request):
                             f"Email       : {appt.customer_email}\n"
                             f"Service     : {appt.service.name}\n"
                             f"Prix total  : {appt.service.final_price} $\n"
-                            f"Acompte     : 20,00 $ ✓ payé\n"
-                            f"Reste à payer : {appt.service.final_price - 20:.2f} $\n"
+                            f"Acompte     : {float(appt.service.deposit_amount):.2f} $ ✓ payé\n"
+                            f"Reste à payer : {appt.service.final_price - float(appt.service.deposit_amount):.2f} $\n"
                             f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
                             f"Heure       : {appt.time.strftime('%H h %M')}\n\n"
                             f"Consulte tous tes rendez-vous ici :\n"
@@ -137,29 +138,44 @@ def booking_deposit_success(request):
                 # Email de confirmation à la cliente
                 if appt.customer_email:
                     try:
-                        send_mail(
-                            subject="✦ Votre rendez-vous est confirmé — Glow by Riri",
-                            message=(
-                                f"Bonjour {appt.customer_name} ✦\n\n"
-                                f"Votre rendez-vous est confirmé !\n\n"
-                                f"Service     : {appt.service.name}\n"
-                                f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
-                                f"Heure       : {appt.time.strftime('%H h %M')}\n"
-                                f"Acompte payé : 20,00 $\n"
-                                f"Reste à régler sur place : {appt.service.final_price - 20:.2f} $\n\n"
-                                f"À très bientôt,\n"
-                                f"Riri — Glow by Riri 💕"
-                            ),
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[appt.customer_email],
-                            fail_silently=True,
+                        _remainder = round(appt.service.final_price - float(appt.service.deposit_amount), 2)
+                        plain_confirm = (
+                            f"Bonjour {appt.customer_name},\n\n"
+                            f"Votre rendez-vous est confirmé !\n\n"
+                            f"Service     : {appt.service.name}\n"
+                            f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
+                            f"Heure       : {appt.time.strftime('%H h %M')}\n"
+                            f"Acompte payé : {float(appt.service.deposit_amount):.2f} $\n"
+                            f"Reste à régler sur place : {_remainder:.2f} $\n\n"
+                            f"À très bientôt,\nRiri — Glow by Riri"
                         )
+                        try:
+                            html_confirm = render_to_string('emails/appointment_confirmation.html', {
+                                'appt': appt,
+                                'remainder': _remainder,
+                            })
+                            confirm_msg = EmailMultiAlternatives(
+                                subject="Votre rendez-vous est confirmé — Glow by Riri",
+                                body=plain_confirm,
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                to=[appt.customer_email],
+                            )
+                            confirm_msg.attach_alternative(html_confirm, "text/html")
+                            confirm_msg.send(fail_silently=True)
+                        except Exception:
+                            send_mail(
+                                subject="Votre rendez-vous est confirmé — Glow by Riri",
+                                message=plain_confirm,
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=[appt.customer_email],
+                                fail_silently=True,
+                            )
                     except Exception:
                         pass
         except Exception:
             pass
 
-    remainder = round(appt.service.final_price - 20, 2)
+    remainder = round(appt.service.final_price - float(appt.service.deposit_amount), 2)
     return render(request, 'booking/success.html', {'appt': appt, 'remainder': remainder})
 
 

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ta commande est en route — Glow by Riri</title>
+</head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Georgia,serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+      <tr><td style="background:#f8d0e8;padding:28px 32px;text-align:center;">
+        <p style="margin:0;font-size:22px;font-weight:bold;color:#1a1a1a;letter-spacing:2px;">Glow by Riri</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#555;">Votre glow commence ici.</p>
+      </td></tr>
+      <tr><td style="padding:32px;">
+        <p style="font-size:18px;color:#1a1a1a;margin:0 0 16px;">Bonjour {{ order.customer_name }},</p>
+        <p style="color:#444;line-height:1.7;margin:0 0 24px;">Bonne nouvelle — ta commande <strong>#{{ order.id }}</strong> a été expédiée !</p>
+        {% if order.tracking_number %}
+        <p style="background:#fdf6fb;padding:16px;border-radius:6px;border-left:3px solid #f8d0e8;color:#333;margin:0 0 24px;">
+          Numéro de suivi : <strong>{{ order.tracking_number }}</strong>
+        </p>
+        {% endif %}
+        <p style="margin:0 0 24px;">
+          <a href="{{ site_url }}/shop/suivi/"
+             style="display:inline-block;background:#f8d0e8;color:#1a1a1a;text-decoration:none;padding:10px 20px;border-radius:4px;font-size:14px;">
+            Suivre ma commande
+          </a>
+        </p>
+        <p style="color:#666;font-size:13px;margin:0;">Des questions ? Écris-nous à <a href="mailto:glowbyririi@gmail.com" style="color:#c06090;">glowbyririi@gmail.com</a></p>
+      </td></tr>
+      <tr><td style="background:#f8d0e8;padding:20px 32px;text-align:center;">
+        <p style="margin:0;font-size:13px;color:#555;">© 2026 Glow by Riri — Tous droits réservés</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

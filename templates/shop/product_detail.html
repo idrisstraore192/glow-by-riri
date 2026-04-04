@@ -113,10 +113,23 @@
         <input type="hidden" name="type_lace_variant_id" id="typeLaceInput" value="">
         {% endif %}
         <input type="hidden" name="with_installation" id="installationInput" value="0">
+        {% if product.stock == 0 %}
+        <button type="button" class="btn btn-black pd-cta" disabled style="opacity:0.5;cursor:not-allowed;">
+            Rupture de stock
+        </button>
+        {% else %}
         <button type="submit" class="btn btn-black pd-cta" onclick="cartAnimation(this)">
             Ajouter au panier
         </button>
+        {% endif %}
     </form>
+
+    <!-- Wishlist button -->
+    <button id="wishlistBtn"
+            onclick="toggleWishlistDetail({{ product.id }}, this)"
+            style="margin-top:0.75rem;background:none;border:1px solid #ddd;border-radius:4px;padding:8px 16px;cursor:pointer;font-size:14px;color:#555;display:flex;align-items:center;gap:6px;">
+        <span id="wishlistHeart">&#9825;</span> Ajouter aux favoris
+    </button>
 
     <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
 </div>
@@ -280,5 +293,29 @@ function refreshPrice() {
 if (DISCOUNT > 0) refreshPrice();
 
 function cartAnimation(btn) { btn.textContent = '✦ Ajouté !'; }
+
+function toggleWishlistDetail(productId, btn) {
+    const csrfToken = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='));
+    const token = csrfToken ? csrfToken.split('=')[1] : '';
+    fetch('/shop/wishlist/toggle/' + productId + '/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': token, 'Content-Type': 'application/json'},
+    })
+    .then(r => r.json())
+    .then(data => {
+        const heart = document.getElementById('wishlistHeart');
+        if (data.in_wishlist) {
+            heart.innerHTML = '&#9829;';
+            btn.style.color = '#e74c3c';
+            btn.style.borderColor = '#e74c3c';
+            btn.querySelector('span').nextSibling.textContent = ' Retiré des favoris';
+        } else {
+            heart.innerHTML = '&#9825;';
+            btn.style.color = '#555';
+            btn.style.borderColor = '#ddd';
+        }
+    })
+    .catch(() => {});
+}
 </script>
 {% endblock %}

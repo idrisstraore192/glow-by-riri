@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mes favoris — Glow by Riri{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Mes favoris</h1>
+  <p>Les produits qui vous font de l'oeil</p>
+</div>
+
+<div class="section" style="padding-top:3rem;">
+  {% if items %}
+  <div class="product-grid">
+    {% for item in items %}
+    {% with p=item.product %}
+    <div class="product-card" style="position:relative;" data-price="{{ p.price }}" data-name="{{ p.name }}" data-type="{{ p.product_type }}">
+      <button class="wishlist-btn wishlist-active"
+              data-product-id="{{ p.id }}"
+              onclick="toggleWishlist({{ p.id }}, this)"
+              style="position:absolute;top:10px;right:10px;z-index:10;background:#fff;border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.12);"
+              title="Retirer des favoris">&#9829;</button>
+      <a href="{% url 'product_detail_slug' p.slug %}" style="display:contents;">
+        <div class="product-img-wrap">
+          {% with first_img=p.images.first %}
+          {% if first_img %}
+          <img class="product-img" src="{{ first_img.image_url }}" alt="{{ p.name }}">
+          {% elif p.image_url %}
+          <img class="product-img" src="{{ p.image_url }}" alt="{{ p.name }}">
+          {% else %}
+          <div class="product-img-placeholder">✦</div>
+          {% endif %}
+          {% endwith %}
+          {% if p.discount_percent and p.discount_percent > 0 %}
+          <span class="product-discount-badge">-{{ p.discount_percent|floatformat:0 }}%</span>
+          {% endif %}
+          {% if p.stock == 0 %}
+          <span style="position:absolute;bottom:8px;left:8px;background:#e74c3c;color:#fff;font-size:11px;padding:2px 8px;border-radius:3px;">Rupture de stock</span>
+          {% endif %}
+        </div>
+        <div class="product-info">
+          <h3>{{ p.name }}</h3>
+          {% if p.discount_percent and p.discount_percent > 0 %}
+          <p class="product-price">
+            <span class="price-original">{{ p.price }} $ CAD</span>
+            <span class="price-promo">{{ p.final_price }} $ CAD</span>
+          </p>
+          {% else %}
+          <p class="product-price">{{ p.price }} $ CAD</p>
+          {% endif %}
+        </div>
+      </a>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>Votre liste de favoris est vide.</p>
+    <a href="{% url 'products' %}" class="btn btn-outline" style="margin-top:1.5rem;">Voir la boutique</a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function toggleWishlist(productId, btn) {
+  fetch('/shop/wishlist/toggle/' + productId + '/', {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'},
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.in_wishlist) {
+      // Remove card from page
+      const card = btn.closest('.product-card');
+      if (card) card.remove();
+      // Check if empty
+      const grid = document.querySelector('.product-grid');
+      if (grid && grid.children.length === 0) location.reload();
+    }
+  });
+}
+</script>
+{% endblock %}

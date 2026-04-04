@@ -1,0 +1,105 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1 style="margin-bottom:1.5rem;">Tableau de bord — Glow by Riri</h1>
+
+<!-- Stats cards -->
+<div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:2rem;">
+  <div style="flex:1;min-width:180px;background:#f8d0e8;border-radius:8px;padding:1.5rem;text-align:center;">
+    <p style="margin:0 0 8px;font-size:13px;color:#555;text-transform:uppercase;letter-spacing:1px;">Revenus ce mois</p>
+    <p style="margin:0;font-size:28px;font-weight:bold;color:#1a1a1a;">{{ revenue_month|floatformat:2 }} $</p>
+  </div>
+  <div style="flex:1;min-width:180px;background:#fdf0f8;border-radius:8px;padding:1.5rem;text-align:center;border:1px solid #f8d0e8;">
+    <p style="margin:0 0 8px;font-size:13px;color:#555;text-transform:uppercase;letter-spacing:1px;">Commandes ce mois</p>
+    <p style="margin:0;font-size:28px;font-weight:bold;color:#1a1a1a;">{{ orders_month }}</p>
+  </div>
+  <div style="flex:1;min-width:180px;background:#fdf0f8;border-radius:8px;padding:1.5rem;text-align:center;border:1px solid #f8d0e8;">
+    <p style="margin:0 0 8px;font-size:13px;color:#555;text-transform:uppercase;letter-spacing:1px;">Rendez-vous ce mois</p>
+    <p style="margin:0;font-size:28px;font-weight:bold;color:#1a1a1a;">{{ appts_month }}</p>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex-wrap:wrap;">
+
+  <!-- Unshipped orders -->
+  <div style="background:#fff;border:1px solid #eee;border-radius:8px;padding:1.5rem;">
+    <h2 style="font-size:15px;margin:0 0 1rem;color:#1a1a1a;border-bottom:2px solid #f8d0e8;padding-bottom:8px;">
+      Commandes non expédiées
+    </h2>
+    {% if unshipped_orders %}
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr style="background:#fdf6fb;">
+        <th style="padding:6px 8px;text-align:left;">#</th>
+        <th style="padding:6px 8px;text-align:left;">Cliente</th>
+        <th style="padding:6px 8px;text-align:right;">Total</th>
+        <th style="padding:6px 8px;text-align:left;">Date</th>
+      </tr></thead>
+      <tbody>
+      {% for order in unshipped_orders %}
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:6px 8px;"><a href="/admin/shop/order/{{ order.id }}/change/">#{{ order.id }}</a></td>
+        <td style="padding:6px 8px;">{{ order.customer_name }}</td>
+        <td style="padding:6px 8px;text-align:right;">{{ order.total }} $</td>
+        <td style="padding:6px 8px;">{{ order.created_at|date:"d/m/Y" }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#999;font-size:13px;">Aucune commande en attente.</p>
+    {% endif %}
+  </div>
+
+  <!-- Upcoming appointments -->
+  <div style="background:#fff;border:1px solid #eee;border-radius:8px;padding:1.5rem;">
+    <h2 style="font-size:15px;margin:0 0 1rem;color:#1a1a1a;border-bottom:2px solid #f8d0e8;padding-bottom:8px;">
+      Rendez-vous cette semaine
+    </h2>
+    {% if upcoming_appts %}
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr style="background:#fdf6fb;">
+        <th style="padding:6px 8px;text-align:left;">Cliente</th>
+        <th style="padding:6px 8px;text-align:left;">Service</th>
+        <th style="padding:6px 8px;text-align:left;">Date &amp; heure</th>
+      </tr></thead>
+      <tbody>
+      {% for appt in upcoming_appts %}
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:6px 8px;">{{ appt.customer_name }}</td>
+        <td style="padding:6px 8px;">{{ appt.service.name }}</td>
+        <td style="padding:6px 8px;">{{ appt.date|date:"d/m" }} à {{ appt.time|time:"H\hi" }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#999;font-size:13px;">Aucun rendez-vous cette semaine.</p>
+    {% endif %}
+  </div>
+
+  <!-- Top products -->
+  <div style="background:#fff;border:1px solid #eee;border-radius:8px;padding:1.5rem;grid-column:1/-1;">
+    <h2 style="font-size:15px;margin:0 0 1rem;color:#1a1a1a;border-bottom:2px solid #f8d0e8;padding-bottom:8px;">
+      Top 5 produits vendus
+    </h2>
+    {% if top_products %}
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr style="background:#fdf6fb;">
+        <th style="padding:6px 8px;text-align:left;">Produit</th>
+        <th style="padding:6px 8px;text-align:right;">Quantité vendue</th>
+      </tr></thead>
+      <tbody>
+      {% for p in top_products %}
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:6px 8px;">{{ p.product_name }}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:bold;">{{ p.total_qty }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#999;font-size:13px;">Aucune vente enregistrée.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -54,6 +54,17 @@
                 <span>Livraison</span>
                 <span style="color:#27ae60;">Gratuite</span>
             </div>
+
+            <!-- Code promo -->
+            <div style="margin:1rem 0;">
+                <div style="display:flex;gap:0.5rem;">
+                    <input type="text" id="promoCodeInput" placeholder="Code promo"
+                           style="flex:1;padding:0.6rem 0.8rem;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+                    <button onclick="applyPromo()" class="btn" style="padding:0.6rem 1rem;font-size:13px;">Appliquer</button>
+                </div>
+                <p id="promoMsg" style="font-size:13px;margin:6px 0 0;"></p>
+            </div>
+
             <div class="summary-total">
                 <span>Total</span>
                 <span>{{ cart.get_total }} $ CAD</span>
@@ -73,5 +84,26 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function applyPromo() {
+    const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+    const msg = document.getElementById('promoMsg');
+    if (!code) { msg.textContent = 'Veuillez entrer un code promo.'; msg.style.color = '#e74c3c'; return; }
+    const csrfToken = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='));
+    const token = csrfToken ? csrfToken.split('=')[1] : '';
+    fetch('/shop/apply-promo/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': token, 'Content-Type': 'application/json'},
+        body: JSON.stringify({code: code}),
+    })
+    .then(r => r.json())
+    .then(data => {
+        msg.textContent = data.message;
+        msg.style.color = data.valid ? '#27ae60' : '#e74c3c';
+    })
+    .catch(() => { msg.textContent = 'Erreur réseau.'; msg.style.color = '#e74c3c'; });
+}
+</script>
 
 {% endblock %}

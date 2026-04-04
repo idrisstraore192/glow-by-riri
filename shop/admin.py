@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem, TutorialVideo
+from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem
 
 
 class ProductImageInline(admin.TabularInline):
@@ -81,7 +81,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['order', 'disponible']
     list_filter = ['product_type', 'disponible']
     ordering = ['order', 'product_type', 'price']
-    fields = ['name', 'product_type', 'category', 'disponible', 'order', 'price', 'discount_percent', 'description', 'image_url', 'video_url']
+    fields = ['name', 'product_type', 'category', 'disponible', 'order', 'price', 'discount_percent', 'stock', 'description', 'image_url', 'video_url']
     inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline]
 
     def display_type(self, obj):
@@ -107,3 +107,17 @@ class TutorialVideoAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
+
+
+@admin.register(PromoCode)
+class PromoCodeAdmin(admin.ModelAdmin):
+    list_display = ['code', 'discount_percent', 'uses_count', 'max_uses', 'active', 'expires_at']
+    list_editable = ['active']
+    fields = ['code', 'discount_percent', 'max_uses', 'uses_count', 'active', 'expires_at']
+    readonly_fields = ['uses_count']
+
+
+@admin.register(WishlistItem)
+class WishlistItemAdmin(admin.ModelAdmin):
+    list_display = ['product', 'session_key', 'added_at']
+    readonly_fields = ['session_key', 'product', 'added_at']

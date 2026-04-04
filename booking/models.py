@@ -11,6 +11,7 @@ class Service(models.Model):
     description = models.TextField(blank=True, verbose_name="Description")
     image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Rabais (%)", help_text="Ex: 20 pour -20%. Laisser 0 si aucun rabais.")
+    deposit_amount = models.DecimalField(max_digits=8, decimal_places=2, default=20.00, verbose_name="Acompte ($)", help_text="Montant de l'acompte requis pour ce service.")
 
     class Meta:
         verbose_name = "Service"

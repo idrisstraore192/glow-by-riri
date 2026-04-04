@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 
 class Product(models.Model):
@@ -23,6 +24,19 @@ class Product(models.Model):
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Rabais (%)", help_text="Ex: 20 pour -20%. Laisser 0 si aucun rabais.")
     disponible = models.BooleanField(default=True, verbose_name="Disponible", help_text="Décocher pour masquer ce produit du site.")
     order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage", help_text="0 = en premier. Plus le chiffre est grand, plus le produit apparaît en bas.")
+    stock = models.PositiveIntegerField(null=True, blank=True, verbose_name="Stock", help_text="Laisser vide pour stock illimité.")
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
 
     @property
     def final_price(self):
@@ -135,3 +149,40 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.product_name}"
+
+
+class PromoCode(models.Model):
+    code = models.CharField(max_length=50, unique=True, verbose_name="Code")
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Réduction (%)")
+    max_uses = models.IntegerField(null=True, blank=True, verbose_name="Utilisations max")
+    uses_count = models.IntegerField(default=0, verbose_name="Utilisations")
+    active = models.BooleanField(default=True, verbose_name="Actif")
+    expires_at = models.DateTimeField(null=True, blank=True, verbose_name="Expiration")
+
+    class Meta:
+        verbose_name = "Code promo"
+        verbose_name_plural = "Codes promo"
+
+    def __str__(self):
+        return f"{self.code} (-{self.discount_percent}%)"
+
+    def is_valid(self):
+        from django.utils import timezone
+        if not self.active:
+            return False, "Ce code promo n'est pas actif."
+        if self.expires_at and self.expires_at < timezone.now():
+            return False, "Ce code promo a expiré."
+        if self.max_uses is not None and self.uses_count >= self.max_uses:
+            return False, "Ce code promo a atteint son nombre d'utilisations maximum."
+        return True, "Code valide."
+
+
+class WishlistItem(models.Model):
+    session_key = models.CharField(max_length=40)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Favori"
+        verbose_name_plural = "Favoris"
+        unique_together = ('session_key', 'product')
