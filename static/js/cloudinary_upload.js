@@ -162,7 +162,7 @@ function fillNextVideoRows(addLink, urls, index) {
 
 // ── Init ───────────────────────────────────────────────────────
 function initAllCloudinaryFields() {
-    document.querySelectorAll('input[id*="image_url"]').forEach(function(field) {
+    document.querySelectorAll('input[id*="image_url"], input[id*="photo_url"]').forEach(function(field) {
         addCloudinaryButton(field);
     });
     document.querySelectorAll('input[id*="video_url"]').forEach(function(field) {
