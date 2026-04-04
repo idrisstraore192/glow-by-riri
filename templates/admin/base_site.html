@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">Glow by Riri — Admin</a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}
+<div id="glow-admin-links" style="background:#f8d0e8;padding:8px 16px;display:flex;gap:16px;align-items:center;font-size:13px;">
+  <a href="/admin/dashboard/" style="color:#1a1a1a;text-decoration:none;font-weight:bold;">Tableau de bord</a>
+  <span style="color:#c0a0b0;">|</span>
+  <a href="/admin/booking/calendar/" style="color:#1a1a1a;text-decoration:none;">Calendrier RDV</a>
+  <span style="color:#c0a0b0;">|</span>
+  <a href="/admin/booking/availabilityslot/generate-slots/" style="color:#1a1a1a;text-decoration:none;">Générer créneaux</a>
+</div>
+{% endblock %}

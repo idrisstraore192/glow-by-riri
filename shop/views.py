@@ -1,10 +1,14 @@
 import json
 import stripe
+from django.db import models as django_models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib import messages
-from django.core.mail import send_mail
-from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import render_to_string
+from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem
 from .cart import Cart
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -89,6 +93,10 @@ def update_cart(request, product_id):
 
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    # Feature 13: check stock
+    if product.stock is not None and product.stock <= 0:
+        messages.error(request, f'{product.name} est en rupture de stock.')
+        return redirect(request.META.get('HTTP_REFERER', 'products'))
     cart = Cart(request)
     variant_id = request.POST.get('variant_id') or request.GET.get('variant_id')
     variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
@@ -167,21 +175,61 @@ def checkout(request):
     if len(cart) == 0:
         return redirect('products')
 
+    # Feature 10: validate prices server-side from DB
     line_items = []
     for item in cart:
+        product = item['product']
+        if product is None:
+            continue
+        # Re-fetch real price from DB
+        try:
+            db_product = Product.objects.get(pk=product.pk)
+        except Product.DoesNotExist:
+            continue
+        real_price = db_product.final_price
+        # If item has a variant, use variant price if available
+        item_key = item.get('key', '')
+        if '_' in item_key:
+            try:
+                variant_id = int(item_key.split('_')[1])
+                variant = ProductVariant.objects.get(pk=variant_id)
+                if variant.price:
+                    base = float(variant.price)
+                    if db_product.discount_percent and db_product.discount_percent > 0:
+                        base = round(base * (1 - float(db_product.discount_percent) / 100), 2)
+                    real_price = base
+            except (ValueError, ProductVariant.DoesNotExist):
+                pass
         line_items.append({
             'price_data': {
                 'currency': 'cad',
                 'product_data': {'name': item['product'].name},
-                'unit_amount': int(float(item['price']) * 100),
+                'unit_amount': int(real_price * 100),
             },
             'quantity': item['quantity'],
         })
 
-    session = stripe.checkout.Session.create(
+    # Feature 7: apply promo code discount via Stripe coupon
+    discounts = []
+    promo_code = request.session.get('promo_code')
+    if promo_code:
+        try:
+            promo = PromoCode.objects.get(code=promo_code)
+            valid, _ = promo.is_valid()
+            if valid:
+                coupon = stripe.Coupon.create(
+                    percent_off=float(promo.discount_percent),
+                    duration='once',
+                )
+                discounts = [{'coupon': coupon.id}]
+        except PromoCode.DoesNotExist:
+            pass
+
+    session_kwargs = dict(
         payment_method_types=['card', 'klarna'],
         line_items=line_items,
         mode='payment',
+        metadata={'type': 'order'},
         shipping_address_collection={'allowed_countries': ['CA']},
         shipping_options=[
             {
@@ -217,6 +265,10 @@ def checkout(request):
         success_url=SITE_URL + '/shop/payment/success/?session_id={CHECKOUT_SESSION_ID}',
         cancel_url=SITE_URL + '/shop/payment/cancel/',
     )
+    if discounts:
+        session_kwargs['discounts'] = discounts
+
+    session = stripe.checkout.Session.create(**session_kwargs)
     return redirect(session.url, code=303)
 
 
@@ -255,6 +307,21 @@ def payment_success(request):
                     price=item['price'],
                     quantity=item['quantity'],
                 )
+                # Feature 13: decrement stock
+                if item['product'] and item['product'].stock is not None:
+                    Product.objects.filter(pk=item['product'].pk, stock__gt=0).update(
+                        stock=django_models.F('stock') - item['quantity']
+                    )
+            # Feature 7: increment promo code uses
+            promo_code = request.session.get('promo_code')
+            if promo_code:
+                try:
+                    PromoCode.objects.filter(code=promo_code).update(
+                        uses_count=models.F('uses_count') + 1
+                    )
+                    del request.session['promo_code']
+                except Exception:
+                    pass
             cart.clear()
             _send_order_emails(order, items_list)
         except Exception:
@@ -279,48 +346,55 @@ def _send_order_emails(order, items):
     )
 
     if order.customer_email:
-        client_msg = f"""Bonjour {order.customer_name} ✦
-
-Merci pour ta commande chez Glow by Riri ! 🌸
-
-Voici ton récapitulatif :
-{lines}
-
-Total payé : {total}
-
-{livraison_msg}
-
-Des questions ? Écris-nous à glowbyririi@gmail.com
-
-À bientôt,
-Riri — Glow by Riri 💕
-"""
+        client_msg = (
+            f"Bonjour {order.customer_name},\n\n"
+            f"Merci pour ta commande chez Glow by Riri !\n\n"
+            f"Voici ton récapitulatif :\n{lines}\n\n"
+            f"Total payé : {total}\n\n"
+            f"{livraison_msg}\n\n"
+            f"Facture : {SITE_URL}/shop/order/{order.id}/invoice.pdf/?email={order.customer_email}\n\n"
+            f"Des questions ? Écris-nous à glowbyririi@gmail.com\n\n"
+            f"À bientôt,\nRiri — Glow by Riri"
+        )
         try:
-            send_mail(
-                subject=f"✦ Confirmation de ta commande #{order.id} — Glow by Riri",
-                message=client_msg,
+            html_message = render_to_string('emails/order_confirmation.html', {
+                'order': order,
+                'items': items,
+                'is_pickup': is_pickup,
+                'livraison_msg': livraison_msg,
+                'site_url': SITE_URL,
+            })
+            msg = EmailMultiAlternatives(
+                subject=f"Confirmation de ta commande #{order.id} — Glow by Riri",
+                body=client_msg,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[order.customer_email],
-                fail_silently=True,
+                to=[order.customer_email],
             )
+            msg.attach_alternative(html_message, "text/html")
+            msg.send(fail_silently=True)
         except Exception:
-            pass
+            try:
+                send_mail(
+                    subject=f"Confirmation de ta commande #{order.id} — Glow by Riri",
+                    message=client_msg,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.customer_email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
 
-    livraison_admin = "📦 REMISE EN MAIN PROPRE — à contacter pour convenir d'un moment." if is_pickup else f"🚚 Livraison\nAdresse : {order.shipping_address}"
-    admin_msg = f"""Nouvelle commande #{order.id} 🛍️
-
-Cliente : {order.customer_name} ({order.customer_email})
-
-Articles :
-{lines}
-
-Total : {total}
-
-{livraison_admin}
-"""
+    livraison_admin = "REMISE EN MAIN PROPRE — à contacter pour convenir d'un moment." if is_pickup else f"Livraison\nAdresse : {order.shipping_address}"
+    admin_msg = (
+        f"Nouvelle commande #{order.id}\n\n"
+        f"Cliente : {order.customer_name} ({order.customer_email})\n\n"
+        f"Articles :\n{lines}\n\n"
+        f"Total : {total}\n\n"
+        f"{livraison_admin}\n"
+    )
     try:
         send_mail(
-            subject=f"🛍️ Nouvelle commande #{order.id} — {total}",
+            subject=f"Nouvelle commande #{order.id} — {total}",
             message=admin_msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[settings.ADMIN_EMAIL],
@@ -340,3 +414,229 @@ def order_tracking(request):
     if email:
         orders = Order.objects.filter(customer_email__iexact=email, paid=True).prefetch_related('items').order_by('-created_at')
     return render(request, "shop/order_tracking.html", {"orders": orders, "email": email})
+
+
+# ── Feature 4: Stripe Webhook ─────────────────────────────────────────────────
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
+    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+
+    try:
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        else:
+            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+    except (ValueError, stripe.error.SignatureVerificationError):
+        return HttpResponse(status=400)
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        meta = session.get('metadata') or {}
+        event_type = meta.get('type', '')
+
+        if event_type == 'order':
+            # Only create order if not already created (avoid duplicate with payment_success)
+            session_id = session['id']
+            if not Order.objects.filter(stripe_session_id=session_id).exists():
+                try:
+                    full_session = stripe.checkout.Session.retrieve(session_id, expand=['shipping_cost.shipping_rate'])
+                    shipping_name = ''
+                    if full_session.shipping_cost and full_session.shipping_cost.shipping_rate:
+                        shipping_name = full_session.shipping_cost.shipping_rate.display_name or ''
+                    is_pickup = 'main propre' in shipping_name.lower()
+                    if is_pickup:
+                        shipping_address = 'Remise en main propre'
+                    else:
+                        addr = full_session.shipping_details.address if full_session.shipping_details else None
+                        shipping_address = ''
+                        if addr:
+                            parts = [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
+                            shipping_address = ', '.join(p for p in parts if p)
+                    order = Order.objects.create(
+                        customer_name=full_session.customer_details.name or "Cliente",
+                        customer_email=full_session.customer_details.email or "",
+                        total=full_session.amount_total / 100,
+                        stripe_session_id=session_id,
+                        shipping_address=shipping_address,
+                        paid=True,
+                    )
+                    line_items_response = stripe.checkout.Session.list_line_items(session_id)
+                    for li in line_items_response.data:
+                        OrderItem.objects.create(
+                            order=order,
+                            product=None,
+                            product_name=li.description or 'Article',
+                            price=li.amount_total / 100 / (li.quantity or 1),
+                            quantity=li.quantity or 1,
+                        )
+                    _send_order_emails(order, [])
+                except Exception:
+                    pass
+
+        elif event_type == 'deposit':
+            appt_id = meta.get('appt_id')
+            if appt_id:
+                try:
+                    from booking.models import Appointment
+                    appt = Appointment.objects.get(id=appt_id, deposit_paid=False)
+                    appt.deposit_paid = True
+                    appt.save(update_fields=['deposit_paid'])
+                    if appt.slot_id:
+                        appt.slot.is_booked = True
+                        appt.slot.save()
+                except Exception:
+                    pass
+
+    return HttpResponse(status=200)
+
+
+# ── Feature 7: Apply Promo Code (AJAX) ───────────────────────────────────────
+def apply_promo(request):
+    if request.method != 'POST':
+        return JsonResponse({'valid': False, 'message': 'Méthode non autorisée.'})
+    try:
+        data = json.loads(request.body)
+        code = data.get('code', '').strip().upper()
+    except (json.JSONDecodeError, AttributeError):
+        code = request.POST.get('code', '').strip().upper()
+
+    if not code:
+        return JsonResponse({'valid': False, 'message': 'Veuillez entrer un code promo.'})
+
+    try:
+        promo = PromoCode.objects.get(code=code)
+    except PromoCode.DoesNotExist:
+        return JsonResponse({'valid': False, 'message': 'Code promo invalide.'})
+
+    valid, msg = promo.is_valid()
+    if not valid:
+        return JsonResponse({'valid': False, 'message': msg})
+
+    request.session['promo_code'] = promo.code
+    return JsonResponse({
+        'valid': True,
+        'discount': float(promo.discount_percent),
+        'message': f'Code "{promo.code}" appliqué — {promo.discount_percent:.0f}% de réduction !',
+    })
+
+
+# ── Feature 9: Invoice PDF ────────────────────────────────────────────────────
+def invoice_pdf(request, order_id):
+    email = request.GET.get('email', '').strip()
+    order = get_object_or_404(Order, id=order_id, paid=True)
+    if email.lower() != order.customer_email.lower():
+        return HttpResponse("Accès refusé.", status=403)
+
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.units import cm
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        import io
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4,
+                                rightMargin=2*cm, leftMargin=2*cm,
+                                topMargin=2*cm, bottomMargin=2*cm)
+        styles = getSampleStyleSheet()
+        pink = colors.HexColor('#f8d0e8')
+        dark = colors.HexColor('#1a1a1a')
+
+        title_style = ParagraphStyle('title', parent=styles['Heading1'],
+                                     textColor=dark, fontSize=20, spaceAfter=4)
+        normal = styles['Normal']
+
+        elements = []
+
+        # Header
+        elements.append(Paragraph("Glow by Riri", title_style))
+        elements.append(Paragraph("glowbyririi@gmail.com — glowbyriri.up.railway.app", normal))
+        elements.append(Spacer(1, 0.4*cm))
+        elements.append(Paragraph(f"<b>Facture #{order.id}</b>", styles['Heading2']))
+        elements.append(Paragraph(f"Date : {order.created_at.strftime('%d/%m/%Y')}", normal))
+        elements.append(Paragraph(f"Cliente : {order.customer_name} ({order.customer_email})", normal))
+        elements.append(Spacer(1, 0.6*cm))
+
+        # Table
+        data = [['Article', 'Prix unitaire', 'Qté', 'Total']]
+        for item in order.items.all():
+            data.append([
+                item.product_name,
+                f"{float(item.price):.2f} $",
+                str(item.quantity),
+                f"{float(item.price) * item.quantity:.2f} $",
+            ])
+        data.append(['', '', 'TOTAL', f"{float(order.total):.2f} $"])
+
+        table = Table(data, colWidths=[9*cm, 3*cm, 2*cm, 3*cm])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), pink),
+            ('TEXTCOLOR', (0, 0), (-1, 0), dark),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+            ('GRID', (0, 0), (-1, -2), 0.5, colors.lightgrey),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('LINEABOVE', (0, -1), (-1, -1), 1, dark),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#fdf6fb')]),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 1*cm))
+        elements.append(Paragraph("Merci pour votre confiance — Glow by Riri", normal))
+
+        doc.build(elements)
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="facture-{order.id}.pdf"'
+        return response
+
+    except ImportError:
+        return HttpResponse("ReportLab non installé.", status=500)
+
+
+# ── Feature 11: Mon compte ────────────────────────────────────────────────────
+def mon_compte(request):
+    orders = None
+    appointments = None
+    email = request.GET.get('email', '').strip()
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+    if email:
+        orders = Order.objects.filter(customer_email__iexact=email, paid=True).prefetch_related('items').order_by('-created_at')
+        try:
+            from booking.models import Appointment
+            appointments = Appointment.objects.filter(customer_email__iexact=email).select_related('service').order_by('-date', '-time')
+        except Exception:
+            appointments = []
+    return render(request, 'shop/mon_compte.html', {'orders': orders, 'appointments': appointments, 'email': email})
+
+
+# ── Feature 12: Wishlist ──────────────────────────────────────────────────────
+def wishlist_toggle(request, product_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST requis'}, status=405)
+    product = get_object_or_404(Product, id=product_id)
+    if not request.session.session_key:
+        request.session.create()
+    sk = request.session.session_key
+    obj, created = WishlistItem.objects.get_or_create(session_key=sk, product=product)
+    if not created:
+        obj.delete()
+        return JsonResponse({'in_wishlist': False, 'message': 'Retiré des favoris.'})
+    return JsonResponse({'in_wishlist': True, 'message': 'Ajouté aux favoris !'})
+
+
+def wishlist_view(request):
+    if not request.session.session_key:
+        request.session.create()
+    sk = request.session.session_key
+    items = WishlistItem.objects.filter(session_key=sk).select_related('product').order_by('-added_at')
+    return render(request, 'shop/wishlist.html', {'items': items})
+
+
+# ── Feature 14: product detail by slug ───────────────────────────────────────
+def product_detail_slug(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    return product_detail(request, product.id)

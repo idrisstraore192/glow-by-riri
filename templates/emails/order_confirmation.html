@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmation de commande — Glow by Riri</title>
+</head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Georgia,serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+      <!-- Header -->
+      <tr><td style="background:#f8d0e8;padding:28px 32px;text-align:center;">
+        <p style="margin:0;font-size:22px;font-weight:bold;color:#1a1a1a;letter-spacing:2px;">Glow by Riri</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#555;">Votre glow commence ici.</p>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="padding:32px;">
+        <p style="font-size:18px;color:#1a1a1a;margin:0 0 16px;">Bonjour {{ order.customer_name }},</p>
+        <p style="color:#444;line-height:1.7;margin:0 0 24px;">Merci pour ta commande chez <strong>Glow by Riri</strong> ! Voici ton récapitulatif :</p>
+
+        <!-- Items table -->
+        <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-bottom:24px;">
+          <thead>
+            <tr style="background:#f8d0e8;">
+              <th style="text-align:left;font-size:13px;color:#1a1a1a;border-bottom:1px solid #e0b0cc;">Article</th>
+              <th style="text-align:right;font-size:13px;color:#1a1a1a;border-bottom:1px solid #e0b0cc;">Qté</th>
+              <th style="text-align:right;font-size:13px;color:#1a1a1a;border-bottom:1px solid #e0b0cc;">Prix</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="color:#333;font-size:14px;">{{ item.product.name }}{% if item.label %} — {{ item.label }}{% endif %}</td>
+              <td style="text-align:right;color:#555;font-size:14px;">{{ item.quantity }}</td>
+              <td style="text-align:right;color:#333;font-size:14px;">{{ item.price }} $</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="text-align:right;font-weight:bold;font-size:15px;color:#1a1a1a;padding-top:12px;">Total payé :</td>
+              <td style="text-align:right;font-weight:bold;font-size:15px;color:#c06090;padding-top:12px;">{{ order.total }} $</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <p style="color:#444;line-height:1.7;background:#fdf6fb;padding:16px;border-radius:6px;border-left:3px solid #f8d0e8;margin:0 0 24px;">{{ livraison_msg }}</p>
+
+        {% if site_url %}
+        <p style="margin:0 0 24px;">
+          <a href="{{ site_url }}/shop/order/{{ order.id }}/invoice.pdf/?email={{ order.customer_email }}"
+             style="display:inline-block;background:#f8d0e8;color:#1a1a1a;text-decoration:none;padding:10px 20px;border-radius:4px;font-size:14px;">
+            Télécharger ma facture PDF
+          </a>
+        </p>
+        {% endif %}
+
+        <p style="color:#666;font-size:13px;margin:0;">Des questions ? Écris-nous à <a href="mailto:glowbyririi@gmail.com" style="color:#c06090;">glowbyririi@gmail.com</a></p>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="background:#f8d0e8;padding:20px 32px;text-align:center;">
+        <p style="margin:0;font-size:13px;color:#555;">© 2026 Glow by Riri — Tous droits réservés</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
