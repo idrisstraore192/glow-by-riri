@@ -63,9 +63,7 @@
     {% endif %}
 
     <div class="pd-price-wrap">
-        <p class="pd-price" id="displayPrice">
-            {% if variant_groups %}{{ variant_groups.0.options.0.price|default:product.price }}{% else %}{{ product.price }}{% endif %} $ CAD
-        </p>
+        <p class="pd-price" id="displayPrice">{{ product.price }} $ CAD</p>
         <p class="pd-price-discounted" id="displayPriceDiscounted" style="display:none;"></p>
     </div>
 
@@ -73,24 +71,39 @@
     <p class="pd-desc">{{ product.description }}</p>
     {% endif %}
 
+    {% if lace_variants_json != '[]' %}
+    <!-- Sélecteur lace combiné (nouveau système) -->
+    <div class="pd-variant-group vg-visible">
+        <p class="pd-variant-label">Type de lace</p>
+        <div class="pd-variant-options" id="laceTypeOptions"></div>
+    </div>
+    <div class="pd-variant-group vg-visible">
+        <p class="pd-variant-label">Taille</p>
+        <div class="pd-variant-options" id="laceTailleOptions"></div>
+    </div>
+    <div class="pd-variant-group vg-visible">
+        <p class="pd-variant-label">Longueur</p>
+        <div class="pd-variant-options" id="laceLongueurOptions"></div>
+    </div>
+    {% elif variant_groups %}
+    <!-- Variantes simples (longueur uniquement) -->
     {% for group in variant_groups %}
-    <div class="pd-variant-group vg-visible" data-group-index="{{ forloop.counter0 }}">
+    <div class="pd-variant-group vg-visible">
         <p class="pd-variant-label">{{ group.label }}</p>
         <div class="pd-variant-options">
             {% for v in group.options %}
             <button type="button"
-                class="variant-btn {% if forloop.first and forloop.parentloop.first %}active{% endif %}"
-                data-variant-id="{{ v.id }}"
-                data-variant-type="{{ group.type }}"
-                {% if v.price %}data-price="{{ v.price }}"{% endif %}
+                class="variant-btn {% if forloop.first %}active{% endif %}"
+                data-price="{{ v.price }}"
                 {% if v.photo_url %}data-photo="{{ v.photo_url }}"{% endif %}
-                onclick="selectVariant(this)">
+                onclick="selectSimpleVariant(this)">
                 {{ v.label }}
             </button>
             {% endfor %}
         </div>
     </div>
     {% endfor %}
+    {% endif %}
 
     {% if product.category == 'perruques' %}
     <label class="installation-toggle">
@@ -107,11 +120,9 @@
 
     <form method="post" action="{% url 'add_to_cart' product.id %}" id="addToCartForm">
         {% csrf_token %}
-        {% if variant_groups %}
-        <input type="hidden" name="variant_id" id="variantInput" value="{{ variant_groups.0.options.0.id }}">
-        <input type="hidden" name="lace_size_variant_id" id="laceSizeInput" value="">
-        <input type="hidden" name="type_lace_variant_id" id="typeLaceInput" value="">
-        {% endif %}
+        <input type="hidden" name="lace_type"    id="laceTypeInput"    value="">
+        <input type="hidden" name="lace_taille"  id="laceTailleInput"  value="">
+        <input type="hidden" name="lace_longueur" id="laceLongueurInput" value="">
         <input type="hidden" name="with_installation" id="installationInput" value="0">
         {% if product.stock == 0 %}
         <button type="button" class="btn btn-black pd-cta" disabled style="opacity:0.5;cursor:not-allowed;">
@@ -136,10 +147,149 @@
 
 <script>
 // ── Config ────────────────────────────────────────────────────
-var DISCOUNT = parseFloat('{{ product.discount_percent|default:0 }}'.replace(',','.')) || 0;
+var DISCOUNT   = parseFloat('{{ product.discount_percent|default:0 }}'.replace(',','.')) || 0;
 var BASE_PRICE = parseFloat('{{ product.price|stringformat:".2f" }}') || 0;
-// Photo variant
-var _originalSlide0Src = null;
+var currentPrice = BASE_PRICE;
+var pdIndex = 0;
+var pdTotal = {{ media_count|default:0 }};
+if (DISCOUNT > 0) currentPrice = Math.round(BASE_PRICE * (1 - DISCOUNT/100) * 100) / 100;
+
+// ── Lace combinations ─────────────────────────────────────────
+var LACE_VARIANTS = {{ lace_variants_json|safe }};
+var TYPE_LABELS   = { 'hd': 'HD', 'transparente': 'Transparente' };
+
+function buildLaceSelectors() {
+    if (!LACE_VARIANTS || !LACE_VARIANTS.length) return;
+
+    var typeEl     = document.getElementById('laceTypeOptions');
+    var tailleEl   = document.getElementById('laceTailleOptions');
+    var longueurEl = document.getElementById('laceLongueurOptions');
+    if (!typeEl) return;
+
+    var types     = [...new Set(LACE_VARIANTS.map(function(v){ return v.type; }))];
+    var tailles   = [...new Set(LACE_VARIANTS.map(function(v){ return v.taille; }))];
+    var longueurs = [...new Set(LACE_VARIANTS.map(function(v){ return v.longueur; }))];
+
+    longueurs.sort(function(a, b) { return (parseInt(a) || 0) - (parseInt(b) || 0); });
+
+    function makeBtn(label, val, containerId) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'variant-btn';
+        btn.textContent = label;
+        btn.dataset.val = val;
+        btn.onclick = function() {
+            document.querySelectorAll('#' + containerId + ' .variant-btn')
+                .forEach(function(b){ b.classList.remove('active'); });
+            btn.classList.add('active');
+            updateLacePrice();
+        };
+        return btn;
+    }
+
+    types.forEach(function(t, i) {
+        var btn = makeBtn(TYPE_LABELS[t] || t, t, 'laceTypeOptions');
+        if (i === 0) btn.classList.add('active');
+        typeEl.appendChild(btn);
+    });
+    tailles.forEach(function(t, i) {
+        var btn = makeBtn(t, t, 'laceTailleOptions');
+        if (i === 0) btn.classList.add('active');
+        tailleEl.appendChild(btn);
+    });
+    longueurs.forEach(function(t, i) {
+        var btn = makeBtn(t, t, 'laceLongueurOptions');
+        if (i === 0) btn.classList.add('active');
+        longueurEl.appendChild(btn);
+    });
+
+    updateLacePrice();
+}
+
+function getActiveVal(containerId) {
+    var btn = document.querySelector('#' + containerId + ' .variant-btn.active');
+    return btn ? btn.dataset.val : null;
+}
+
+// Retourne les longueurs disponibles pour un type + taille donnés
+function availableLongueurs(type, taille) {
+    return LACE_VARIANTS
+        .filter(function(v) { return v.type === type && v.taille === taille; })
+        .map(function(v) { return v.longueur; });
+}
+
+// Met à jour l'état actif/grisé des boutons longueur selon type+taille sélectionnés
+function refreshLongueurButtons() {
+    var selType   = getActiveVal('laceTypeOptions');
+    var selTaille = getActiveVal('laceTailleOptions');
+    var available = availableLongueurs(selType, selTaille);
+
+    var currentLongueur = getActiveVal('laceLongueurOptions');
+    var currentStillValid = available.indexOf(currentLongueur) !== -1;
+
+    document.querySelectorAll('#laceLongueurOptions .variant-btn').forEach(function(btn) {
+        var isAvail = available.indexOf(btn.dataset.val) !== -1;
+        btn.disabled = !isAvail;
+        btn.style.opacity = isAvail ? '1' : '0.3';
+        btn.style.cursor  = isAvail ? 'pointer' : 'not-allowed';
+        btn.style.textDecoration = isAvail ? '' : 'line-through';
+    });
+
+    // Si la longueur actuelle n'est plus dispo, auto-sélectionner la première valide
+    if (!currentStillValid && available.length > 0) {
+        document.querySelectorAll('#laceLongueurOptions .variant-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+            if (btn.dataset.val === available[0]) btn.classList.add('active');
+        });
+    }
+}
+
+function updateLacePrice() {
+    var selType     = getActiveVal('laceTypeOptions');
+    var selTaille   = getActiveVal('laceTailleOptions');
+
+    // Mettre à jour les boutons longueur disponibles avant de lire la sélection
+    refreshLongueurButtons();
+
+    var selLongueur = getActiveVal('laceLongueurOptions');
+
+    // Sync hidden inputs
+    var ti = document.getElementById('laceTypeInput');
+    var tai = document.getElementById('laceTailleInput');
+    var li = document.getElementById('laceLongueurInput');
+    if (ti)  ti.value  = selType    || '';
+    if (tai) tai.value = selTaille  || '';
+    if (li)  li.value  = selLongueur || '';
+
+    var match = null;
+    if (selType && selTaille && selLongueur) {
+        match = LACE_VARIANTS.find(function(v) {
+            return v.type === selType && v.taille === selTaille && v.longueur === selLongueur;
+        });
+    }
+
+    var rawPrice;
+    if (match) {
+        rawPrice = parseFloat(match.price);
+        if (match.photo_url)      showVariantPhoto(match.photo_url);
+        else if (match.video_url) showVariantVideo(match.video_url);
+        else                      restoreOriginalMedia();
+    } else {
+        rawPrice = BASE_PRICE;
+        restoreOriginalMedia();
+    }
+
+    currentPrice = DISCOUNT > 0
+        ? Math.round(rawPrice * (1 - DISCOUNT / 100) * 100) / 100
+        : rawPrice;
+
+    refreshPrice(rawPrice);
+}
+
+document.addEventListener('DOMContentLoaded', buildLaceSelectors);
+
+// ── Slider media ──────────────────────────────────────────────
+var _origSlideHTML = null;
 
 function showVariantPhoto(url) {
     var track = document.getElementById('pdTrack');
@@ -148,46 +298,43 @@ function showVariantPhoto(url) {
     if (!firstSlide) return;
     var img = firstSlide.querySelector('img');
     if (!img) return;
-    if (!_originalSlide0Src) _originalSlide0Src = img.src;
+    if (!_origSlideHTML) _origSlideHTML = firstSlide.innerHTML;
     img.src = url;
     pdGoto(0);
 }
 
-function restoreOriginalPhoto() {
-    if (!_originalSlide0Src) return;
+function showVariantVideo(url) {
     var track = document.getElementById('pdTrack');
     if (!track) return;
-    var firstSlide = track.querySelector('.pd-slide:not(.pd-slide-video)');
+    var firstSlide = track.querySelector('.pd-slide');
     if (!firstSlide) return;
-    var img = firstSlide.querySelector('img');
-    if (img) img.src = _originalSlide0Src;
+    if (!_origSlideHTML) _origSlideHTML = firstSlide.innerHTML;
+    firstSlide.innerHTML = '<video src="' + url + '" autoplay loop playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>';
+    pdGoto(0);
 }
 
-var longueurPrice = BASE_PRICE;
-var lacePrice = null;   // null = pas de prix lace sélectionné
-var currentPrice = BASE_PRICE;
-var pdIndex = 0;
-var pdTotal = {{ media_count }};
+function restoreOriginalMedia() {
+    if (!_origSlideHTML) return;
+    var track = document.getElementById('pdTrack');
+    if (!track) return;
+    var firstSlide = track.querySelector('.pd-slide');
+    if (!firstSlide) return;
+    firstSlide.innerHTML = _origSlideHTML;
+    _origSlideHTML = null;
+}
 
-// Initialiser le prix avec le premier variant s'il existe
-{% if variant_groups %}{% if variant_groups.0.options.0.price %}
-longueurPrice = parseFloat('{{ variant_groups.0.options.0.price|stringformat:".2f" }}') || BASE_PRICE;
-currentPrice = longueurPrice;
-{% endif %}{% endif %}
-if (DISCOUNT > 0) currentPrice = Math.round(currentPrice * (1 - DISCOUNT/100) * 100) / 100;
-
-// ── Slider ────────────────────────────────────────────────────
+// ── Slider navigation ─────────────────────────────────────────
 var _pdLock = false;
 var _pdAutoTimer = null;
 
 function pdResetAuto() {
     if (_pdAutoTimer) clearInterval(_pdAutoTimer);
-    if (pdTotal > 1) _pdAutoTimer = setInterval(function(){ pdGoto((pdIndex + 1) % pdTotal); }, 5000);
+    if (pdTotal > 1) _pdAutoTimer = setInterval(function() { pdGoto((pdIndex + 1) % pdTotal); }, 5000);
 }
 function pdSlide(dir) {
     if (_pdLock) return;
     _pdLock = true;
-    setTimeout(function(){ _pdLock = false; }, 400);
+    setTimeout(function() { _pdLock = false; }, 400);
     pdGoto((pdIndex + dir + pdTotal) % pdTotal);
     pdResetAuto();
 }
@@ -195,17 +342,17 @@ function pdGoto(i) {
     pdIndex = i;
     var slider = document.getElementById('pdSlider');
     var track  = document.getElementById('pdTrack');
-    if (!track) return;
+    if (!track || !slider) return;
     track.style.transform = 'translateX(' + (-i * slider.offsetWidth) + 'px)';
 
-    // Gestion vidéo
     document.querySelectorAll('.pd-slide video').forEach(function(v) { v.pause(); });
     var slides = document.querySelectorAll('.pd-slide');
     if (slides[i] && slides[i].classList.contains('pd-slide-video')) {
-        slides[i].querySelector('video').play();
-        slides[i].querySelector('.pd-video-play-btn').style.opacity = '0';
+        var vid = slides[i].querySelector('video');
+        var playBtn = slides[i].querySelector('.pd-video-play-btn');
+        if (vid) vid.play();
+        if (playBtn) playBtn.style.opacity = '0';
     }
-
     document.querySelectorAll('.pd-thumb').forEach(function(t, idx) {
         t.classList.toggle('active', idx === i);
     });
@@ -218,70 +365,35 @@ function toggleVideoPlay(btn) {
 
 // Swipe tactile
 var _tx = 0;
-var _slider = document.getElementById('pdSlider');
-if (_slider) {
-    _slider.addEventListener('touchstart', function(e){ _tx = e.touches[0].clientX; }, {passive:true});
-    _slider.addEventListener('touchend', function(e){
+var _sliderEl = document.getElementById('pdSlider');
+if (_sliderEl) {
+    _sliderEl.addEventListener('touchstart', function(e) { _tx = e.touches[0].clientX; }, {passive:true});
+    _sliderEl.addEventListener('touchend', function(e) {
         var d = _tx - e.changedTouches[0].clientX;
         if (Math.abs(d) > 40) pdSlide(d > 0 ? 1 : -1);
     }, {passive:true});
 }
-
-// Auto-slide 5s
 pdResetAuto();
-
-// ── Variantes (cascade) ───────────────────────────────────────
-function selectVariant(btn) {
-    btn.closest('.pd-variant-options').querySelectorAll('.variant-btn').forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-
-    var variantType = btn.dataset.variantType;
-
-    if (variantType === 'lace') {
-        var li = document.getElementById('laceSizeInput');
-        if (li) li.value = btn.dataset.variantId;
-        lacePrice = btn.dataset.price ? parseFloat(btn.dataset.price) : null;
-    } else if (variantType === 'type_lace') {
-        var tl = document.getElementById('typeLaceInput');
-        if (tl) tl.value = btn.dataset.variantId;
-    } else {
-        var vi = document.getElementById('variantInput');
-        if (vi) vi.value = btn.dataset.variantId;
-        longueurPrice = btn.dataset.price ? parseFloat(btn.dataset.price) : BASE_PRICE;
-        lacePrice = null;
-    }
-
-    // Photo associée à la variante
-    if (btn.dataset.photo) {
-        showVariantPhoto(btn.dataset.photo);
-    } else {
-        restoreOriginalPhoto();
-    }
-
-    // Prix : lace l'emporte si défini, sinon longueur
-    var rawPrice = lacePrice !== null ? lacePrice : longueurPrice;
-    currentPrice = DISCOUNT > 0 ? Math.round(rawPrice * (1 - DISCOUNT/100) * 100) / 100 : rawPrice;
-    refreshPrice();
-}
 
 // ── Prix ──────────────────────────────────────────────────────
 function toggleInstallation(cb) {
     document.getElementById('installationInput').value = cb.checked ? '1' : '0';
-    refreshPrice();
+    // recalculate with last known raw price
+    updateLacePrice();
 }
-function refreshPrice() {
+
+function refreshPrice(rawPrice) {
+    var raw = (rawPrice !== undefined && rawPrice !== null) ? rawPrice : BASE_PRICE;
     var cb = document.getElementById('installationCheck');
     var withInstall = cb && cb.checked;
     var final = withInstall ? Math.round(currentPrice * 0.95 * 100) / 100 : currentPrice;
+
     var priceEl = document.getElementById('displayPrice');
     var discEl  = document.getElementById('displayPriceDiscounted');
 
-    var activeBtn = document.querySelector('.variant-btn.active[data-price]');
-    var origRaw   = activeBtn ? parseFloat(activeBtn.dataset.price) : BASE_PRICE;
-
     if (DISCOUNT > 0 || withInstall) {
         priceEl.style.cssText = 'text-decoration:line-through;opacity:0.4;font-size:1rem;';
-        priceEl.textContent   = origRaw.toFixed(2) + ' $ CAD';
+        priceEl.textContent   = raw.toFixed(2) + ' $ CAD';
         discEl.style.display  = 'block';
         discEl.textContent    = final.toFixed(2) + ' $ CAD';
     } else {
@@ -290,7 +402,33 @@ function refreshPrice() {
         discEl.style.display  = 'none';
     }
 }
-if (DISCOUNT > 0) refreshPrice();
+
+// Initialiser le prix avec la première variante simple si présente
+(function() {
+    var firstBtn = document.querySelector('.pd-variant-group .variant-btn.active[data-price]');
+    if (firstBtn && !LACE_VARIANTS.length) {
+        var raw = parseFloat(firstBtn.dataset.price) || BASE_PRICE;
+        currentPrice = DISCOUNT > 0 ? Math.round(raw * (1 - DISCOUNT/100) * 100) / 100 : raw;
+        refreshPrice(raw);
+    } else if (DISCOUNT > 0) {
+        refreshPrice(BASE_PRICE);
+    }
+})();
+
+// ── Variantes simples (longueur uniquement, sans lace) ────────
+function selectSimpleVariant(btn) {
+    btn.closest('.pd-variant-options').querySelectorAll('.variant-btn')
+        .forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+
+    var raw = parseFloat(btn.dataset.price) || BASE_PRICE;
+    currentPrice = DISCOUNT > 0 ? Math.round(raw * (1 - DISCOUNT/100) * 100) / 100 : raw;
+
+    if (btn.dataset.photo) showVariantPhoto(btn.dataset.photo);
+    else restoreOriginalMedia();
+
+    refreshPrice(raw);
+}
 
 function cartAnimation(btn) { btn.textContent = '✦ Ajouté !'; }
 

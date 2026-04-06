@@ -6,18 +6,21 @@ from django.utils.text import slugify
 
 
 def generate_slugs(apps, schema_editor):
-    Product = apps.get_model('shop', 'Product')
-    for product in Product.objects.all():
-        base_slug = slugify(product.name)
-        if not base_slug:
-            base_slug = f"product-{product.id}"
-        slug = base_slug
-        counter = 1
-        while Product.objects.filter(slug=slug).exclude(pk=product.pk).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-        product.slug = slug
-        product.save(update_fields=['slug'])
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute("SELECT id, name FROM shop_product ORDER BY id")
+        products = cursor.fetchall()
+        used_slugs = set()
+        for product_id, name in products:
+            base_slug = slugify(name)
+            if not base_slug:
+                base_slug = f"product-{product_id}"
+            slug = base_slug
+            counter = 1
+            while slug in used_slugs:
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            used_slugs.add(slug)
+            cursor.execute("UPDATE shop_product SET slug = %s WHERE id = %s", [slug, product_id])
 
 
 class Migration(migrations.Migration):
@@ -27,54 +30,106 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='PromoCode',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=50, unique=True, verbose_name='Code')),
-                ('discount_percent', models.DecimalField(decimal_places=2, max_digits=5, verbose_name='Réduction (%)')),
-                ('max_uses', models.IntegerField(blank=True, null=True, verbose_name='Utilisations max')),
-                ('uses_count', models.IntegerField(default=0, verbose_name='Utilisations')),
-                ('active', models.BooleanField(default=True, verbose_name='Actif')),
-                ('expires_at', models.DateTimeField(blank=True, null=True, verbose_name='Expiration')),
-            ],
-            options={
-                'verbose_name': 'Code promo',
-                'verbose_name_plural': 'Codes promo',
-            },
+        # PromoCode — IF NOT EXISTS to survive partial runs
+        migrations.RunSQL(
+            sql="""
+            CREATE TABLE IF NOT EXISTS shop_promocode (
+                id bigserial PRIMARY KEY,
+                code varchar(50) NOT NULL UNIQUE,
+                discount_percent numeric(5,2) NOT NULL,
+                max_uses integer NULL,
+                uses_count integer NOT NULL DEFAULT 0,
+                active boolean NOT NULL DEFAULT true,
+                expires_at timestamp with time zone NULL
+            );
+            """,
+            reverse_sql="DROP TABLE IF EXISTS shop_promocode;",
         ),
-        # Add slug as non-unique first so we can populate it
-        migrations.AddField(
-            model_name='product',
-            name='slug',
-            field=models.SlugField(blank=True, max_length=200, default=''),
-            preserve_default=False,
+        # Slug column — IF NOT EXISTS
+        migrations.RunSQL(
+            sql="ALTER TABLE shop_product ADD COLUMN IF NOT EXISTS slug varchar(200) NOT NULL DEFAULT '';",
+            reverse_sql="ALTER TABLE shop_product DROP COLUMN IF EXISTS slug;",
         ),
         # Data migration: generate slugs
         migrations.RunPython(generate_slugs, migrations.RunPython.noop),
-        # Now make it unique
-        migrations.AlterField(
-            model_name='product',
-            name='slug',
-            field=models.SlugField(blank=True, max_length=200, unique=True),
+        # Unique index — IF NOT EXISTS
+        migrations.RunSQL(
+            sql="""
+            CREATE UNIQUE INDEX IF NOT EXISTS shop_product_slug_key ON shop_product (slug);
+            CREATE INDEX IF NOT EXISTS shop_product_slug_30bd2d5d_like ON shop_product (slug varchar_pattern_ops);
+            """,
+            reverse_sql="""
+            DROP INDEX IF EXISTS shop_product_slug_30bd2d5d_like;
+            DROP INDEX IF EXISTS shop_product_slug_key;
+            """,
         ),
-        migrations.AddField(
-            model_name='product',
-            name='stock',
-            field=models.PositiveIntegerField(blank=True, help_text='Laisser vide pour stock illimité.', null=True, verbose_name='Stock'),
+        # Stock column — IF NOT EXISTS
+        migrations.RunSQL(
+            sql="ALTER TABLE shop_product ADD COLUMN IF NOT EXISTS stock integer NULL;",
+            reverse_sql="ALTER TABLE shop_product DROP COLUMN IF EXISTS stock;",
         ),
-        migrations.CreateModel(
-            name='WishlistItem',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('session_key', models.CharField(max_length=40)),
-                ('added_at', models.DateTimeField(auto_now_add=True)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='shop.product')),
+        # WishlistItem — IF NOT EXISTS
+        migrations.RunSQL(
+            sql="""
+            CREATE TABLE IF NOT EXISTS shop_wishlistitem (
+                id bigserial PRIMARY KEY,
+                session_key varchar(40) NOT NULL,
+                added_at timestamp with time zone NOT NULL,
+                product_id bigint NOT NULL REFERENCES shop_product(id) ON DELETE CASCADE,
+                UNIQUE (session_key, product_id)
+            );
+            """,
+            reverse_sql="DROP TABLE IF EXISTS shop_wishlistitem;",
+        ),
+        # Sync Django ORM state (no DB ops — already done via RunSQL above)
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.CreateModel(
+                    name='PromoCode',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('code', models.CharField(max_length=50, unique=True, verbose_name='Code')),
+                        ('discount_percent', models.DecimalField(decimal_places=2, max_digits=5, verbose_name='Réduction (%)')),
+                        ('max_uses', models.IntegerField(blank=True, null=True, verbose_name='Utilisations max')),
+                        ('uses_count', models.IntegerField(default=0, verbose_name='Utilisations')),
+                        ('active', models.BooleanField(default=True, verbose_name='Actif')),
+                        ('expires_at', models.DateTimeField(blank=True, null=True, verbose_name='Expiration')),
+                    ],
+                    options={
+                        'verbose_name': 'Code promo',
+                        'verbose_name_plural': 'Codes promo',
+                    },
+                ),
+                migrations.AddField(
+                    model_name='product',
+                    name='slug',
+                    field=models.SlugField(blank=True, max_length=200, default=''),
+                ),
+                migrations.AlterField(
+                    model_name='product',
+                    name='slug',
+                    field=models.SlugField(blank=True, max_length=200, unique=True),
+                ),
+                migrations.AddField(
+                    model_name='product',
+                    name='stock',
+                    field=models.PositiveIntegerField(blank=True, help_text='Laisser vide pour stock illimité.', null=True, verbose_name='Stock'),
+                ),
+                migrations.CreateModel(
+                    name='WishlistItem',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('session_key', models.CharField(max_length=40)),
+                        ('added_at', models.DateTimeField(auto_now_add=True)),
+                        ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='shop.product')),
+                    ],
+                    options={
+                        'verbose_name': 'Favori',
+                        'verbose_name_plural': 'Favoris',
+                        'unique_together': {('session_key', 'product')},
+                    },
+                ),
             ],
-            options={
-                'verbose_name': 'Favori',
-                'verbose_name_plural': 'Favoris',
-                'unique_together': {('session_key', 'product')},
-            },
+            database_operations=[],
         ),
     ]

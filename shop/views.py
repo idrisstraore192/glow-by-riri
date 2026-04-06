@@ -8,7 +8,7 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
-from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem
+from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem, LaceVariant
 from .cart import Cart
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -43,31 +43,35 @@ def product_list(request):
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    images = product.images.all()
-    from collections import defaultdict
-    variant_groups = defaultdict(list)
-    for v in product.variants.all():
-        variant_groups[v.variant_type].append(v)
-    ordered_groups = []
-    for vtype in ['longueur', 'lace', 'type_lace', 'densite', 'couleur']:
-        if vtype in variant_groups:
-            label = dict(product.variants.model.TYPE_CHOICES).get(vtype, vtype)
-            ordered_groups.append({'type': vtype, 'label': label, 'options': variant_groups[vtype]})
+    images = list(product.images.all())
     videos = list(product.videos.all())
     images_count = len(images)
     media_count = images_count + len(videos)
 
-    lace_json = 'null'
-    if product.product_type == 'perruque':
-        lace_products = Product.objects.filter(product_type='lace').prefetch_related('variants')
-        lace_list = []
-        for lp in lace_products:
-            variants = [
-                {'id': v.id, 'label': v.label, 'price': '{:.2f}'.format(float(v.price))}
-                for v in lp.variants.filter(variant_type='longueur')
-            ]
-            lace_list.append({'id': lp.id, 'name': lp.name, 'variants': variants})
-        lace_json = json.dumps(lace_list)
+    # Nouveau système : combinaisons lace (type + taille + longueur + prix)
+    lace_variants_json = json.dumps([
+        {
+            'type': lv.type_lace,
+            'taille': lv.taille_lace,
+            'longueur': lv.longueur,
+            'price': '{:.2f}'.format(float(lv.price)),
+            'photo_url': lv.photo_url or '',
+            'video_url': lv.video_url or '',
+        }
+        for lv in product.lace_variants.all()
+    ])
+
+    # Ancien système : variantes simples (longueur uniquement, pour perruques sans lace)
+    from collections import defaultdict
+    variant_groups = []
+    if not product.lace_variants.exists():
+        vg = defaultdict(list)
+        for v in product.variants.all():
+            vg[v.variant_type].append(v)
+        for vtype in ['longueur', 'lace', 'type_lace', 'densite', 'couleur']:
+            if vtype in vg:
+                label = dict(ProductVariant.TYPE_CHOICES).get(vtype, vtype)
+                variant_groups.append({'type': vtype, 'label': label, 'options': vg[vtype]})
 
     return render(request, "shop/product_detail.html", {
         "product": product,
@@ -75,8 +79,8 @@ def product_detail(request, product_id):
         "images_count": images_count,
         "media_count": media_count,
         "videos": videos,
-        "variant_groups": ordered_groups,
-        "lace_json": lace_json,
+        "lace_variants_json": lace_variants_json,
+        "variant_groups": variant_groups,
     })
 
 
