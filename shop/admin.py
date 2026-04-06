@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem
+from .models import Product, ProductImage, ProductVideo, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem, LaceVariant
 
 
 class ProductImageInline(admin.TabularInline):
@@ -26,6 +26,15 @@ class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
     fields = ['variant_type', 'label', 'price', 'photo_url']
+
+    class Media:
+        js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
+
+
+class LaceVariantInline(admin.TabularInline):
+    model = LaceVariant
+    extra = 1
+    fields = ['type_lace', 'taille_lace', 'longueur', 'price', 'photo_url', 'video_url']
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
@@ -82,7 +91,14 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ['product_type', 'disponible']
     ordering = ['order', 'product_type', 'price']
     fields = ['name', 'product_type', 'category', 'disponible', 'order', 'price', 'discount_percent', 'stock', 'description', 'image_url', 'video_url']
-    inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline]
+    inlines = [ProductImageInline, ProductVideoInline, LaceVariantInline]
+
+    def get_inlines(self, request, obj=None):
+        if obj and obj.product_type == 'produit':
+            return [ProductImageInline, ProductVideoInline]
+        # Perruques/laces/bundles : variantes simples OU variantes lace combinées
+        # Les deux sont disponibles ; LaceVariant prend le dessus sur le site si des entrées existent
+        return [ProductImageInline, ProductVideoInline, ProductVariantInline, LaceVariantInline]
 
     def display_type(self, obj):
         return obj.get_product_type_display()

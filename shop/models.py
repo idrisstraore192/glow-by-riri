@@ -177,6 +177,36 @@ class PromoCode(models.Model):
         return True, "Code valide."
 
 
+class LaceVariant(models.Model):
+    TYPE_CHOICES = [
+        ('transparente', 'Transparente'),
+        ('hd', 'HD'),
+    ]
+    TAILLE_CHOICES = [
+        ('13x4', '13x4'),
+        ('13x6', '13x6'),
+        ('4x4', '4x4'),
+        ('5x5', '5x5'),
+        ('360', '360°'),
+    ]
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='lace_variants', verbose_name='Produit')
+    type_lace = models.CharField(max_length=20, choices=TYPE_CHOICES, verbose_name='Type')
+    taille_lace = models.CharField(max_length=10, choices=TAILLE_CHOICES, verbose_name='Taille')
+    longueur = models.CharField(max_length=20, verbose_name='Longueur', help_text='Ex: 10 pouces')
+    price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Prix')
+    photo_url = models.URLField(blank=True, default='', verbose_name='Photo (Cloudinary)')
+    video_url = models.URLField(blank=True, default='', verbose_name='Vidéo (Cloudinary)')
+
+    class Meta:
+        verbose_name = 'Variante lace'
+        verbose_name_plural = 'Variantes lace'
+        ordering = ['type_lace', 'taille_lace', 'longueur']
+        unique_together = ('product', 'type_lace', 'taille_lace', 'longueur')
+
+    def __str__(self):
+        return f"{self.get_type_lace_display()} {self.taille_lace} {self.longueur} — {self.price}$"
+
+
 class WishlistItem(models.Model):
     session_key = models.CharField(max_length=40)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
