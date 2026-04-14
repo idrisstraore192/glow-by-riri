@@ -325,12 +325,7 @@ function restoreOriginalMedia() {
 
 // ── Slider navigation ─────────────────────────────────────────
 var _pdLock = false;
-var _pdAutoTimer = null;
-
-function pdResetAuto() {
-    if (_pdAutoTimer) clearInterval(_pdAutoTimer);
-    if (pdTotal > 1) _pdAutoTimer = setInterval(function() { pdGoto((pdIndex + 1) % pdTotal); }, 5000);
-}
+function pdResetAuto() {}
 function pdSlide(dir) {
     if (_pdLock) return;
     _pdLock = true;
