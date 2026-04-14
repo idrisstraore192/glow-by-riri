@@ -207,7 +207,14 @@
                 }
             });
         }, { rootMargin: '100px' });
-        document.querySelectorAll('img.img-lazy').forEach(img => imgObserver.observe(img));
+        document.querySelectorAll('img.img-lazy').forEach(img => {
+            if (img.complete && img.naturalWidth > 0) {
+                img.classList.add('loaded');
+            } else {
+                imgObserver.observe(img);
+                img.addEventListener('load', function() { img.classList.add('loaded'); }, { once: true });
+            }
+        });
 
         // Animation d'entrée des cartes produits (stagger au scroll)
         const cardObserver = new IntersectionObserver((entries) => {

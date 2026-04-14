@@ -183,13 +183,20 @@ body {
     background: #1a1008;
 }
 .banner-slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
-.banner-slide-1 { animation: bannerCross 10s ease-in-out infinite; z-index: 1; }
-.banner-slide-2 { animation: bannerCross 10s ease-in-out infinite 5s; z-index: 2; }
-@keyframes bannerCross {
+.banner-slide-1 { z-index: 1; animation: bannerFade1 12s ease-in-out infinite; }
+.banner-slide-2 { z-index: 2; opacity: 0; animation: bannerFade2 12s ease-in-out infinite; }
+@keyframes bannerFade1 {
+    0%   { opacity: 1; }
+    42%  { opacity: 1; }
+    50%  { opacity: 0; }
+    92%  { opacity: 0; }
+    100% { opacity: 1; }
+}
+@keyframes bannerFade2 {
     0%   { opacity: 0; }
-    10%  { opacity: 1; }
-    45%  { opacity: 1; }
-    55%  { opacity: 0; }
+    42%  { opacity: 0; }
+    50%  { opacity: 1; }
+    92%  { opacity: 1; }
     100% { opacity: 0; }
 }
 .shop-banner-hero-text { z-index: 10; }
@@ -998,7 +1005,7 @@ footer span { color: var(--rose); }
 .pd-discount-badge { display: inline-block; background: var(--sale-color); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.75rem; margin-bottom: 0.75rem; letter-spacing: 0.05em; }
 
 /* ── LAZY LOAD IMAGES ── */
-.img-lazy { opacity: 0; transition: opacity 0.5s ease; }
+.img-lazy { opacity: 0; transition: opacity 0.3s ease; }
 .img-lazy.loaded { opacity: 1; }
 .service-discount-badge { background: var(--rose-dark); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.4rem; }
 /* ── VIDEO IN SLIDER ── */
