@@ -894,7 +894,7 @@ footer span { color: var(--rose); }
 .product-detail-back { display: inline-block; margin-top: 1.5rem; font-size: 0.75rem; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
 .product-detail-back:hover { color: var(--rose-dark); }
 /* ── INSTALLATION TOGGLE ── */
-.installation-toggle { display: block; cursor: pointer; margin: 1.25rem 0 0; }
+.installation-toggle { display: block; cursor: pointer; margin: 1.25rem 0 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
 .installation-toggle input { display: none; }
 .installation-toggle-box { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border: 1.5px solid var(--border); border-radius: 8px; transition: border-color 0.2s, background 0.2s; }
 .installation-toggle input:checked + .installation-toggle-box { border-color: var(--black); background: var(--gray); }
