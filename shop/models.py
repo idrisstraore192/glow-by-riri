@@ -25,6 +25,7 @@ class Product(models.Model):
     disponible = models.BooleanField(default=True, verbose_name="Disponible", help_text="Décocher pour masquer ce produit du site.")
     order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage", help_text="0 = en premier. Plus le chiffre est grand, plus le produit apparaît en bas.")
     stock = models.PositiveIntegerField(null=True, blank=True, verbose_name="Stock", help_text="Laisser vide pour stock illimité.")
+    avec_installation = models.BooleanField(default=False, verbose_name="Option pose (-5%)", help_text="Afficher l'option 'Pose chez Glow by Riri' sur la fiche produit.")
     slug = models.SlugField(max_length=200, unique=True, blank=True)
 
     def save(self, *args, **kwargs):

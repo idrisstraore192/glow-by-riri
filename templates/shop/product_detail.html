@@ -105,7 +105,7 @@
     {% endfor %}
     {% endif %}
 
-    {% if product.category == 'perruques' %}
+    {% if product.avec_installation %}
     <label class="installation-toggle">
         <input type="checkbox" id="installationCheck" onchange="toggleInstallation(this)">
         <div class="installation-toggle-box">
