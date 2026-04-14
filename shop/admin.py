@@ -90,7 +90,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['order', 'disponible']
     list_filter = ['product_type', 'disponible']
     ordering = ['order', 'product_type', 'price']
-    fields = ['name', 'product_type', 'category', 'disponible', 'order', 'price', 'discount_percent', 'stock', 'description', 'image_url', 'video_url']
+    fields = ['name', 'product_type', 'category', 'disponible', 'order', 'price', 'discount_percent', 'stock', 'avec_installation', 'description', 'image_url', 'video_url']
     inlines = [ProductImageInline, ProductVideoInline, LaceVariantInline]
 
     def get_inlines(self, request, obj=None):
