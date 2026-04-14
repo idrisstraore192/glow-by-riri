@@ -147,9 +147,10 @@
 
 <script>
 // ── Config ────────────────────────────────────────────────────
-var DISCOUNT   = parseFloat('{{ product.discount_percent|default:0 }}'.replace(',','.')) || 0;
-var BASE_PRICE = parseFloat('{{ product.price|stringformat:".2f" }}') || 0;
-var currentPrice = BASE_PRICE;
+var DISCOUNT       = parseFloat('{{ product.discount_percent|default:0 }}'.replace(',','.')) || 0;
+var BASE_PRICE     = parseFloat('{{ product.price|stringformat:".2f" }}') || 0;
+var currentPrice   = BASE_PRICE;
+var currentRawPrice = BASE_PRICE;   // prix brut avant remise, pour le prix barré
 var pdIndex = 0;
 var pdTotal = {{ media_count|default:0 }};
 if (DISCOUNT > 0) currentPrice = Math.round(BASE_PRICE * (1 - DISCOUNT/100) * 100) / 100;
@@ -279,6 +280,7 @@ function updateLacePrice() {
         restoreOriginalMedia();
     }
 
+    currentRawPrice = rawPrice;
     currentPrice = DISCOUNT > 0
         ? Math.round(rawPrice * (1 - DISCOUNT / 100) * 100) / 100
         : rawPrice;
@@ -331,14 +333,15 @@ function pdSlide(dir) {
     _pdLock = true;
     setTimeout(function() { _pdLock = false; }, 400);
     pdGoto((pdIndex + dir + pdTotal) % pdTotal);
-    pdResetAuto();
 }
 function pdGoto(i) {
     pdIndex = i;
     var slider = document.getElementById('pdSlider');
     var track  = document.getElementById('pdTrack');
     if (!track || !slider) return;
-    track.style.transform = 'translateX(' + (-i * slider.offsetWidth) + 'px)';
+    // Utiliser scrollWidth de la track pour éviter offsetWidth=0 au chargement
+    var w = slider.getBoundingClientRect().width || slider.offsetWidth;
+    track.style.transform = 'translateX(' + (-i * w) + 'px)';
 
     document.querySelectorAll('.pd-slide video').forEach(function(v) { v.pause(); });
     var slides = document.querySelectorAll('.pd-slide');
@@ -373,8 +376,20 @@ pdResetAuto();
 // ── Prix ──────────────────────────────────────────────────────
 function toggleInstallation(cb) {
     document.getElementById('installationInput').value = cb.checked ? '1' : '0';
-    // recalculate with last known raw price
-    updateLacePrice();
+    var withInstall = cb.checked;
+    var final = withInstall ? Math.round(currentPrice * 0.95 * 100) / 100 : currentPrice;
+    var priceEl = document.getElementById('displayPrice');
+    var discEl  = document.getElementById('displayPriceDiscounted');
+    if (DISCOUNT > 0 || withInstall) {
+        priceEl.style.cssText = 'text-decoration:line-through;opacity:0.4;font-size:1rem;';
+        priceEl.textContent   = currentRawPrice.toFixed(2) + ' $ CAD';
+        discEl.style.display  = 'block';
+        discEl.textContent    = final.toFixed(2) + ' $ CAD';
+    } else {
+        priceEl.style.cssText = '';
+        priceEl.textContent   = currentPrice.toFixed(2) + ' $ CAD';
+        discEl.style.display  = 'none';
+    }
 }
 
 function refreshPrice(rawPrice) {
@@ -398,18 +413,6 @@ function refreshPrice(rawPrice) {
     }
 }
 
-// Initialiser le prix avec la première variante simple si présente
-(function() {
-    var firstBtn = document.querySelector('.pd-variant-group .variant-btn.active[data-price]');
-    if (firstBtn && !LACE_VARIANTS.length) {
-        var raw = parseFloat(firstBtn.dataset.price) || BASE_PRICE;
-        currentPrice = DISCOUNT > 0 ? Math.round(raw * (1 - DISCOUNT/100) * 100) / 100 : raw;
-        refreshPrice(raw);
-    } else if (DISCOUNT > 0) {
-        refreshPrice(BASE_PRICE);
-    }
-})();
-
 // ── Variantes simples (longueur uniquement, sans lace) ────────
 function selectSimpleVariant(btn) {
     btn.closest('.pd-variant-options').querySelectorAll('.variant-btn')
@@ -417,6 +420,7 @@ function selectSimpleVariant(btn) {
     btn.classList.add('active');
 
     var raw = parseFloat(btn.dataset.price) || BASE_PRICE;
+    currentRawPrice = raw;
     currentPrice = DISCOUNT > 0 ? Math.round(raw * (1 - DISCOUNT/100) * 100) / 100 : raw;
 
     if (btn.dataset.photo) showVariantPhoto(btn.dataset.photo);
@@ -424,6 +428,27 @@ function selectSimpleVariant(btn) {
 
     refreshPrice(raw);
 }
+
+// ── Init au chargement ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser le slider après rendu (offsetWidth disponible)
+    pdGoto(0);
+
+    // Prix initial pour variantes simples
+    var firstBtn = document.querySelector('.pd-variant-group .variant-btn.active[data-price]');
+    if (firstBtn && !LACE_VARIANTS.length) {
+        var raw = parseFloat(firstBtn.dataset.price) || BASE_PRICE;
+        currentRawPrice = raw;
+        currentPrice = DISCOUNT > 0 ? Math.round(raw * (1 - DISCOUNT/100) * 100) / 100 : raw;
+        refreshPrice(raw);
+    } else if (DISCOUNT > 0) {
+        currentRawPrice = BASE_PRICE;
+        refreshPrice(BASE_PRICE);
+    }
+});
+
+// Recalculer la position du slider si la fenêtre est redimensionnée
+window.addEventListener('resize', function() { pdGoto(pdIndex); });
 
 function cartAnimation(btn) { btn.textContent = '✦ Ajouté !'; }
 
