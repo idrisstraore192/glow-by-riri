@@ -107,7 +107,7 @@
 
     {% if product.avec_installation %}
     <label class="installation-toggle">
-        <input type="checkbox" id="installationCheck" onclick="toggleInstallation(this)">
+        <input type="checkbox" id="installationCheck">
         <div class="installation-toggle-box">
             <div class="installation-toggle-info">
                 <span class="installation-toggle-title">Pose chez Glow by Riri</span>
@@ -431,6 +431,21 @@ function selectSimpleVariant(btn) {
 
 // ── Init au chargement ────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
+    // Fix toggle installation sur mobile : touchstart au lieu de click
+    var toggleLabel = document.querySelector('.installation-toggle');
+    if (toggleLabel) {
+        toggleLabel.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            var cb = document.getElementById('installationCheck');
+            cb.checked = !cb.checked;
+            toggleInstallation(cb);
+        }, { passive: false });
+        toggleLabel.addEventListener('click', function() {
+            var cb = document.getElementById('installationCheck');
+            toggleInstallation(cb);
+        });
+    }
+
     // Initialiser le slider après rendu (offsetWidth disponible)
     pdGoto(0);
 
