@@ -96,7 +96,8 @@
                 class="variant-btn {% if forloop.first %}active{% endif %}"
                 data-price="{{ v.price }}"
                 {% if v.photo_url %}data-photo="{{ v.photo_url }}"{% endif %}
-                onclick="selectSimpleVariant(this)">
+                onclick="selectSimpleVariant(this)"
+                ontouchstart="event.preventDefault(); selectSimpleVariant(this)">
                 {{ v.label }}
             </button>
             {% endfor %}
@@ -179,12 +180,20 @@ function buildLaceSelectors() {
         btn.className = 'variant-btn';
         btn.textContent = label;
         btn.dataset.val = val;
-        btn.onclick = function() {
+
+        function activate() {
             document.querySelectorAll('#' + containerId + ' .variant-btn')
                 .forEach(function(b){ b.classList.remove('active'); });
             btn.classList.add('active');
             updateLacePrice();
-        };
+        }
+
+        btn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            activate();
+        }, { passive: false });
+
+        btn.onclick = activate;
         return btn;
     }
 
