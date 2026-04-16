@@ -909,7 +909,7 @@ footer span { color: var(--rose); }
 .variant-selector { margin-bottom: 1.25rem; }
 .variant-label { font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 0.6rem; }
 .variant-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.variant-btn { padding: 0.55rem 1.2rem; border: 1.5px solid var(--border); border-radius: 999px; background: var(--white); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all 0.18s; color: var(--text); }
+.variant-btn { padding: 0.55rem 1.2rem; border: 1.5px solid var(--border); border-radius: 999px; background: var(--white); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all 0.18s; color: var(--text); touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
 .variant-btn:hover { border-color: var(--black); }
 .variant-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
 
