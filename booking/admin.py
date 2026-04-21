@@ -19,7 +19,7 @@ class ServiceImageInline(admin.TabularInline):
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price', 'deposit_amount', 'display_discount', 'duration']
     list_filter = ['category']
-    fields = ['name', 'category', 'price', 'deposit_amount', 'discount_percent', 'duration', 'description']
+    fields = ['name', 'category', 'price', 'deposit_amount', 'discount_percent', 'duration', 'description', 'nattes_requises']
     inlines = [ServiceImageInline]
 
     def display_discount(self, obj):
@@ -114,9 +114,9 @@ class AvailabilitySlotAdmin(admin.ModelAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ['customer_name', 'customer_email', 'service', 'date', 'time', 'deposit_paid', 'calendar_link']
-    list_filter = ['deposit_paid', 'date']
-    readonly_fields = ['stripe_session_id', 'deposit_paid', 'slot']
+    list_display = ['customer_name', 'customer_email', 'service', 'date', 'time', 'deposit_paid', 'nattes_deja_faites', 'calendar_link']
+    list_filter = ['deposit_paid', 'date', 'nattes_deja_faites']
+    readonly_fields = ['stripe_session_id', 'deposit_paid', 'slot', 'nattes_deja_faites']
     ordering = ['-date', '-time']
 
     def calendar_link(self, obj):

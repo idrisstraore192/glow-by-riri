@@ -1008,6 +1008,8 @@ footer span { color: var(--rose); }
 .img-lazy { opacity: 0; transition: opacity 0.3s ease; }
 .img-lazy.loaded { opacity: 1; }
 .service-discount-badge { background: var(--rose-dark); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.4rem; }
+.nattes-badge { background: #e8f4f0; color: #2d7a5f; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; margin-left: 0.4rem; letter-spacing: 0.02em; }
+.nattes-info-text { font-size: 0.78rem; color: #888; margin-top: 0.3rem; margin-bottom: 0; font-style: italic; }
 /* ── VIDEO IN SLIDER ── */
 .pd-slide-video { position: relative; }
 .pd-slide video { width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block; background: #000; }
