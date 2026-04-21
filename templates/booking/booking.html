@@ -76,9 +76,15 @@
                     {% else %}
                     <span class="service-item-price">{{ service.price }} $ CAD</span>
                     {% endif %}
+                    {% if service.nattes_requises %}
+                    <span class="nattes-badge">Nattes requises</span>
+                    {% endif %}
                 </div>
                 {% if service.description %}
                 <p class="service-expand-desc">{{ service.description }}</p>
+                {% endif %}
+                {% if service.nattes_requises %}
+                <p class="nattes-info-text">Prix avec nattes déjà faites · +10 $ CAD si nattes à faire sur place</p>
                 {% endif %}
             </div>
             {% with images=service.images.all %}
@@ -127,6 +133,17 @@
         <form method="post">
             {% csrf_token %}
             {% for field in form %}
+            {% if field.html_name == 'nattes_deja_faites' %}
+            <div class="form-group nattes-field-wrap" id="nattes-field-wrap" style="display:none;">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <ul class="field-errors">
+                    {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% else %}
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
@@ -136,6 +153,7 @@
                 </ul>
                 {% endif %}
             </div>
+            {% endif %}
             {% endfor %}
             <button type="submit" class="btn form-submit">Payer l'acompte (20 $ CAD) et confirmer</button>
         </form>
@@ -252,10 +270,37 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+var NATTES_SERVICE_IDS = {{ services_nattes_ids|safe }};
+
+function toggleNattesField(serviceId) {
+    var wrap = document.getElementById('nattes-field-wrap');
+    if (!wrap) return;
+    if (NATTES_SERVICE_IDS.indexOf(parseInt(serviceId)) !== -1) {
+        wrap.style.display = '';
+    } else {
+        wrap.style.display = 'none';
+        var sel = document.getElementById('id_nattes_deja_faites');
+        if (sel) sel.value = '';
+    }
+}
+
 function preselectService(serviceId) {
     var select = document.querySelector('#id_service');
-    if (select) select.value = serviceId;
+    if (select) {
+        select.value = serviceId;
+        toggleNattesField(serviceId);
+    }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var serviceSelect = document.getElementById('id_service');
+    if (serviceSelect) {
+        serviceSelect.addEventListener('change', function() {
+            toggleNattesField(this.value);
+        });
+        toggleNattesField(serviceSelect.value);
+    }
+});
 
 </script>
 

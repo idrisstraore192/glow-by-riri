@@ -21,9 +21,22 @@ def booking_page(request):
             appt.date = slot.date
             appt.time = slot.time
             appt.deposit_paid = False
+            nattes_val = form.cleaned_data.get('nattes_deja_faites')
+            if appt.service.nattes_requises and nattes_val == 'oui':
+                appt.nattes_deja_faites = True
+            elif appt.service.nattes_requises and nattes_val == 'non':
+                appt.nattes_deja_faites = False
+            else:
+                appt.nattes_deja_faites = None
             appt.save()
 
             try:
+                nattes_note = ''
+                if appt.service.nattes_requises and appt.nattes_deja_faites is False:
+                    nattes_note = ' · Nattes incluses (+10 $ CAD)'
+                elif appt.service.nattes_requises and appt.nattes_deja_faites is True:
+                    nattes_note = ' · Nattes déjà faites'
+                remainder = round(appt.total_price - float(appt.service.deposit_amount), 2)
                 session = stripe.checkout.Session.create(
                     payment_method_types=['card'],
                     line_items=[{
@@ -31,7 +44,7 @@ def booking_page(request):
                             'currency': 'cad',
                             'product_data': {
                                 'name': f'Acompte — {appt.service.name}',
-                                'description': f'Rendez-vous le {appt.date.strftime("%d/%m/%Y")} à {appt.time.strftime("%H:%M")} · Reste à payer sur place : {appt.service.final_price - float(appt.service.deposit_amount):.2f} $',
+                                'description': f'Rendez-vous le {appt.date.strftime("%d/%m/%Y")} à {appt.time.strftime("%H:%M")}{nattes_note} · Reste à payer sur place : {remainder:.2f} $',
                             },
                             'unit_amount': int(appt.service.deposit_amount * 100),
                         },
@@ -81,6 +94,7 @@ def booking_page(request):
     reviews = Review.objects.filter(approved=True)[:6]
     review_form = ReviewForm()
     submitted = request.GET.get('avis') == 'merci'
+    services_nattes = list(Service.objects.filter(nattes_requises=True).values_list('id', flat=True))
     return render(request, 'booking/booking.html', {
         'form': form,
         'services': services,
@@ -91,6 +105,7 @@ def booking_page(request):
         'active_price': price_range,
         'active_sort': sort,
         'categories': Service.CATEGORY_CHOICES,
+        'services_nattes_ids': services_nattes,
     })
 
 
@@ -112,6 +127,12 @@ def booking_deposit_success(request):
 
                 # Email à Riri
                 try:
+                    _nattes_line = ''
+                    if appt.service.nattes_requises:
+                        if appt.nattes_deja_faites is True:
+                            _nattes_line = f"Nattes       : Déjà faites (pas de supplément)\n"
+                        elif appt.nattes_deja_faites is False:
+                            _nattes_line = f"Nattes       : À faire sur place (+10 $ CAD inclus dans le total)\n"
                     send_mail(
                         subject=f"📅 Nouveau rendez-vous — {appt.customer_name}",
                         message=(
@@ -119,9 +140,10 @@ def booking_deposit_success(request):
                             f"Cliente     : {appt.customer_name}\n"
                             f"Email       : {appt.customer_email}\n"
                             f"Service     : {appt.service.name}\n"
-                            f"Prix total  : {appt.service.final_price} $\n"
+                            f"{_nattes_line}"
+                            f"Prix total  : {appt.total_price} $\n"
                             f"Acompte     : {float(appt.service.deposit_amount):.2f} $ ✓ payé\n"
-                            f"Reste à payer : {appt.service.final_price - float(appt.service.deposit_amount):.2f} $\n"
+                            f"Reste à payer : {appt.total_price - float(appt.service.deposit_amount):.2f} $\n"
                             f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
                             f"Heure       : {appt.time.strftime('%H h %M')}\n\n"
                             f"Consulte tous tes rendez-vous ici :\n"
@@ -138,7 +160,7 @@ def booking_deposit_success(request):
                 # Email de confirmation à la cliente
                 if appt.customer_email:
                     try:
-                        _remainder = round(appt.service.final_price - float(appt.service.deposit_amount), 2)
+                        _remainder = round(appt.total_price - float(appt.service.deposit_amount), 2)
                         plain_confirm = (
                             f"Bonjour {appt.customer_name},\n\n"
                             f"Votre rendez-vous est confirmé !\n\n"
@@ -175,7 +197,7 @@ def booking_deposit_success(request):
         except Exception:
             pass
 
-    remainder = round(appt.service.final_price - float(appt.service.deposit_amount), 2)
+    remainder = round(appt.total_price - float(appt.service.deposit_amount), 2)
     return render(request, 'booking/success.html', {'appt': appt, 'remainder': remainder})
 
 

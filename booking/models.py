@@ -12,6 +12,7 @@ class Service(models.Model):
     image_url = models.URLField(blank=True, null=True, verbose_name="URL de l'image (Cloudinary)")
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Rabais (%)", help_text="Ex: 20 pour -20%. Laisser 0 si aucun rabais.")
     deposit_amount = models.DecimalField(max_digits=8, decimal_places=2, default=20.00, verbose_name="Acompte ($)", help_text="Montant de l'acompte requis pour ce service.")
+    nattes_requises = models.BooleanField(default=False, verbose_name="Nattes requises", help_text="Cochez si ce service nécessite des nattes avant la pose. La cliente aura l'option d'indiquer si elle les a déjà (prix normal) ou non (+10 $ CAD).")
 
     class Meta:
         verbose_name = "Service"
@@ -70,10 +71,21 @@ class Appointment(models.Model):
     deposit_paid = models.BooleanField(default=False, verbose_name="Acompte payé (20 $)")
     stripe_session_id = models.CharField(max_length=200, blank=True, verbose_name="Session Stripe")
     reminder_sent = models.BooleanField(default=False, verbose_name="Rappel envoyé")
+    nattes_deja_faites = models.BooleanField(null=True, blank=True, verbose_name="Nattes déjà faites", help_text="True = cliente arrive avec ses nattes, False = nattes à faire sur place (+10 $ CAD), None = non applicable.")
 
     class Meta:
         verbose_name = "Rendez-vous"
         verbose_name_plural = "Rendez-vous"
+
+    @property
+    def nattes_extra(self):
+        if self.service.nattes_requises and self.nattes_deja_faites is False:
+            return 10.0
+        return 0.0
+
+    @property
+    def total_price(self):
+        return round(self.service.final_price + self.nattes_extra, 2)
 
     def __str__(self):
         return f"{self.customer_name} — {self.service.name} le {self.date}"

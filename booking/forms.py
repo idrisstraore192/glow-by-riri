@@ -2,12 +2,23 @@ from django import forms
 from datetime import date as today_date
 from .models import Appointment, AvailabilitySlot
 
+NATTES_CHOICES = [
+    ('', '— Sélectionnez —'),
+    ('oui', 'Oui, j\'ai déjà mes nattes (prix normal)'),
+    ('non', 'Non, je n\'ai pas encore mes nattes (+10 $ CAD)'),
+]
+
 
 class AppointmentForm(forms.ModelForm):
     slot = forms.ModelChoiceField(
         queryset=AvailabilitySlot.objects.none(),
         label='Créneau disponible',
         empty_label='— Choisir un créneau —',
+    )
+    nattes_deja_faites = forms.ChoiceField(
+        choices=NATTES_CHOICES,
+        required=False,
+        label='Avez-vous déjà vos nattes ?',
     )
 
     class Meta:
