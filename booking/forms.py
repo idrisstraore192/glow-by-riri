@@ -32,6 +32,7 @@ class AppointmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['customer_email'].required = True
         self.fields['slot'].queryset = AvailabilitySlot.objects.filter(
             is_booked=False,
             date__gte=today_date.today()
