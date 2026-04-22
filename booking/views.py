@@ -1,8 +1,11 @@
 import stripe
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from .forms import AppointmentForm
 from .models import Service, Appointment
 from reviews.models import Review
@@ -10,6 +13,89 @@ from reviews.forms import ReviewForm
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 SITE_URL = "https://glowbyriri.up.railway.app"
+logger = logging.getLogger(__name__)
+
+
+def _confirm_appointment(appt, session_id):
+    """Marque le RDV comme payé et envoie les emails. Idempotent."""
+    if appt.deposit_paid:
+        return
+    appt.deposit_paid = True
+    appt.stripe_session_id = session_id
+    appt.save()
+    if appt.slot_id:
+        appt.slot.is_booked = True
+        appt.slot.save()
+
+    # Email à Riri
+    _nattes_line = ''
+    if appt.service.nattes_requises:
+        if appt.nattes_deja_faites is True:
+            _nattes_line = "Nattes       : Deja faites (pas de supplement)\n"
+        elif appt.nattes_deja_faites is False:
+            _nattes_line = "Nattes       : A faire sur place (+10 $ CAD inclus dans le total)\n"
+    try:
+        send_mail(
+            subject=f"Nouveau rendez-vous — {appt.customer_name}",
+            message=(
+                f"Tu as un nouveau rendez-vous\n\n"
+                f"Cliente     : {appt.customer_name}\n"
+                f"Email       : {appt.customer_email}\n"
+                f"Service     : {appt.service.name}\n"
+                f"{_nattes_line}"
+                f"Prix total  : {appt.total_price} $\n"
+                f"Acompte     : {float(appt.service.deposit_amount):.2f} $ paye\n"
+                f"Reste a payer : {appt.total_price - float(appt.service.deposit_amount):.2f} $\n"
+                f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
+                f"Heure       : {appt.time.strftime('%H h %M')}\n\n"
+                f"Consulte tous tes rendez-vous ici :\n"
+                f"https://glowbyriri.up.railway.app/admin/booking/appointment/\n\n"
+                f"Glow by Riri"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_EMAIL],
+            fail_silently=False,
+        )
+    except Exception as e:
+        logger.error(f"Email Riri error: {e}")
+
+    # Email à la cliente
+    if appt.customer_email:
+        _remainder = round(appt.total_price - float(appt.service.deposit_amount), 2)
+        plain_confirm = (
+            f"Bonjour {appt.customer_name},\n\n"
+            f"Votre rendez-vous est confirme !\n\n"
+            f"Service     : {appt.service.name}\n"
+            f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
+            f"Heure       : {appt.time.strftime('%H h %M')}\n"
+            f"Acompte paye : {float(appt.service.deposit_amount):.2f} $\n"
+            f"Reste a regler sur place : {_remainder:.2f} $\n\n"
+            f"A tres bientot,\nRiri — Glow by Riri"
+        )
+        try:
+            html_confirm = render_to_string('emails/appointment_confirmation.html', {
+                'appt': appt,
+                'remainder': _remainder,
+            })
+            confirm_msg = EmailMultiAlternatives(
+                subject="Votre rendez-vous est confirme — Glow by Riri",
+                body=plain_confirm,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[appt.customer_email],
+            )
+            confirm_msg.attach_alternative(html_confirm, "text/html")
+            confirm_msg.send(fail_silently=False)
+        except Exception:
+            try:
+                send_mail(
+                    subject="Votre rendez-vous est confirme — Glow by Riri",
+                    message=plain_confirm,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[appt.customer_email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.error(f"Email cliente error: {e}")
 
 
 def booking_page(request):
@@ -109,6 +195,32 @@ def booking_page(request):
     })
 
 
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
+    webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', '')
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except (ValueError, stripe.error.SignatureVerificationError) as e:
+        logger.error(f"Webhook signature error: {e}")
+        return HttpResponse(status=400)
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        if session.get('metadata', {}).get('type') == 'deposit':
+            appt_id = session.get('metadata', {}).get('appt_id')
+            if appt_id:
+                try:
+                    appt = Appointment.objects.get(id=appt_id)
+                    _confirm_appointment(appt, session['id'])
+                except Appointment.DoesNotExist:
+                    logger.error(f"Webhook: appointment {appt_id} not found")
+
+    return HttpResponse(status=200)
+
+
 def booking_deposit_success(request):
     session_id = request.GET.get('session_id')
     appt_id = request.GET.get('appt_id')
@@ -117,82 +229,10 @@ def booking_deposit_success(request):
     if session_id and not appt.deposit_paid:
         try:
             session = stripe.checkout.Session.retrieve(session_id)
+            if session.payment_status == 'paid':
+                _confirm_appointment(appt, session_id)
         except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(f"Stripe session retrieve error: {e}")
-            session = None
-
-        if session and session.payment_status == 'paid':
-            appt.deposit_paid = True
-            appt.stripe_session_id = session_id
-            appt.save()
-            if appt.slot_id:
-                appt.slot.is_booked = True
-                appt.slot.save()
-
-            # Email à Riri
-            _nattes_line = ''
-            if appt.service.nattes_requises:
-                if appt.nattes_deja_faites is True:
-                    _nattes_line = f"Nattes       : Deja faites (pas de supplement)\n"
-                elif appt.nattes_deja_faites is False:
-                    _nattes_line = f"Nattes       : A faire sur place (+10 $ CAD inclus dans le total)\n"
-            send_mail(
-                subject=f"Nouveau rendez-vous — {appt.customer_name}",
-                message=(
-                    f"Tu as un nouveau rendez-vous\n\n"
-                    f"Cliente     : {appt.customer_name}\n"
-                    f"Email       : {appt.customer_email}\n"
-                    f"Service     : {appt.service.name}\n"
-                    f"{_nattes_line}"
-                    f"Prix total  : {appt.total_price} $\n"
-                    f"Acompte     : {float(appt.service.deposit_amount):.2f} $ paye\n"
-                    f"Reste a payer : {appt.total_price - float(appt.service.deposit_amount):.2f} $\n"
-                    f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
-                    f"Heure       : {appt.time.strftime('%H h %M')}\n\n"
-                    f"Consulte tous tes rendez-vous ici :\n"
-                    f"https://glowbyriri.up.railway.app/admin/booking/appointment/\n\n"
-                    f"Glow by Riri"
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[settings.ADMIN_EMAIL],
-                fail_silently=False,
-            )
-
-            # Email de confirmation à la cliente
-            if appt.customer_email:
-                _remainder = round(appt.total_price - float(appt.service.deposit_amount), 2)
-                plain_confirm = (
-                    f"Bonjour {appt.customer_name},\n\n"
-                    f"Votre rendez-vous est confirme !\n\n"
-                    f"Service     : {appt.service.name}\n"
-                    f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
-                    f"Heure       : {appt.time.strftime('%H h %M')}\n"
-                    f"Acompte paye : {float(appt.service.deposit_amount):.2f} $\n"
-                    f"Reste a regler sur place : {_remainder:.2f} $\n\n"
-                    f"A tres bientot,\nRiri — Glow by Riri"
-                )
-                try:
-                    html_confirm = render_to_string('emails/appointment_confirmation.html', {
-                        'appt': appt,
-                        'remainder': _remainder,
-                    })
-                    confirm_msg = EmailMultiAlternatives(
-                        subject="Votre rendez-vous est confirme — Glow by Riri",
-                        body=plain_confirm,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        to=[appt.customer_email],
-                    )
-                    confirm_msg.attach_alternative(html_confirm, "text/html")
-                    confirm_msg.send(fail_silently=False)
-                except Exception:
-                    send_mail(
-                        subject="Votre rendez-vous est confirme — Glow by Riri",
-                        message=plain_confirm,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[appt.customer_email],
-                        fail_silently=False,
-                    )
+            logger.error(f"Deposit success error: {e}")
 
     remainder = round(appt.total_price - float(appt.service.deposit_amount), 2)
     return render(request, 'booking/success.html', {'appt': appt, 'remainder': remainder})
