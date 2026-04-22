@@ -8,3 +8,4 @@ stripe
 psycopg2-binary
 cloudinary
 reportlab
+django-anymail[brevo]

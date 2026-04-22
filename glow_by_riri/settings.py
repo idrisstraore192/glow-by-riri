@@ -99,12 +99,9 @@ STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
 # Email
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'glowbyririi@gmail.com')
+EMAIL_BACKEND = 'anymail.backends.brevo.EmailBackend'
+ANYMAIL = {
+    'BREVO_API_KEY': os.environ.get('BREVO_API_KEY', ''),
+}
+DEFAULT_FROM_EMAIL = 'Glow by Riri <glowbyririi@gmail.com>'
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'glowbyririi@gmail.com')
-EMAIL_TIMEOUT = 10
