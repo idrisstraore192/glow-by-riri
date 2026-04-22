@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'shop',
     'booking',
     'reviews',
+    'anymail',
 ]
 
 MIDDLEWARE = [
