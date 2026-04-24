@@ -317,6 +317,22 @@ def payment_success(request):
                     Product.objects.filter(pk=item['product'].pk, stock__gt=0).update(
                         stock=django_models.F('stock') - item['quantity']
                     )
+                    updated = Product.objects.filter(pk=item['product'].pk, stock=0).first()
+                    if updated:
+                        try:
+                            send_mail(
+                                subject=f"Rupture de stock — {updated.name}",
+                                message=(
+                                    f"Le stock du produit suivant vient d'atteindre 0 suite à une commande :\n\n"
+                                    f"Produit : {updated.name}\n\n"
+                                    f"Pense à réapprovisionner ou à désactiver le produit.\n\nGlow by Riri"
+                                ),
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=[settings.ADMIN_EMAIL],
+                                fail_silently=True,
+                            )
+                        except Exception:
+                            pass
             # Feature 7: increment promo code uses
             promo_code = request.session.get('promo_code')
             if promo_code:
