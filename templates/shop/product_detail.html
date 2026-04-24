@@ -93,12 +93,13 @@
         <div class="pd-variant-options">
             {% for v in group.options %}
             <button type="button"
-                class="variant-btn {% if forloop.first %}active{% endif %}"
+                class="variant-btn {% if forloop.first and v.stock != 0 %}active{% endif %}{% if v.stock == 0 %} variant-sold-out{% endif %}"
                 data-price="{{ v.price }}"
                 {% if v.photo_url %}data-photo="{{ v.photo_url }}"{% endif %}
+                {% if v.stock == 0 %}disabled style="opacity:0.4;cursor:not-allowed;text-decoration:line-through;"{% endif %}
                 onclick="selectSimpleVariant(this)"
                 ontouchstart="event.preventDefault(); selectSimpleVariant(this)">
-                {{ v.label }}
+                {{ v.label }}{% if v.stock == 0 %}<span style="display:block;font-size:0.65em;font-style:italic;">Rupture</span>{% endif %}
             </button>
             {% endfor %}
         </div>
@@ -239,10 +240,19 @@ function refreshLongueurButtons() {
 
     document.querySelectorAll('#laceLongueurOptions .variant-btn').forEach(function(btn) {
         var isAvail = available.indexOf(btn.dataset.val) !== -1;
-        btn.disabled = !isAvail;
-        btn.style.opacity = isAvail ? '1' : '0.3';
-        btn.style.cursor  = isAvail ? 'pointer' : 'not-allowed';
-        btn.style.textDecoration = isAvail ? '' : 'line-through';
+        var inStock = true;
+        if (isAvail) {
+            var match = LACE_VARIANTS.find(function(v) {
+                return v.type === selType && v.taille === selTaille && v.longueur === btn.dataset.val;
+            });
+            if (match && match.stock === 0) inStock = false;
+        }
+        var usable = isAvail && inStock;
+        btn.disabled = !usable;
+        btn.style.opacity = usable ? '1' : '0.3';
+        btn.style.cursor  = usable ? 'pointer' : 'not-allowed';
+        btn.style.textDecoration = usable ? '' : 'line-through';
+        btn.title = (!isAvail || inStock) ? '' : 'Rupture de stock';
     });
 
     // Si la longueur actuelle n'est plus dispo, auto-sélectionner la première valide

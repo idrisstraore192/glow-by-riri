@@ -57,6 +57,7 @@ def product_detail(request, product_id):
             'price': '{:.2f}'.format(float(lv.price)),
             'photo_url': lv.photo_url or '',
             'video_url': lv.video_url or '',
+            'stock': lv.stock,
         }
         for lv in product.lace_variants.all()
     ])
@@ -333,6 +334,69 @@ def payment_success(request):
     return render(request, "shop/payment_success.html")
 
 
+def _generate_invoice_pdf(order):
+    """Returns a BytesIO with the invoice PDF, or None if ReportLab is unavailable."""
+    try:
+        import io
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.units import cm
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4,
+                                rightMargin=2*cm, leftMargin=2*cm,
+                                topMargin=2*cm, bottomMargin=2*cm)
+        styles = getSampleStyleSheet()
+        pink = colors.HexColor('#f8d0e8')
+        dark = colors.HexColor('#1a1a1a')
+
+        title_style = ParagraphStyle('title', parent=styles['Heading1'],
+                                     textColor=dark, fontSize=20, spaceAfter=4)
+        normal = styles['Normal']
+
+        elements = []
+        elements.append(Paragraph("Glow by Riri", title_style))
+        elements.append(Paragraph("glowbyririi@gmail.com — glowbyriri.up.railway.app", normal))
+        elements.append(Spacer(1, 0.4*cm))
+        elements.append(Paragraph(f"<b>Facture #{order.id}</b>", styles['Heading2']))
+        elements.append(Paragraph(f"Date : {order.created_at.strftime('%d/%m/%Y')}", normal))
+        elements.append(Paragraph(f"Cliente : {order.customer_name} ({order.customer_email})", normal))
+        elements.append(Spacer(1, 0.6*cm))
+
+        data = [['Article', 'Prix unitaire', 'Qté', 'Total']]
+        for item in order.items.all():
+            data.append([
+                item.product_name,
+                f"{float(item.price):.2f} $",
+                str(item.quantity),
+                f"{float(item.price) * item.quantity:.2f} $",
+            ])
+        data.append(['', '', 'TOTAL', f"{float(order.total):.2f} $"])
+
+        table = Table(data, colWidths=[9*cm, 3*cm, 2*cm, 3*cm])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), pink),
+            ('TEXTCOLOR', (0, 0), (-1, 0), dark),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+            ('GRID', (0, 0), (-1, -2), 0.5, colors.lightgrey),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('LINEABOVE', (0, -1), (-1, -1), 1, dark),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#fdf6fb')]),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 1*cm))
+        elements.append(Paragraph("Merci pour votre confiance — Glow by Riri", normal))
+
+        doc.build(elements)
+        buffer.seek(0)
+        return buffer
+    except Exception:
+        return None
+
+
 def _send_order_emails(order, items):
     lines = '\n'.join(
         f"  • {item['product'].name}"
@@ -375,6 +439,9 @@ def _send_order_emails(order, items):
                 to=[order.customer_email],
             )
             msg.attach_alternative(html_message, "text/html")
+            pdf_buffer = _generate_invoice_pdf(order)
+            if pdf_buffer:
+                msg.attach(f"facture-{order.id}.pdf", pdf_buffer.read(), 'application/pdf')
             msg.send(fail_silently=True)
         except Exception:
             try:
@@ -533,71 +600,12 @@ def invoice_pdf(request, order_id):
     if email.lower() != order.customer_email.lower():
         return HttpResponse("Accès refusé.", status=403)
 
-    try:
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib import colors
-        from reportlab.lib.units import cm
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        import io
-
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4,
-                                rightMargin=2*cm, leftMargin=2*cm,
-                                topMargin=2*cm, bottomMargin=2*cm)
-        styles = getSampleStyleSheet()
-        pink = colors.HexColor('#f8d0e8')
-        dark = colors.HexColor('#1a1a1a')
-
-        title_style = ParagraphStyle('title', parent=styles['Heading1'],
-                                     textColor=dark, fontSize=20, spaceAfter=4)
-        normal = styles['Normal']
-
-        elements = []
-
-        # Header
-        elements.append(Paragraph("Glow by Riri", title_style))
-        elements.append(Paragraph("glowbyririi@gmail.com — glowbyriri.up.railway.app", normal))
-        elements.append(Spacer(1, 0.4*cm))
-        elements.append(Paragraph(f"<b>Facture #{order.id}</b>", styles['Heading2']))
-        elements.append(Paragraph(f"Date : {order.created_at.strftime('%d/%m/%Y')}", normal))
-        elements.append(Paragraph(f"Cliente : {order.customer_name} ({order.customer_email})", normal))
-        elements.append(Spacer(1, 0.6*cm))
-
-        # Table
-        data = [['Article', 'Prix unitaire', 'Qté', 'Total']]
-        for item in order.items.all():
-            data.append([
-                item.product_name,
-                f"{float(item.price):.2f} $",
-                str(item.quantity),
-                f"{float(item.price) * item.quantity:.2f} $",
-            ])
-        data.append(['', '', 'TOTAL', f"{float(order.total):.2f} $"])
-
-        table = Table(data, colWidths=[9*cm, 3*cm, 2*cm, 3*cm])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), pink),
-            ('TEXTCOLOR', (0, 0), (-1, 0), dark),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
-            ('GRID', (0, 0), (-1, -2), 0.5, colors.lightgrey),
-            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('LINEABOVE', (0, -1), (-1, -1), 1, dark),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#fdf6fb')]),
-        ]))
-        elements.append(table)
-        elements.append(Spacer(1, 1*cm))
-        elements.append(Paragraph("Merci pour votre confiance — Glow by Riri", normal))
-
-        doc.build(elements)
-        buffer.seek(0)
-        response = HttpResponse(buffer, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="facture-{order.id}.pdf"'
-        return response
-
-    except ImportError:
+    buffer = _generate_invoice_pdf(order)
+    if buffer is None:
         return HttpResponse("ReportLab non installé.", status=500)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="facture-{order.id}.pdf"'
+    return response
 
 
 # ── Feature 11: Mon compte ────────────────────────────────────────────────────
