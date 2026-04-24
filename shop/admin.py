@@ -95,9 +95,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_inlines(self, request, obj=None):
         if obj and obj.product_type == 'produit':
-            return [ProductImageInline, ProductVideoInline]
-        # Perruques/laces/bundles : variantes simples OU variantes lace combinées
-        # Les deux sont disponibles ; LaceVariant prend le dessus sur le site si des entrées existent
+            return [ProductImageInline, ProductVideoInline, ProductVariantInline]
         return [ProductImageInline, ProductVideoInline, ProductVariantInline, LaceVariantInline]
 
     def display_type(self, obj):
