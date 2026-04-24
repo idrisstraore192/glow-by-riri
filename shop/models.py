@@ -76,6 +76,7 @@ class ProductVariant(models.Model):
     label = models.CharField(max_length=50, default='', verbose_name="Option", help_text="Ex: 12 pouces, 13x4 HD, 180%")
     price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name="Prix")
     photo_url = models.URLField(blank=True, default='', verbose_name="Photo (optionnel)", help_text="Photo qui s'affiche automatiquement quand cette option est sélectionnée")
+    stock = models.PositiveIntegerField(null=True, blank=True, verbose_name="Stock", help_text="Laisser vide = illimité. 0 = rupture de stock.")
 
     class Meta:
         verbose_name = "Variante"
@@ -197,6 +198,7 @@ class LaceVariant(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Prix')
     photo_url = models.URLField(blank=True, default='', verbose_name='Photo (Cloudinary)')
     video_url = models.URLField(blank=True, default='', verbose_name='Vidéo (Cloudinary)')
+    stock = models.PositiveIntegerField(null=True, blank=True, verbose_name='Stock', help_text='Laisser vide = illimité. 0 = rupture de stock.')
 
     class Meta:
         verbose_name = 'Variante lace'

@@ -25,7 +25,7 @@ class ProductVideoInline(admin.TabularInline):
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ['variant_type', 'label', 'price', 'photo_url']
+    fields = ['variant_type', 'label', 'price', 'stock', 'photo_url']
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
@@ -34,7 +34,7 @@ class ProductVariantInline(admin.TabularInline):
 class LaceVariantInline(admin.TabularInline):
     model = LaceVariant
     extra = 1
-    fields = ['type_lace', 'taille_lace', 'longueur', 'price', 'photo_url', 'video_url']
+    fields = ['type_lace', 'taille_lace', 'longueur', 'price', 'stock', 'photo_url', 'video_url']
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
