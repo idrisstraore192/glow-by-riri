@@ -83,6 +83,30 @@ Riri — Glow by Riri 💕
                 pass
 
 
+def _send_stock_alert(variant):
+    try:
+        product_name = variant.product.name
+        if hasattr(variant, 'label'):
+            variant_desc = variant.label
+        else:
+            variant_desc = f"{variant.get_type_lace_display()} {variant.taille_lace} {variant.longueur}"
+        send_mail(
+            subject=f"Rupture de stock — {product_name}",
+            message=(
+                f"Le stock de la variante suivante vient d'atteindre 0 :\n\n"
+                f"Produit  : {product_name}\n"
+                f"Variante : {variant_desc}\n\n"
+                f"Pense à réapprovisionner ou à vérifier ton stock.\n\n"
+                f"Glow by Riri"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_EMAIL],
+            fail_silently=True,
+        )
+    except Exception:
+        pass
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['order', 'name', 'display_type', 'price', 'display_discount', 'disponible']
@@ -97,6 +121,22 @@ class ProductAdmin(admin.ModelAdmin):
         if obj and obj.product_type == 'produit':
             return [ProductImageInline, ProductVideoInline, ProductVariantInline]
         return [ProductImageInline, ProductVideoInline, ProductVariantInline, LaceVariantInline]
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            old_stock = None
+            if instance.pk:
+                try:
+                    old_stock = instance.__class__.objects.filter(pk=instance.pk).values_list('stock', flat=True).first()
+                except Exception:
+                    pass
+            instance.save()
+            if instance.stock == 0 and old_stock != 0:
+                _send_stock_alert(instance)
+        formset.save_m2m()
 
     def display_type(self, obj):
         return obj.get_product_type_display()
