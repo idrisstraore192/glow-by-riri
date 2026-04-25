@@ -137,18 +137,6 @@
         {% endif %}
     </form>
 
-    {% if product.stock == 0 %}
-    <!-- Alerte retour en stock -->
-    <div class="stock-notify-wrap">
-        <p>Ce produit est actuellement épuisé. Laissez votre email pour être prévenue dès son retour :</p>
-        <div class="stock-notify-form">
-            <input type="email" id="notifyEmail" placeholder="votre@email.com" aria-label="Votre adresse email">
-            <button class="btn btn-black" style="padding:0.55rem 1rem;font-size:0.72rem;" onclick="submitStockNotify({{ product.id }})">Prévenir moi</button>
-        </div>
-        <p class="stock-notify-msg" id="notifyMsg"></p>
-    </div>
-    {% endif %}
-
     <!-- Wishlist button -->
     <button id="wishlistBtn"
             onclick="toggleWishlistDetail({{ product.id }}, this)"
@@ -558,23 +546,6 @@ refreshPrice = function(rawPrice) {
         stickyP.textContent = (discEl && discEl.style.display !== 'none') ? discEl.textContent : (dispEl ? dispEl.textContent : '');
     }
 };
-
-// Alerte retour en stock
-function submitStockNotify(productId) {
-    var email = document.getElementById('notifyEmail').value.trim();
-    var msg = document.getElementById('notifyMsg');
-    if (!email) { msg.textContent = 'Entrez votre adresse email.'; msg.style.color = '#c0392b'; return; }
-    var csrf = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='));
-    var token = csrf ? csrf.split('=')[1] : '';
-    fetch('/shop/notify-stock/', {
-        method: 'POST',
-        headers: {'X-CSRFToken': token, 'Content-Type': 'application/json'},
-        body: JSON.stringify({product_id: productId, email: email}),
-    })
-    .then(r => r.json())
-    .then(data => { msg.textContent = data.message; msg.style.color = data.ok ? '#27ae60' : '#c0392b'; })
-    .catch(() => { msg.textContent = 'Erreur réseau.'; msg.style.color = '#c0392b'; });
-}
 
 function toggleWishlistDetail(productId, btn) {
     const csrfToken = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='));
