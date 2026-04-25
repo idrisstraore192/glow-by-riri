@@ -8,7 +8,7 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
-from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem, LaceVariant, StockNotification
+from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem, LaceVariant
 from .cart import Cart
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -513,27 +513,6 @@ def checkout_review(request):
     if len(cart) == 0:
         return redirect('products')
     return render(request, "shop/checkout_review.html", {"cart": cart})
-
-
-def notify_stock(request):
-    if request.method != 'POST':
-        return JsonResponse({'ok': False, 'message': 'Méthode non autorisée.'}, status=405)
-    try:
-        data = json.loads(request.body)
-        email = data.get('email', '').strip()
-        product_id = int(data.get('product_id', 0))
-    except (ValueError, KeyError):
-        return JsonResponse({'ok': False, 'message': 'Données invalides.'})
-    if not email or '@' not in email:
-        return JsonResponse({'ok': False, 'message': 'Adresse email invalide.'})
-    try:
-        product = Product.objects.get(pk=product_id)
-    except Product.DoesNotExist:
-        return JsonResponse({'ok': False, 'message': 'Produit introuvable.'})
-    _, created = StockNotification.objects.get_or_create(email=email, product=product)
-    if created:
-        return JsonResponse({'ok': True, 'message': 'Tu seras prévenue dès que ce produit est de retour ✦'})
-    return JsonResponse({'ok': True, 'message': 'Tu es déjà inscrite pour ce produit.'})
 
 
 # ── Feature 4: Stripe Webhook ─────────────────────────────────────────────────
