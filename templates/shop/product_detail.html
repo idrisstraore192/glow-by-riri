@@ -131,21 +131,71 @@
             Rupture de stock
         </button>
         {% else %}
-        <button type="submit" class="btn btn-black pd-cta" onclick="cartAnimation(this)">
+        <button type="submit" class="btn btn-black pd-cta" id="mainAddToCart" onclick="cartAnimation(this)">
             Ajouter au panier
         </button>
         {% endif %}
     </form>
 
+    {% if product.stock == 0 %}
+    <!-- Alerte retour en stock -->
+    <div class="stock-notify-wrap">
+        <p>Ce produit est actuellement épuisé. Laissez votre email pour être prévenue dès son retour :</p>
+        <div class="stock-notify-form">
+            <input type="email" id="notifyEmail" placeholder="votre@email.com" aria-label="Votre adresse email">
+            <button class="btn btn-black" style="padding:0.55rem 1rem;font-size:0.72rem;" onclick="submitStockNotify({{ product.id }})">Prévenir moi</button>
+        </div>
+        <p class="stock-notify-msg" id="notifyMsg"></p>
+    </div>
+    {% endif %}
+
     <!-- Wishlist button -->
     <button id="wishlistBtn"
             onclick="toggleWishlistDetail({{ product.id }}, this)"
+            aria-label="Ajouter aux favoris"
             style="margin-top:0.75rem;background:none;border:1px solid #ddd;border-radius:4px;padding:8px 16px;cursor:pointer;font-size:14px;color:#555;display:flex;align-items:center;gap:6px;">
         <span id="wishlistHeart">&#9825;</span> Ajouter aux favoris
     </button>
 
     <a href="{% url 'products' %}" class="product-detail-back">← Retour à la boutique</a>
 </div>
+
+<!-- STICKY CTA MOBILE -->
+{% if product.stock != 0 %}
+<div class="sticky-cta-bar" id="stickyCta">
+    <span class="sticky-price" id="stickyPrice">{{ product.price }} $ CAD</span>
+    <button class="btn btn-black" onclick="document.getElementById('addToCartForm').requestSubmit()">
+        Ajouter au panier
+    </button>
+</div>
+{% endif %}
+
+<!-- PRODUITS SIMILAIRES -->
+{% if related_products %}
+<section class="related-section">
+    <h2 class="related-title">Vous aimerez aussi</h2>
+    <div class="related-grid">
+        {% for rp in related_products %}
+        <a href="{% url 'product_detail_slug' rp.slug %}" class="product-card" style="text-decoration:none;">
+            <div class="product-img-wrap">
+                {% with ri=rp.images.first %}
+                {% if ri %}<img class="product-img img-lazy" src="{{ ri.image_url }}" alt="{{ rp.name }}">
+                {% elif rp.image_url %}<img class="product-img img-lazy" src="{{ rp.image_url }}" alt="{{ rp.name }}">
+                {% else %}<div class="product-img-placeholder">✦</div>{% endif %}
+                {% endwith %}
+                {% if rp.discount_percent and rp.discount_percent > 0 %}
+                <span class="product-discount-badge">-{{ rp.discount_percent|floatformat:0 }}%</span>
+                {% endif %}
+            </div>
+            <div class="product-info">
+                <h3>{{ rp.name }}</h3>
+                <p class="product-price">{{ rp.price }} $ CAD</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
 <script>
 // ── Config ────────────────────────────────────────────────────
@@ -485,6 +535,46 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('resize', function() { pdGoto(pdIndex); });
 
 function cartAnimation(btn) { btn.textContent = '✦ Ajouté !'; }
+
+// Sticky CTA : apparaît quand le bouton principal n'est plus visible
+(function() {
+    var mainBtn = document.getElementById('mainAddToCart');
+    var stickyBar = document.getElementById('stickyCta');
+    if (!mainBtn || !stickyBar) return;
+    var observer = new IntersectionObserver(function(entries) {
+        stickyBar.style.display = entries[0].isIntersecting ? 'none' : 'flex';
+    }, { threshold: 0.1 });
+    observer.observe(mainBtn);
+})();
+
+// Sync prix dans la sticky bar
+var _origRefreshPrice = refreshPrice;
+refreshPrice = function(rawPrice) {
+    _origRefreshPrice(rawPrice);
+    var stickyP = document.getElementById('stickyPrice');
+    if (stickyP) {
+        var dispEl = document.getElementById('displayPrice');
+        var discEl = document.getElementById('displayPriceDiscounted');
+        stickyP.textContent = (discEl && discEl.style.display !== 'none') ? discEl.textContent : (dispEl ? dispEl.textContent : '');
+    }
+};
+
+// Alerte retour en stock
+function submitStockNotify(productId) {
+    var email = document.getElementById('notifyEmail').value.trim();
+    var msg = document.getElementById('notifyMsg');
+    if (!email) { msg.textContent = 'Entrez votre adresse email.'; msg.style.color = '#c0392b'; return; }
+    var csrf = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='));
+    var token = csrf ? csrf.split('=')[1] : '';
+    fetch('/shop/notify-stock/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': token, 'Content-Type': 'application/json'},
+        body: JSON.stringify({product_id: productId, email: email}),
+    })
+    .then(r => r.json())
+    .then(data => { msg.textContent = data.message; msg.style.color = data.ok ? '#27ae60' : '#c0392b'; })
+    .catch(() => { msg.textContent = 'Erreur réseau.'; msg.style.color = '#c0392b'; });
+}
 
 function toggleWishlistDetail(productId, btn) {
     const csrfToken = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='));

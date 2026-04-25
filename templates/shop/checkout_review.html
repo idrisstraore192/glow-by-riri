@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Vérifier ma commande — Glow by Riri{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Vérifier ma commande</h1>
+    <p>Confirmez vos articles avant de procéder au paiement</p>
+</div>
+
+<div class="section" style="padding-top:3rem;">
+    <div class="review-layout">
+        <div>
+            <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem;text-transform:uppercase;letter-spacing:0.05em;">Mes articles</h3>
+            {% for item in cart %}
+            <div class="review-item">
+                <div class="review-item-img">
+                    {% with first_img=item.product.images.first %}
+                    {% if first_img %}<img src="{{ first_img.image_url }}" alt="{{ item.product.name }}">
+                    {% elif item.product.image_url %}<img src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
+                    {% else %}<div style="width:100%;height:100%;background:#f0eeec;display:flex;align-items:center;justify-content:center;color:#ddd;">✦</div>{% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <p class="review-item-name">{{ item.product.name }}{% if item.label %} — {{ item.label }}{% endif %}</p>
+                    <p class="review-item-label">Quantité : {{ item.quantity }}</p>
+                </div>
+                <span class="review-item-price">{{ item.total }} $ CAD</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cart-summary">
+            <h3>Récapitulatif</h3>
+            <div class="summary-row">
+                <span>Sous-total</span>
+                <span>{{ cart.get_total }} $ CAD</span>
+            </div>
+            <div class="summary-row">
+                <span>Livraison</span>
+                <span style="color:#27ae60;">Gratuite</span>
+            </div>
+            <div class="delivery-estimate">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                Livraison estimée : <strong style="color:var(--text);">3 – 7 jours ouvrables</strong>
+            </div>
+            <div class="summary-total">
+                <span>Total</span>
+                <span>{{ cart.get_total }} $ CAD</span>
+            </div>
+            <a href="{% url 'checkout' %}" class="btn btn-black" style="width:100%;text-align:center;margin-top:1.5rem;display:block;">
+                Confirmer et payer
+            </a>
+            <a href="{% url 'cart' %}" class="btn btn-outline" style="width:100%;text-align:center;margin-top:0.75rem;display:block;">
+                Modifier le panier
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

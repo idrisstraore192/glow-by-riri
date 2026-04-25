@@ -9,6 +9,22 @@
     <p>Choisissez votre prestation et réservez en quelques secondes</p>
 </div>
 
+<!-- INDICATEUR D'ÉTAPES -->
+<div class="booking-steps">
+    <div class="booking-step done" id="step1">
+        <div class="step-dot">✓</div>
+        <span class="step-label">Service</span>
+    </div>
+    <div class="booking-step active" id="step2">
+        <div class="step-dot">2</div>
+        <span class="step-label">Créneau</span>
+    </div>
+    <div class="booking-step" id="step3">
+        <div class="step-dot">3</div>
+        <span class="step-label">Paiement</span>
+    </div>
+</div>
+
 {% if payment_error %}
 <div style="max-width:600px;margin:0 auto 1.5rem;padding:1rem 1.5rem;background:#fff0f0;border-left:3px solid #c0392b;font-size:0.9rem;color:#c0392b;">
     Le paiement de l'acompte est temporairement indisponible. Veuillez réessayer plus tard.
@@ -138,10 +154,31 @@
         </div>
         {% else %}
         <p style="font-size:0.82rem;color:#888;margin-bottom:1.25rem;">Un acompte de <strong>20 $ CAD</strong> est requis pour confirmer votre réservation. Le reste sera réglé sur place.</p>
-        <form method="post">
+        <form method="post" id="bookingForm">
             {% csrf_token %}
             {% for field in form %}
-            {% if field.html_name == 'nattes_deja_faites' %}
+            {% if field.html_name == 'slot' %}
+            <!-- CALENDRIER VISUEL -->
+            <div class="form-group">
+                <label>Choisir une date et un créneau</label>
+                <div class="slot-calendar" id="slotCalendar">
+                    <div class="slot-cal-header">
+                        <button type="button" class="slot-cal-nav" onclick="calNav(-1)" aria-label="Mois précédent">‹</button>
+                        <span class="slot-cal-month" id="calMonthLabel"></span>
+                        <button type="button" class="slot-cal-nav" onclick="calNav(1)" aria-label="Mois suivant">›</button>
+                    </div>
+                    <div class="slot-cal-grid" id="calGrid"></div>
+                </div>
+                <div id="slotTimesWrap" style="margin-top:0.75rem;">
+                    <p class="slot-no-times" id="slotNoTimes" style="display:none;">Aucun créneau pour cette date.</p>
+                    <div class="slot-time-grid" id="slotTimeGrid"></div>
+                </div>
+                {{ field.as_hidden }}
+                {% if field.errors %}
+                <ul class="field-errors">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+            {% elif field.html_name == 'nattes_deja_faites' %}
             <div class="form-group nattes-field-wrap" id="nattes-field-wrap" style="display:none;">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
@@ -305,10 +342,122 @@ document.addEventListener('DOMContentLoaded', function() {
     if (serviceSelect) {
         serviceSelect.addEventListener('change', function() {
             toggleNattesField(this.value);
+            // Mettre à jour étape 1 si service sélectionné
+            if (this.value) document.getElementById('step1').classList.add('done');
         });
         toggleNattesField(serviceSelect.value);
+        if (serviceSelect.value) document.getElementById('step1').classList.add('done');
     }
+    // Étape 3 active au submit
+    var bookingForm = document.getElementById('bookingForm');
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function() {
+            document.getElementById('step2').classList.add('done');
+            document.getElementById('step3').classList.add('active');
+        });
+    }
+    initCalendar();
 });
+
+// ── CALENDRIER VISUEL ─────────────────────────────────────────
+var calYear, calMonth, calSlotsData = {};
+var MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+var DAY_LABELS  = ['L','M','M','J','V','S','D'];
+
+function initCalendar() {
+    var today = new Date();
+    calYear  = today.getFullYear();
+    calMonth = today.getMonth() + 1;
+    loadCalendarMonth(calYear, calMonth);
+}
+
+function calNav(dir) {
+    calMonth += dir;
+    if (calMonth > 12) { calMonth = 1; calYear++; }
+    if (calMonth < 1)  { calMonth = 12; calYear--; }
+    loadCalendarMonth(calYear, calMonth);
+}
+
+function loadCalendarMonth(year, month) {
+    document.getElementById('calMonthLabel').textContent = MONTH_NAMES[month - 1] + ' ' + year;
+    fetch('/booking/slots/available/?year=' + year + '&month=' + month)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            calSlotsData = data.slots || {};
+            renderCalendar(year, month);
+        })
+        .catch(function() { renderCalendar(year, month); });
+}
+
+function renderCalendar(year, month) {
+    var grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    DAY_LABELS.forEach(function(l) {
+        var d = document.createElement('div');
+        d.className = 'slot-cal-day-label';
+        d.textContent = l;
+        grid.appendChild(d);
+    });
+    var firstDay = new Date(year, month - 1, 1).getDay();
+    var firstMon = (firstDay === 0 ? 6 : firstDay - 1);
+    var daysInMonth = new Date(year, month, 0).getDate();
+    var today = new Date();
+    for (var i = 0; i < firstMon; i++) {
+        var e = document.createElement('div');
+        e.className = 'slot-cal-day empty';
+        grid.appendChild(e);
+    }
+    for (var d = 1; d <= daysInMonth; d++) {
+        var cell = document.createElement('div');
+        cell.className = 'slot-cal-day';
+        cell.textContent = d;
+        var dateObj = new Date(year, month - 1, d);
+        var isToday = (dateObj.toDateString() === today.toDateString());
+        var isPast  = dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        var hasSlots = calSlotsData[String(d)] && calSlotsData[String(d)].length > 0;
+        if (isToday) cell.classList.add('today');
+        if (isPast) {
+            cell.classList.add('past');
+        } else if (hasSlots) {
+            cell.classList.add('available');
+            (function(day) {
+                cell.addEventListener('click', function() { selectCalDay(day); });
+            })(d);
+        }
+        grid.appendChild(cell);
+    }
+}
+
+function selectCalDay(day) {
+    document.querySelectorAll('.slot-cal-day').forEach(function(c) { c.classList.remove('selected'); });
+    document.querySelectorAll('.slot-cal-day').forEach(function(c) {
+        if (parseInt(c.textContent) === day && c.classList.contains('available')) c.classList.add('selected');
+    });
+    var times = calSlotsData[String(day)] || [];
+    var grid = document.getElementById('slotTimeGrid');
+    var noTimes = document.getElementById('slotNoTimes');
+    grid.innerHTML = '';
+    if (!times.length) {
+        noTimes.style.display = '';
+        return;
+    }
+    noTimes.style.display = 'none';
+    times.forEach(function(slot) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'slot-time-btn';
+        btn.textContent = slot.time;
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.slot-time-btn').forEach(function(b) { b.classList.remove('selected'); });
+            btn.classList.add('selected');
+            var hiddenSlot = document.getElementById('id_slot');
+            if (hiddenSlot) hiddenSlot.value = slot.id;
+            document.getElementById('step2').classList.add('done');
+            document.getElementById('step3').classList.add('active');
+        });
+        grid.appendChild(btn);
+    });
+}
 
 </script>
 
