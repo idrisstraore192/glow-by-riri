@@ -103,45 +103,33 @@ def update_cart(request, product_id):
 
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    # Feature 13: check stock
     if product.stock is not None and product.stock <= 0:
         messages.error(request, f'{product.name} est en rupture de stock.')
         return redirect(request.META.get('HTTP_REFERER', 'products'))
     cart = Cart(request)
+    with_installation = request.POST.get('with_installation') == '1'
+
+    # Système LaceVariant (perruques lace)
+    lace_type = request.POST.get('lace_type', '').strip()
+    lace_taille = request.POST.get('lace_taille', '').strip()
+    lace_longueur = request.POST.get('lace_longueur', '').strip()
+    if lace_type and lace_taille and lace_longueur:
+        try:
+            lv = LaceVariant.objects.get(product=product, type_lace=lace_type, taille_lace=lace_taille, longueur=lace_longueur)
+            cart.add(product, lace_variant=lv, with_installation=with_installation)
+            type_display = dict(LaceVariant.TYPE_CHOICES).get(lace_type, lace_type)
+            messages.success(request, f'{product.name} — {type_display} · {lace_taille} · {lace_longueur} ajouté au panier ✦')
+        except LaceVariant.DoesNotExist:
+            messages.error(request, 'Combinaison introuvable. Veuillez sélectionner une variante valide.')
+        return redirect(request.META.get('HTTP_REFERER', 'products'))
+
+    # Système ProductVariant (longueur, couleur, etc.)
     variant_id = request.POST.get('variant_id') or request.GET.get('variant_id')
     variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
-    with_installation = request.POST.get('with_installation') == '1'
-    lace_size_variant_id = request.POST.get('lace_size_variant_id')
-    lace_label = None
-    if lace_size_variant_id:
-        try:
-            lace_size_variant = ProductVariant.objects.get(id=lace_size_variant_id, variant_type='lace')
-            lace_label = lace_size_variant.label
-        except ProductVariant.DoesNotExist:
-            pass
-    type_lace_variant_id = request.POST.get('type_lace_variant_id')
-    type_lace_label = None
-    if type_lace_variant_id:
-        try:
-            type_lace_variant = ProductVariant.objects.get(id=type_lace_variant_id, variant_type='type_lace')
-            type_lace_label = type_lace_variant.label
-        except ProductVariant.DoesNotExist:
-            pass
-    cart.add(product, variant=variant, with_installation=with_installation, lace_label=lace_label, type_lace_label=type_lace_label)
+    cart.add(product, variant=variant, with_installation=with_installation)
     label = f' — {variant.label}' if variant else ''
     promo = ' (-5% pose incluse)' if with_installation else ''
     messages.success(request, f'{product.name}{label}{promo} ajouté au panier ✦')
-
-    lace_variant_id = request.POST.get('lace_variant_id')
-    if lace_variant_id:
-        try:
-            lace_variant = ProductVariant.objects.select_related('product').get(id=lace_variant_id)
-            lace_product = lace_variant.product
-            cart.add(lace_product, variant=lace_variant)
-            messages.success(request, f'{lace_product.name} — {lace_variant.label} ajouté au panier ✦')
-        except ProductVariant.DoesNotExist:
-            pass
-
     return redirect(request.META.get('HTTP_REFERER', 'products'))
 
 

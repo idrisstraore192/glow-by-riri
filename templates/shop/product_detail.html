@@ -95,6 +95,7 @@
             <button type="button"
                 class="variant-btn {% if forloop.first and v.stock != 0 %}active{% endif %}{% if v.stock == 0 %} variant-sold-out{% endif %}"
                 data-price="{{ v.price }}"
+                data-id="{{ v.id }}"
                 {% if v.photo_url %}data-photo="{{ v.photo_url }}"{% endif %}
                 {% if v.stock == 0 %}disabled style="opacity:0.4;cursor:not-allowed;text-decoration:line-through;"{% endif %}
                 onclick="selectSimpleVariant(this)"
@@ -122,6 +123,7 @@
 
     <form method="post" action="{% url 'add_to_cart' product.id %}" id="addToCartForm">
         {% csrf_token %}
+        <input type="hidden" name="variant_id"    id="variantIdInput"   value="">
         <input type="hidden" name="lace_type"    id="laceTypeInput"    value="">
         <input type="hidden" name="lace_taille"  id="laceTailleInput"  value="">
         <input type="hidden" name="lace_longueur" id="laceLongueurInput" value="">
@@ -476,6 +478,9 @@ function selectSimpleVariant(btn) {
         .forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
 
+    var vi = document.getElementById('variantIdInput');
+    if (vi) vi.value = btn.dataset.id || '';
+
     var raw = parseFloat(btn.dataset.price) || BASE_PRICE;
     currentRawPrice = raw;
     currentPrice = DISCOUNT > 0 ? Math.round(raw * (1 - DISCOUNT/100) * 100) / 100 : raw;
@@ -509,6 +514,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Prix initial pour variantes simples
     var firstBtn = document.querySelector('.pd-variant-group .variant-btn.active[data-price]');
     if (firstBtn && !LACE_VARIANTS.length) {
+        var vi = document.getElementById('variantIdInput');
+        if (vi && firstBtn.dataset.id) vi.value = firstBtn.dataset.id;
         var raw = parseFloat(firstBtn.dataset.price) || BASE_PRICE;
         currentRawPrice = raw;
         currentPrice = DISCOUNT > 0 ? Math.round(raw * (1 - DISCOUNT/100) * 100) / 100 : raw;
