@@ -54,14 +54,27 @@
     <!-- SEARCH -->
     <div class="shop-search">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="Rechercher un produit..." oninput="filterProducts()">
+        <input type="text" id="searchInput" placeholder="Rechercher un produit..." oninput="filterProducts()" aria-label="Rechercher un produit">
+    </div>
+
+    <!-- PRICE RANGE SLIDER -->
+    <div class="price-range-wrap" id="priceRangeWrap">
+        <div class="price-range-label">
+            <span>Prix</span>
+            <span id="priceRangeDisplay">0 $ — 999 $</span>
+        </div>
+        <div class="price-range-track">
+            <div class="price-range-fill" id="priceRangeFill"></div>
+            <input type="range" class="price-range-input" id="priceMin" min="0" max="999" value="0" step="1" aria-label="Prix minimum" oninput="onPriceRange()">
+            <input type="range" class="price-range-input" id="priceMax" min="0" max="999" value="999" step="1" aria-label="Prix maximum" oninput="onPriceRange()">
+        </div>
     </div>
 
     <!-- TOOLBAR -->
     <div class="shop-toolbar">
         <div class="shop-sort">
             <span>Trier</span>
-            <select id="sortSelect" onchange="sortProducts()">
+            <select id="sortSelect" onchange="sortProducts()" aria-label="Trier les produits">
                 <option value="default">Par défaut</option>
                 <option value="price-asc">Prix croissant</option>
                 <option value="price-desc">Prix décroissant</option>
@@ -69,13 +82,13 @@
             </select>
         </div>
         <div class="shop-view-toggle">
-            <button class="view-btn active" id="btnGrid" onclick="setView('grid')" title="Grille">
+            <button class="view-btn active" id="btnGrid" onclick="setView('grid')" title="Vue grille" aria-label="Vue grille">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6"/><rect x="8" y="0" width="6" height="6"/><rect x="0" y="8" width="6" height="6"/><rect x="8" y="8" width="6" height="6"/></svg>
             </button>
-            <button class="view-btn" id="btnList" onclick="setView('list')" title="Liste">
+            <button class="view-btn" id="btnList" onclick="setView('list')" title="Vue liste" aria-label="Vue liste">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2"/><rect x="0" y="6" width="14" height="2"/><rect x="0" y="12" width="14" height="2"/></svg>
             </button>
-            <button class="view-btn" id="btnSingle" onclick="setView('single')" title="Colonne unique">
+            <button class="view-btn" id="btnSingle" onclick="setView('single')" title="Colonne unique" aria-label="Vue colonne unique">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="0" width="10" height="6"/><rect x="2" y="8" width="10" height="6"/></svg>
             </button>
         </div>
@@ -88,14 +101,16 @@
                     data-product-id="{{ p.id }}"
                     onclick="toggleWishlist({{ p.id }}, this); event.preventDefault();"
                     style="position:absolute;top:10px;right:10px;z-index:10;background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.12);"
+                    aria-label="Ajouter aux favoris"
                     title="Ajouter aux favoris">&#9825;</button>
             <a href="{% url 'product_detail_slug' p.slug %}" style="display:contents;">
                 <div class="product-img-wrap">
+                    <div class="skeleton" id="skel_{{ p.id }}"></div>
                     {% with first_img=p.images.first %}
                     {% if first_img %}
-                    <img class="product-img img-lazy" data-src="{{ first_img.image_url }}" src="{{ first_img.image_url }}" alt="{{ p.name }}">
+                    <img class="product-img img-lazy" data-src="{{ first_img.image_url }}" src="{{ first_img.image_url }}" alt="{{ p.name }}" onload="hideSkeleton('skel_{{ p.id }}')">
                     {% elif p.image_url %}
-                    <img class="product-img img-lazy" data-src="{{ p.image_url }}" src="{{ p.image_url }}" alt="{{ p.name }}">
+                    <img class="product-img img-lazy" data-src="{{ p.image_url }}" src="{{ p.image_url }}" alt="{{ p.name }}" onload="hideSkeleton('skel_{{ p.id }}')">
                     {% else %}
                     <div class="product-img-placeholder">✦</div>
                     {% endif %}
@@ -124,6 +139,10 @@
             </a>
         </div>
         {% endfor %}
+        <div class="search-empty" id="searchEmpty">
+            <span>✦</span>
+            Aucun produit ne correspond à votre recherche.
+        </div>
     </div>
     {% else %}
     <p class="empty">Aucun produit disponible pour le moment.<br>Revenez bientôt ✦</p>
@@ -198,13 +217,58 @@ function setView(mode) {
     }
 }
 
+function hideSkeleton(id) {
+    const s = document.getElementById(id);
+    if (s) s.classList.add('hidden');
+}
+
 function filterProducts() {
     const q = document.getElementById('searchInput').value.toLowerCase();
+    const minEl = document.getElementById('priceMin');
+    const maxEl = document.getElementById('priceMax');
+    const minPrice = minEl ? parseFloat(minEl.value) : 0;
+    const maxPrice = maxEl ? parseFloat(maxEl.value) : 9999;
+    let visible = 0;
     document.querySelectorAll('.product-card').forEach(card => {
         const matchesName = card.dataset.name.toLowerCase().includes(q);
-        card.style.display = matchesName ? '' : 'none';
+        const price = parseFloat(card.dataset.price) || 0;
+        const matchesPrice = price >= minPrice && price <= maxPrice;
+        const show = matchesName && matchesPrice;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
     });
+    const empty = document.getElementById('searchEmpty');
+    if (empty) empty.style.display = visible === 0 ? 'block' : 'none';
 }
+
+function onPriceRange() {
+    const minEl = document.getElementById('priceMin');
+    const maxEl = document.getElementById('priceMax');
+    let min = parseInt(minEl.value), max = parseInt(maxEl.value);
+    if (min > max) { minEl.value = max; min = max; }
+    document.getElementById('priceRangeDisplay').textContent = min + ' $ — ' + max + ' $';
+    const fill = document.getElementById('priceRangeFill');
+    if (fill) {
+        const range = parseInt(maxEl.max) - parseInt(maxEl.min);
+        fill.style.left  = ((min / range) * 100) + '%';
+        fill.style.width = (((max - min) / range) * 100) + '%';
+    }
+    filterProducts();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const allPrices = Array.from(document.querySelectorAll('.product-card')).map(c => parseFloat(c.dataset.price) || 0);
+    if (allPrices.length) {
+        const maxP = Math.ceil(Math.max(...allPrices));
+        const minEl = document.getElementById('priceMin');
+        const maxEl = document.getElementById('priceMax');
+        if (minEl && maxEl) {
+            minEl.max = maxP; maxEl.max = maxP; maxEl.value = maxP;
+            document.getElementById('priceRangeDisplay').textContent = '0 $ — ' + maxP + ' $';
+        }
+    }
+    onPriceRange();
+});
 
 function filterByType(type, btn) {
     document.querySelectorAll('#bundleFilters .shop-filter-btn').forEach(b => b.classList.remove('active'));

@@ -8,7 +8,7 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
-from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem, LaceVariant
+from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo, PromoCode, WishlistItem, LaceVariant, StockNotification
 from .cart import Cart
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -74,6 +74,10 @@ def product_detail(request, product_id):
                 label = dict(ProductVariant.TYPE_CHOICES).get(vtype, vtype)
                 variant_groups.append({'type': vtype, 'label': label, 'options': vg[vtype]})
 
+    related_products = Product.objects.filter(
+        disponible=True, product_type=product.product_type
+    ).exclude(pk=product.pk).order_by('?')[:4]
+
     return render(request, "shop/product_detail.html", {
         "product": product,
         "images": images,
@@ -82,6 +86,7 @@ def product_detail(request, product_id):
         "videos": videos,
         "lace_variants_json": lace_variants_json,
         "variant_groups": variant_groups,
+        "related_products": related_products,
     })
 
 
@@ -501,6 +506,34 @@ def order_tracking(request):
     if email:
         orders = Order.objects.filter(customer_email__iexact=email, paid=True).prefetch_related('items').order_by('-created_at')
     return render(request, "shop/order_tracking.html", {"orders": orders, "email": email})
+
+
+def checkout_review(request):
+    cart = Cart(request)
+    if len(cart) == 0:
+        return redirect('products')
+    return render(request, "shop/checkout_review.html", {"cart": cart})
+
+
+def notify_stock(request):
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'message': 'Méthode non autorisée.'}, status=405)
+    try:
+        data = json.loads(request.body)
+        email = data.get('email', '').strip()
+        product_id = int(data.get('product_id', 0))
+    except (ValueError, KeyError):
+        return JsonResponse({'ok': False, 'message': 'Données invalides.'})
+    if not email or '@' not in email:
+        return JsonResponse({'ok': False, 'message': 'Adresse email invalide.'})
+    try:
+        product = Product.objects.get(pk=product_id)
+    except Product.DoesNotExist:
+        return JsonResponse({'ok': False, 'message': 'Produit introuvable.'})
+    _, created = StockNotification.objects.get_or_create(email=email, product=product)
+    if created:
+        return JsonResponse({'ok': True, 'message': 'Tu seras prévenue dès que ce produit est de retour ✦'})
+    return JsonResponse({'ok': True, 'message': 'Tu es déjà inscrite pour ce produit.'})
 
 
 # ── Feature 4: Stripe Webhook ─────────────────────────────────────────────────

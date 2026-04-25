@@ -164,6 +164,31 @@
             document.body.style.overflow = '';
         }
 
+        // Swipe pour fermer la sidebar
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            let touchStartX = 0, touchStartY = 0;
+            sidebar.addEventListener('touchstart', e => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            sidebar.addEventListener('touchend', e => {
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+                if (dx < -50 && dy < 60) closeSidebar();
+            }, { passive: true });
+        })();
+
+        // Loading state sur tous les boutons de formulaire
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]:not([data-no-loading])');
+            if (btn && !btn.disabled) {
+                btn.classList.add('btn-loading');
+                btn.disabled = true;
+            }
+        });
+
         function toggleShopMenu() {
             const menu = document.getElementById('shopSubmenu');
             const icon = document.getElementById('shopToggleIcon');
