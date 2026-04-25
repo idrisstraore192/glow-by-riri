@@ -219,3 +219,18 @@ class WishlistItem(models.Model):
         verbose_name = "Favori"
         verbose_name_plural = "Favoris"
         unique_together = ('session_key', 'product')
+
+
+class StockNotification(models.Model):
+    email = models.EmailField(verbose_name="Email")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_notifications')
+    created_at = models.DateTimeField(auto_now_add=True)
+    notified = models.BooleanField(default=False, verbose_name="Notifiée")
+
+    class Meta:
+        verbose_name = "Alerte stock"
+        verbose_name_plural = "Alertes stock"
+        unique_together = ('email', 'product')
+
+    def __str__(self):
+        return f"{self.email} — {self.product.name}"

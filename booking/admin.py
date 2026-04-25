@@ -114,12 +114,7 @@ class AvailabilitySlotAdmin(admin.ModelAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ['customer_name', 'customer_email', 'service', 'date', 'time', 'deposit_paid', 'nattes_deja_faites', 'calendar_link']
+    list_display = ['customer_name', 'customer_email', 'service', 'date', 'time', 'deposit_paid', 'nattes_deja_faites']
     list_filter = ['deposit_paid', 'date', 'nattes_deja_faites']
     readonly_fields = ['stripe_session_id', 'deposit_paid', 'slot', 'nattes_deja_faites']
     ordering = ['-date', '-time']
-
-    def calendar_link(self, obj):
-        return format_html('<a href="/admin/booking/calendar/?year={}&month={}" target="_blank">Calendrier</a>',
-                           obj.date.year, obj.date.month)
-    calendar_link.short_description = "Calendrier"

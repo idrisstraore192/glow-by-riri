@@ -38,7 +38,8 @@
                 </div>
                 <div class="cart-item-total">
                     <span>{{ item.total }} $ CAD</span>
-                    <a href="{% url 'remove_cart_item' item.key %}" class="cart-remove">Retirer</a>
+                    <a href="{% url 'remove_cart_item' item.key %}" class="cart-remove"
+                       onclick="return confirmRemove(event, this)" aria-label="Retirer {{ item.product.name }} du panier">Retirer</a>
                 </div>
             </div>
             {% endfor %}
@@ -53,6 +54,10 @@
             <div class="summary-row">
                 <span>Livraison</span>
                 <span style="color:#27ae60;">Gratuite</span>
+            </div>
+            <div class="delivery-estimate">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                Livraison estimée : <strong style="color:var(--text);">3 – 7 jours ouvrables</strong>
             </div>
 
             <!-- Code promo -->
@@ -69,8 +74,8 @@
                 <span>Total</span>
                 <span>{{ cart.get_total }} $ CAD</span>
             </div>
-            <a href="{% url 'checkout' %}" class="btn" style="width:100%;text-align:center;margin-top:1.5rem;display:block;">
-                Payer maintenant
+            <a href="{% url 'checkout_review' %}" class="btn" style="width:100%;text-align:center;margin-top:1.5rem;display:block;">
+                Vérifier ma commande
             </a>
             <a href="{% url 'products' %}" class="btn btn-outline" style="width:100%;text-align:center;margin-top:0.75rem;display:block;">
                 Continuer mes achats
@@ -86,6 +91,14 @@
 </div>
 
 <script>
+function confirmRemove(e, link) {
+    e.preventDefault();
+    if (confirm('Retirer cet article de votre panier ?')) {
+        window.location.href = link.href;
+    }
+    return false;
+}
+
 function applyPromo() {
     const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
     const msg = document.getElementById('promoMsg');

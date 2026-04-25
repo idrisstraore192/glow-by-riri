@@ -1,13 +1,14 @@
 import stripe
 import logging
+from datetime import date as today_date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .forms import AppointmentForm
-from .models import Service, Appointment
+from .models import Service, Appointment, AvailabilitySlot
 from reviews.models import Review
 from reviews.forms import ReviewForm
 
@@ -193,6 +194,28 @@ def booking_page(request):
         'categories': Service.CATEGORY_CHOICES,
         'services_nattes_ids': services_nattes,
     })
+
+
+def available_slots_api(request):
+    """Retourne les créneaux disponibles par date pour le calendrier visuel."""
+    year  = int(request.GET.get('year',  today_date.today().year))
+    month = int(request.GET.get('month', today_date.today().month))
+    slots = AvailabilitySlot.objects.filter(
+        is_booked=False,
+        date__year=year,
+        date__month=month,
+        date__gte=today_date.today(),
+    ).order_by('date', 'time')
+    result = {}
+    for slot in slots:
+        day = str(slot.date.day)
+        if day not in result:
+            result[day] = []
+        result[day].append({
+            'id': slot.id,
+            'time': slot.time.strftime('%H:%M'),
+        })
+    return JsonResponse({'slots': result})
 
 
 @csrf_exempt

@@ -7,8 +7,6 @@ from core import views as core_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("admin/dashboard/", core_views.admin_dashboard, name="admin_dashboard"),
-    path("admin/booking/calendar/", core_views.booking_calendar, name="booking_calendar"),
     path("", include("core.urls")),
     path("shop/", include("shop.urls")),
     path("booking/", include("booking.urls")),
