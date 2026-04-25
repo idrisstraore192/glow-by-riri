@@ -8,14 +8,20 @@ class Cart:
         self.session = request.session
         self.cart = self.session.setdefault(CART_SESSION_KEY, {})
 
-    def add(self, product, quantity=1, variant=None, with_installation=False, lace_label=None, type_lace_label=None):
-        key = f"{product.id}_{variant.id}" if variant else str(product.id)
-        base_price = float(variant.price) if (variant and variant.price) else float(product.price)
+    def add(self, product, quantity=1, variant=None, with_installation=False, lace_label=None, type_lace_label=None, lace_variant=None):
+        if lace_variant:
+            type_display = dict(lace_variant.TYPE_CHOICES).get(lace_variant.type_lace, lace_variant.type_lace)
+            label = f"{type_display} · {lace_variant.taille_lace} · {lace_variant.longueur}"
+            key = f"{product.id}_lv_{lace_variant.type_lace}_{lace_variant.taille_lace}_{lace_variant.longueur}"
+            base_price = float(lace_variant.price)
+        else:
+            key = f"{product.id}_{variant.id}" if variant else str(product.id)
+            base_price = float(variant.price) if (variant and variant.price) else float(product.price)
+            label = variant.label if variant else None
         if product.discount_percent and product.discount_percent > 0:
             base_price = round(base_price * (1 - float(product.discount_percent) / 100), 2)
         if with_installation:
             base_price = round(base_price * 0.95, 2)
-        label = variant.label if variant else None
         if key in self.cart:
             self.cart[key]['quantity'] += quantity
         else:
