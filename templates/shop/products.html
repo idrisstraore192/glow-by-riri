@@ -92,12 +92,11 @@
                     title="Ajouter aux favoris">&#9825;</button>
             <a href="{% url 'product_detail_slug' p.slug %}" style="display:contents;">
                 <div class="product-img-wrap">
-                    <div class="skeleton" id="skel_{{ p.id }}"></div>
                     {% with first_img=p.images.first %}
                     {% if first_img %}
-                    <img class="product-img" src="{{ first_img.image_url }}" alt="{{ p.name }}" onload="hideSkeleton('skel_{{ p.id }}')"  onerror="hideSkeleton('skel_{{ p.id }}')"  >
+                    <img class="product-img" src="{{ first_img.image_url }}" alt="{{ p.name }}">
                     {% elif p.image_url %}
-                    <img class="product-img" src="{{ p.image_url }}" alt="{{ p.name }}" onload="hideSkeleton('skel_{{ p.id }}')" onerror="hideSkeleton('skel_{{ p.id }}')"  >
+                    <img class="product-img" src="{{ p.image_url }}" alt="{{ p.name }}">
                     {% else %}
                     <div class="product-img-placeholder">✦</div>
                     {% endif %}
@@ -202,11 +201,6 @@ function setView(mode) {
     } else {
         btnGrid.classList.add('active');
     }
-}
-
-function hideSkeleton(id) {
-    const s = document.getElementById(id);
-    if (s) s.classList.add('hidden');
 }
 
 function filterProducts() {
