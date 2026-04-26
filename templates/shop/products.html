@@ -57,19 +57,6 @@
         <input type="text" id="searchInput" placeholder="Rechercher un produit..." oninput="filterProducts()" aria-label="Rechercher un produit">
     </div>
 
-    <!-- PRICE RANGE SLIDER -->
-    <div class="price-range-wrap" id="priceRangeWrap">
-        <div class="price-range-label">
-            <span>Prix</span>
-            <span id="priceRangeDisplay">0 $ — 999 $</span>
-        </div>
-        <div class="price-range-track">
-            <div class="price-range-fill" id="priceRangeFill"></div>
-            <input type="range" class="price-range-input" id="priceMin" min="0" max="999" value="0" step="1" aria-label="Prix minimum" oninput="onPriceRange()">
-            <input type="range" class="price-range-input" id="priceMax" min="0" max="999" value="999" step="1" aria-label="Prix maximum" oninput="onPriceRange()">
-        </div>
-    </div>
-
     <!-- TOOLBAR -->
     <div class="shop-toolbar">
         <div class="shop-sort">
@@ -224,51 +211,15 @@ function hideSkeleton(id) {
 
 function filterProducts() {
     const q = document.getElementById('searchInput').value.toLowerCase();
-    const minEl = document.getElementById('priceMin');
-    const maxEl = document.getElementById('priceMax');
-    const minPrice = minEl ? parseFloat(minEl.value) : 0;
-    const maxPrice = maxEl ? parseFloat(maxEl.value) : 9999;
     let visible = 0;
     document.querySelectorAll('.product-card').forEach(card => {
-        const matchesName = card.dataset.name.toLowerCase().includes(q);
-        const price = parseFloat(card.dataset.price) || 0;
-        const matchesPrice = price >= minPrice && price <= maxPrice;
-        const show = matchesName && matchesPrice;
+        const show = card.dataset.name.toLowerCase().includes(q);
         card.style.display = show ? '' : 'none';
         if (show) visible++;
     });
     const empty = document.getElementById('searchEmpty');
     if (empty) empty.style.display = visible === 0 ? 'block' : 'none';
 }
-
-function onPriceRange() {
-    const minEl = document.getElementById('priceMin');
-    const maxEl = document.getElementById('priceMax');
-    let min = parseInt(minEl.value), max = parseInt(maxEl.value);
-    if (min > max) { minEl.value = max; min = max; }
-    document.getElementById('priceRangeDisplay').textContent = min + ' $ — ' + max + ' $';
-    const fill = document.getElementById('priceRangeFill');
-    if (fill) {
-        const range = parseInt(maxEl.max) - parseInt(maxEl.min);
-        fill.style.left  = ((min / range) * 100) + '%';
-        fill.style.width = (((max - min) / range) * 100) + '%';
-    }
-    filterProducts();
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const allPrices = Array.from(document.querySelectorAll('.product-card')).map(c => parseFloat(c.dataset.price) || 0);
-    if (allPrices.length) {
-        const maxP = Math.ceil(Math.max(...allPrices));
-        const minEl = document.getElementById('priceMin');
-        const maxEl = document.getElementById('priceMax');
-        if (minEl && maxEl) {
-            minEl.max = maxP; maxEl.max = maxP; maxEl.value = maxP;
-            document.getElementById('priceRangeDisplay').textContent = '0 $ — ' + maxP + ' $';
-        }
-    }
-    onPriceRange();
-});
 
 function filterByType(type, btn) {
     document.querySelectorAll('#bundleFilters .shop-filter-btn').forEach(b => b.classList.remove('active'));
