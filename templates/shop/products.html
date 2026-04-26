@@ -95,9 +95,9 @@
                     <div class="skeleton" id="skel_{{ p.id }}"></div>
                     {% with first_img=p.images.first %}
                     {% if first_img %}
-                    <img class="product-img img-lazy" src="{{ first_img.image_url }}" alt="{{ p.name }}" onload="this.classList.add('loaded'); hideSkeleton('skel_{{ p.id }}')">
+                    <img class="product-img" src="{{ first_img.image_url }}" alt="{{ p.name }}" onload="hideSkeleton('skel_{{ p.id }}')"  onerror="hideSkeleton('skel_{{ p.id }}')"  >
                     {% elif p.image_url %}
-                    <img class="product-img img-lazy" src="{{ p.image_url }}" alt="{{ p.name }}" onload="this.classList.add('loaded'); hideSkeleton('skel_{{ p.id }}')">
+                    <img class="product-img" src="{{ p.image_url }}" alt="{{ p.name }}" onload="hideSkeleton('skel_{{ p.id }}')" onerror="hideSkeleton('skel_{{ p.id }}')"  >
                     {% else %}
                     <div class="product-img-placeholder">✦</div>
                     {% endif %}
