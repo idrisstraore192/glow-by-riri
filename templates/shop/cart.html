@@ -32,7 +32,7 @@
                     <form method="post" action="{% url 'update_cart_item' item.key %}" class="cart-qty-form">
                         {% csrf_token %}
                         {% if item.quantity == 1 %}
-                        <a href="{% url 'remove_cart_item' item.key %}" class="qty-btn">−</a>
+                        <button type="button" class="qty-btn" onclick="window.location.href='{% url 'remove_cart_item' item.key %}'">−</button>
                         {% else %}
                         <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}" class="qty-btn">−</button>
                         {% endif %}
