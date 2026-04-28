@@ -561,10 +561,11 @@ window.addEventListener('resize', function() { pdGoto(pdIndex); });
         .then(function(r) { return r.json(); })
         .then(function(data) {
             showCartToast(data.message, !data.ok);
-            if (data.ok) {
-                var badge = document.querySelector('.cart-count');
-                if (badge) {
-                    badge.textContent = data.cart_count;
+            var badge = document.querySelector('.cart-count');
+            if (badge) {
+                badge.textContent = data.cart_count;
+                badge.style.display = data.cart_count > 0 ? '' : 'none';
+                if (data.ok) {
                     badge.classList.add('pop');
                     setTimeout(function() { badge.classList.remove('pop'); }, 400);
                 }
