@@ -116,6 +116,9 @@ def add_to_cart(request, product_id):
     if lace_type and lace_taille and lace_longueur:
         try:
             lv = LaceVariant.objects.get(product=product, type_lace=lace_type, taille_lace=lace_taille, longueur=lace_longueur)
+            if lv.stock is not None and lv.stock <= 0:
+                messages.error(request, 'Cette variante est en rupture de stock.')
+                return redirect(request.META.get('HTTP_REFERER', 'products'))
             cart.add(product, lace_variant=lv, with_installation=with_installation)
             type_display = dict(LaceVariant.TYPE_CHOICES).get(lace_type, lace_type)
             messages.success(request, f'{product.name} — {type_display} · {lace_taille} · {lace_longueur} ajouté au panier ✦')
@@ -165,7 +168,26 @@ def update_cart_item(request, item_key):
 
 def cart_view(request):
     cart = Cart(request)
-    return render(request, "shop/cart.html", {"cart": cart})
+    promo_code = request.session.get('promo_code')
+    promo_discount = 0
+    promo_label = None
+    if promo_code:
+        try:
+            promo = PromoCode.objects.get(code=promo_code)
+            valid, _ = promo.is_valid()
+            if valid:
+                promo_discount = float(promo.discount_percent)
+                promo_label = promo_code
+        except PromoCode.DoesNotExist:
+            del request.session['promo_code']
+    total = cart.get_total()
+    total_after_promo = round(total * (1 - promo_discount / 100), 2) if promo_discount else total
+    return render(request, "shop/cart.html", {
+        "cart": cart,
+        "promo_discount": promo_discount,
+        "promo_label": promo_label,
+        "total_after_promo": total_after_promo,
+    })
 
 
 def checkout(request):
@@ -185,12 +207,23 @@ def checkout(request):
         except Product.DoesNotExist:
             continue
         real_price = db_product.final_price
-        # If item has a variant, use variant price if available
         item_key = item.get('key', '')
-        if '_' in item_key:
+        parts = item_key.split('_')
+        if len(parts) >= 2 and parts[1] == 'lv':
+            # LaceVariant key: {product_id}_lv_{type}_{taille}_{longueur}
             try:
-                variant_id = int(item_key.split('_')[1])
-                variant = ProductVariant.objects.get(pk=variant_id)
+                lv_type, lv_taille, lv_longueur = parts[2], parts[3], '_'.join(parts[4:])
+                lv = LaceVariant.objects.get(product=db_product, type_lace=lv_type, taille_lace=lv_taille, longueur=lv_longueur)
+                base = float(lv.price)
+                if db_product.discount_percent and db_product.discount_percent > 0:
+                    base = round(base * (1 - float(db_product.discount_percent) / 100), 2)
+                real_price = base
+            except (IndexError, LaceVariant.DoesNotExist):
+                pass
+        elif len(parts) >= 2:
+            # ProductVariant key: {product_id}_{variant_id}
+            try:
+                variant = ProductVariant.objects.get(pk=int(parts[1]))
                 if variant.price:
                     base = float(variant.price)
                     if db_product.discount_percent and db_product.discount_percent > 0:
@@ -301,7 +334,7 @@ def payment_success(request):
                 OrderItem.objects.create(
                     order=order,
                     product=item['product'],
-                    product_name=item['product'].name,
+                    product_name=item.get('product_name') or (item['product'].name if item['product'] else 'Produit supprimé'),
                     price=item['price'],
                     quantity=item['quantity'],
                 )
@@ -331,7 +364,7 @@ def payment_success(request):
             if promo_code:
                 try:
                     PromoCode.objects.filter(code=promo_code).update(
-                        uses_count=models.F('uses_count') + 1
+                        uses_count=django_models.F('uses_count') + 1
                     )
                     del request.session['promo_code']
                 except Exception:
