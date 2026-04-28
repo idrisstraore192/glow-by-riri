@@ -23,7 +23,7 @@
                     {% endwith %}
                 </div>
                 <div>
-                    <p class="review-item-name">{{ item.product.name }}{% if item.label %} — {{ item.label }}{% endif %}</p>
+                    <p class="review-item-name">{{ item.product.name }}{% if item.label %} — {{ item.label }}{% endif %}{% if item.installation %} · Pose incluse{% endif %}</p>
                     <p class="review-item-label">Quantité : {{ item.quantity }}</p>
                 </div>
                 <span class="review-item-price">{{ item.total }} $ CAD</span>
@@ -37,6 +37,12 @@
                 <span>Sous-total</span>
                 <span>{{ cart.get_total }} $ CAD</span>
             </div>
+            {% if promo_discount %}
+            <div class="summary-row">
+                <span style="color:#27ae60;">Code "{{ promo_label }}" (−{{ promo_discount|floatformat:0 }}%)</span>
+                <span style="color:#27ae60;">−{{ cart.get_total }} → {{ total_after_promo }} $</span>
+            </div>
+            {% endif %}
             <div class="summary-row">
                 <span>Livraison</span>
                 <span style="color:#27ae60;">Gratuite</span>
@@ -47,7 +53,7 @@
             </div>
             <div class="summary-total">
                 <span>Total</span>
-                <span>{{ cart.get_total }} $ CAD</span>
+                <span>{{ total_after_promo }} $ CAD</span>
             </div>
             <a href="{% url 'checkout' %}" class="btn btn-black" style="width:100%;text-align:center;margin-top:1.5rem;display:block;">
                 Confirmer et payer
