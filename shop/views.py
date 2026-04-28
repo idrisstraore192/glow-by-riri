@@ -113,7 +113,13 @@ def add_to_cart(request, product_id):
     lace_type = request.POST.get('lace_type', '').strip()
     lace_taille = request.POST.get('lace_taille', '').strip()
     lace_longueur = request.POST.get('lace_longueur', '').strip()
-    if lace_type and lace_taille and lace_longueur:
+    has_lace_variants = product.lace_variants.exists()
+
+    if has_lace_variants:
+        # Produit lace : sélection obligatoire
+        if not (lace_type and lace_taille and lace_longueur):
+            messages.error(request, 'Veuillez sélectionner le type, la taille et la longueur avant d\'ajouter au panier.')
+            return redirect(request.META.get('HTTP_REFERER', 'products'))
         try:
             lv = LaceVariant.objects.get(product=product, type_lace=lace_type, taille_lace=lace_taille, longueur=lace_longueur)
             if lv.stock is not None and lv.stock <= 0:
@@ -128,7 +134,14 @@ def add_to_cart(request, product_id):
 
     # Système ProductVariant (longueur, couleur, etc.)
     variant_id = request.POST.get('variant_id') or request.GET.get('variant_id')
+    has_variants = product.variants.exists()
+    if has_variants and not variant_id:
+        messages.error(request, 'Veuillez sélectionner une option avant d\'ajouter au panier.')
+        return redirect(request.META.get('HTTP_REFERER', 'products'))
     variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
+    if variant and variant.stock is not None and variant.stock <= 0:
+        messages.error(request, 'Cette option est en rupture de stock.')
+        return redirect(request.META.get('HTTP_REFERER', 'products'))
     cart.add(product, variant=variant, with_installation=with_installation)
     label = f' — {variant.label}' if variant else ''
     promo = ' (-5% pose incluse)' if with_installation else ''
