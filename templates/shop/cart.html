@@ -34,10 +34,10 @@
                         {% if item.quantity == 1 %}
                         <button type="button" class="qty-btn" onclick="window.location.href='{% url 'remove_cart_item' item.key %}'">−</button>
                         {% else %}
-                        <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}" class="qty-btn">−</button>
+                        <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}" class="qty-btn" data-no-loading>−</button>
                         {% endif %}
                         <span class="qty-val">{{ item.quantity }}</span>
-                        <button type="submit" name="quantity" value="{{ item.quantity|add:'1' }}" class="qty-btn">+</button>
+                        <button type="submit" name="quantity" value="{{ item.quantity|add:'1' }}" class="qty-btn" data-no-loading>+</button>
                     </form>
                 </div>
                 <div class="cart-item-total">
