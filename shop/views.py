@@ -551,7 +551,26 @@ def checkout_review(request):
     cart = Cart(request)
     if len(cart) == 0:
         return redirect('products')
-    return render(request, "shop/checkout_review.html", {"cart": cart})
+    promo_code = request.session.get('promo_code')
+    promo_discount = 0
+    promo_label = None
+    if promo_code:
+        try:
+            promo = PromoCode.objects.get(code=promo_code)
+            valid, _ = promo.is_valid()
+            if valid:
+                promo_discount = float(promo.discount_percent)
+                promo_label = promo_code
+        except PromoCode.DoesNotExist:
+            pass
+    total = cart.get_total()
+    total_after_promo = round(total * (1 - promo_discount / 100), 2) if promo_discount else total
+    return render(request, "shop/checkout_review.html", {
+        "cart": cart,
+        "promo_discount": promo_discount,
+        "promo_label": promo_label,
+        "total_after_promo": total_after_promo,
+    })
 
 
 # ── Feature 4: Stripe Webhook ─────────────────────────────────────────────────
