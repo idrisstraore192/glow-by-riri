@@ -39,7 +39,7 @@
                 <div class="cart-item-total">
                     <span>{{ item.total }} $ CAD</span>
                     <a href="{% url 'remove_cart_item' item.key %}" class="cart-remove"
-                       onclick="return confirmRemove(event, this)" aria-label="Retirer {{ item.product.name }} du panier">Retirer</a>
+                       aria-label="Retirer {{ item.product.name }} du panier">Retirer</a>
                 </div>
             </div>
             {% endfor %}
@@ -91,14 +91,6 @@
 </div>
 
 <script>
-function confirmRemove(e, link) {
-    e.preventDefault();
-    if (confirm('Retirer cet article de votre panier ?')) {
-        window.location.href = link.href;
-    }
-    return false;
-}
-
 function applyPromo() {
     const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
     const msg = document.getElementById('promoMsg');
