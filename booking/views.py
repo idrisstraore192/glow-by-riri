@@ -105,6 +105,10 @@ def booking_page(request):
         if form.is_valid():
             appt = form.save(commit=False)
             slot = form.cleaned_data['slot']
+            slot.refresh_from_db()
+            if slot.is_booked:
+                messages.error(request, 'Ce créneau vient d\'être réservé. Veuillez en choisir un autre.')
+                return redirect('booking')
             appt.date = slot.date
             appt.time = slot.time
             appt.deposit_paid = False

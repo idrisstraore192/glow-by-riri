@@ -68,9 +68,12 @@ class Cart:
         product_ids = [item['product_id'] for item in self.cart.values()]
         products = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
         for key, item in self.cart.items():
+            product = products.get(item['product_id'])
+            if product is None:
+                continue
             item = item.copy()
             item['key'] = key
-            item['product'] = products.get(item['product_id'])
+            item['product'] = product
             item['total'] = float(item['price']) * item['quantity']
             yield item
 

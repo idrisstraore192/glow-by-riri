@@ -68,15 +68,24 @@
             <div style="margin:1rem 0;">
                 <div style="display:flex;gap:0.5rem;">
                     <input type="text" id="promoCodeInput" placeholder="Code promo"
+                           value="{% if promo_label %}{{ promo_label }}{% endif %}"
                            style="flex:1;padding:0.6rem 0.8rem;border:1px solid #ddd;border-radius:4px;font-size:14px;">
-                    <button onclick="applyPromo()" class="btn" style="padding:0.6rem 1rem;font-size:13px;">Appliquer</button>
+                    <button onclick="applyPromo()" class="btn" style="padding:0.6rem 1rem;font-size:13px;" data-no-loading>Appliquer</button>
                 </div>
-                <p id="promoMsg" style="font-size:13px;margin:6px 0 0;"></p>
+                <p id="promoMsg" style="font-size:13px;margin:6px 0 0;color:#27ae60;">
+                    {% if promo_label %}Code "{{ promo_label }}" appliqué — {{ promo_discount|floatformat:0 }}% de réduction !{% endif %}
+                </p>
             </div>
 
+            {% if promo_discount %}
+            <div class="summary-row">
+                <span>Réduction ({{ promo_discount|floatformat:0 }}%)</span>
+                <span style="color:#27ae60;">- {{ cart.get_total|floatformat:2 }} → {{ total_after_promo }} $</span>
+            </div>
+            {% endif %}
             <div class="summary-total">
                 <span>Total</span>
-                <span>{{ cart.get_total }} $ CAD</span>
+                <span>{{ total_after_promo }} $ CAD</span>
             </div>
             <a href="{% url 'checkout_review' %}" class="btn" style="width:100%;text-align:center;margin-top:1.5rem;display:block;">
                 Vérifier ma commande
