@@ -18,6 +18,8 @@ class Cart:
             key = f"{product.id}_{variant.id}" if variant else str(product.id)
             base_price = float(variant.price) if (variant and variant.price) else float(product.price)
             label = variant.label if variant else None
+        if with_installation:
+            key += '_pose'
         if product.discount_percent and product.discount_percent > 0:
             base_price = round(base_price * (1 - float(product.discount_percent) / 100), 2)
         if with_installation:

@@ -102,51 +102,52 @@ def update_cart(request, product_id):
 
 
 def add_to_cart(request, product_id):
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    def respond(ok, msg):
+        if is_ajax:
+            return JsonResponse({'ok': ok, 'message': msg, 'cart_count': len(Cart(request))})
+        if ok:
+            messages.success(request, msg)
+        else:
+            messages.error(request, msg)
+        return redirect(request.META.get('HTTP_REFERER', 'products'))
+
     product = get_object_or_404(Product, id=product_id)
     if product.stock is not None and product.stock <= 0:
-        messages.error(request, f'{product.name} est en rupture de stock.')
-        return redirect(request.META.get('HTTP_REFERER', 'products'))
+        return respond(False, f'{product.name} est en rupture de stock.')
+
     cart = Cart(request)
     with_installation = request.POST.get('with_installation') == '1'
-
-    # Système LaceVariant (perruques lace)
     lace_type = request.POST.get('lace_type', '').strip()
     lace_taille = request.POST.get('lace_taille', '').strip()
     lace_longueur = request.POST.get('lace_longueur', '').strip()
     has_lace_variants = product.lace_variants.exists()
 
     if has_lace_variants:
-        # Produit lace : sélection obligatoire
         if not (lace_type and lace_taille and lace_longueur):
-            messages.error(request, 'Veuillez sélectionner le type, la taille et la longueur avant d\'ajouter au panier.')
-            return redirect(request.META.get('HTTP_REFERER', 'products'))
+            return respond(False, 'Veuillez sélectionner le type, la taille et la longueur.')
         try:
             lv = LaceVariant.objects.get(product=product, type_lace=lace_type, taille_lace=lace_taille, longueur=lace_longueur)
             if lv.stock is not None and lv.stock <= 0:
-                messages.error(request, 'Cette variante est en rupture de stock.')
-                return redirect(request.META.get('HTTP_REFERER', 'products'))
+                return respond(False, 'Cette variante est en rupture de stock.')
             cart.add(product, lace_variant=lv, with_installation=with_installation)
             type_display = dict(LaceVariant.TYPE_CHOICES).get(lace_type, lace_type)
-            messages.success(request, f'{product.name} — {type_display} · {lace_taille} · {lace_longueur} ajouté au panier ✦')
+            return respond(True, f'{product.name} — {type_display} · {lace_taille} · {lace_longueur} ajouté au panier ✦')
         except LaceVariant.DoesNotExist:
-            messages.error(request, 'Combinaison introuvable. Veuillez sélectionner une variante valide.')
-        return redirect(request.META.get('HTTP_REFERER', 'products'))
+            return respond(False, 'Combinaison introuvable. Veuillez sélectionner une variante valide.')
 
-    # Système ProductVariant (longueur, couleur, etc.)
     variant_id = request.POST.get('variant_id') or request.GET.get('variant_id')
     has_variants = product.variants.exists()
     if has_variants and not variant_id:
-        messages.error(request, 'Veuillez sélectionner une option avant d\'ajouter au panier.')
-        return redirect(request.META.get('HTTP_REFERER', 'products'))
+        return respond(False, 'Veuillez sélectionner une option avant d\'ajouter au panier.')
     variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
     if variant and variant.stock is not None and variant.stock <= 0:
-        messages.error(request, 'Cette option est en rupture de stock.')
-        return redirect(request.META.get('HTTP_REFERER', 'products'))
+        return respond(False, 'Cette option est en rupture de stock.')
     cart.add(product, variant=variant, with_installation=with_installation)
     label = f' — {variant.label}' if variant else ''
-    promo = ' (-5% pose incluse)' if with_installation else ''
-    messages.success(request, f'{product.name}{label}{promo} ajouté au panier ✦')
-    return redirect(request.META.get('HTTP_REFERER', 'products'))
+    pose = ' · Pose incluse (-5%)' if with_installation else ''
+    return respond(True, f'{product.name}{label}{pose} ajouté au panier ✦')
 
 
 def remove_from_cart(request, product_id):
@@ -222,10 +223,12 @@ def checkout(request):
         real_price = db_product.final_price
         item_key = item.get('key', '')
         parts = item_key.split('_')
-        if len(parts) >= 2 and parts[1] == 'lv':
-            # LaceVariant key: {product_id}_lv_{type}_{taille}_{longueur}
+        with_pose = parts[-1] == 'pose'
+        key_parts = parts[:-1] if with_pose else parts
+        if len(key_parts) >= 2 and key_parts[1] == 'lv':
+            # LaceVariant key: {product_id}_lv_{type}_{taille}_{longueur}[_pose]
             try:
-                lv_type, lv_taille, lv_longueur = parts[2], parts[3], '_'.join(parts[4:])
+                lv_type, lv_taille, lv_longueur = key_parts[2], key_parts[3], '_'.join(key_parts[4:])
                 lv = LaceVariant.objects.get(product=db_product, type_lace=lv_type, taille_lace=lv_taille, longueur=lv_longueur)
                 base = float(lv.price)
                 if db_product.discount_percent and db_product.discount_percent > 0:
@@ -233,10 +236,10 @@ def checkout(request):
                 real_price = base
             except (IndexError, LaceVariant.DoesNotExist):
                 pass
-        elif len(parts) >= 2:
-            # ProductVariant key: {product_id}_{variant_id}
+        elif len(key_parts) >= 2:
+            # ProductVariant key: {product_id}_{variant_id}[_pose]
             try:
-                variant = ProductVariant.objects.get(pk=int(parts[1]))
+                variant = ProductVariant.objects.get(pk=int(key_parts[1]))
                 if variant.price:
                     base = float(variant.price)
                     if db_product.discount_percent and db_product.discount_percent > 0:
@@ -244,6 +247,8 @@ def checkout(request):
                     real_price = base
             except (ValueError, ProductVariant.DoesNotExist):
                 pass
+        if with_pose:
+            real_price = round(real_price * 0.95, 2)
         line_items.append({
             'price_data': {
                 'currency': 'cad',
