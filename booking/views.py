@@ -155,7 +155,7 @@ def booking_page(request):
                 appt.delete()
                 return render(request, 'booking/booking.html', {
                     'form': form,
-                    'services': Service.objects.all().order_by('price'),
+                    'services': Service.objects.all().order_by('order', 'price'),
                     'reviews': Review.objects.filter(approved=True)[:6],
                     'review_form': ReviewForm(),
                     'categories': Service.CATEGORY_CHOICES,
@@ -286,9 +286,9 @@ def service_request(request):
     initial_service_id = None
     if service_id:
         try:
-            svc = Service.objects.get(id=service_id, sans_creneau=True)
+            svc = Service.objects.get(id=int(service_id), sans_creneau=True)
             initial_service_id = svc.id
-        except Service.DoesNotExist:
+        except (Service.DoesNotExist, ValueError, TypeError):
             pass
 
     if request.method == 'POST':
@@ -310,7 +310,7 @@ def service_request(request):
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[settings.ADMIN_EMAIL],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
             except Exception as e:
                 logger.error(f"ServiceRequest email error: {e}")
