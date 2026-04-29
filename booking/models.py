@@ -13,11 +13,13 @@ class Service(models.Model):
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Rabais (%)", help_text="Ex: 20 pour -20%. Laisser 0 si aucun rabais.")
     deposit_amount = models.DecimalField(max_digits=8, decimal_places=2, default=20.00, verbose_name="Acompte ($)", help_text="Montant de l'acompte requis pour ce service.")
     nattes_requises = models.BooleanField(default=False, verbose_name="Nattes requises", help_text="Cochez si ce service nécessite des nattes avant la pose. La cliente aura l'option d'indiquer si elle les a déjà (prix normal) ou non (+10 $ CAD).")
+    sans_creneau = models.BooleanField(default=False, verbose_name="Service sans créneau", help_text="Cochez pour les services de type dépôt/retrait (customisation, coloration…). Les clientes feront une demande simple sans choisir de créneau.")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage", help_text="0 = en premier. Mettez 99 pour afficher ce service en dernier.")
 
     class Meta:
         verbose_name = "Service"
         verbose_name_plural = "Services"
-        ordering = ['price']
+        ordering = ['order', 'price']
 
     @property
     def final_price(self):
@@ -89,3 +91,20 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.customer_name} — {self.service.name} le {self.date}"
+
+
+class ServiceRequest(models.Model):
+    customer_name = models.CharField(max_length=200, verbose_name="Nom")
+    customer_email = models.EmailField(verbose_name="Email")
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name="Service")
+    message = models.TextField(blank=True, verbose_name="Message (optionnel)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    contacted = models.BooleanField(default=False, verbose_name="Cliente contactée")
+
+    class Meta:
+        verbose_name = "Demande de service"
+        verbose_name_plural = "Demandes de services"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.customer_name} — {self.service.name}"

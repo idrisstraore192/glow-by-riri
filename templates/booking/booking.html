@@ -138,7 +138,11 @@
             </div>
             {% endif %}
             {% endwith %}
+            {% if service.sans_creneau %}
+            <a href="{% url 'service_request' %}?service={{ service.id }}" class="btn btn-black service-expand-btn">Faire une demande</a>
+            {% else %}
             <a href="#reserver" onclick="preselectService('{{ service.id }}')" class="btn btn-black service-expand-btn">Réserver</a>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
