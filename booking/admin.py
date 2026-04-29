@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.shortcuts import render, redirect
 from django.urls import path
 from django.utils.html import format_html
-from .models import Service, ServiceImage, Appointment, AvailabilitySlot
+from .models import Service, ServiceImage, Appointment, AvailabilitySlot, ServiceRequest
 
 
 class ServiceImageInline(admin.TabularInline):
@@ -17,9 +17,10 @@ class ServiceImageInline(admin.TabularInline):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price', 'deposit_amount', 'display_discount', 'duration']
-    list_filter = ['category']
-    fields = ['name', 'category', 'price', 'deposit_amount', 'discount_percent', 'duration', 'description', 'nattes_requises']
+    list_display = ['name', 'category', 'price', 'deposit_amount', 'display_discount', 'duration', 'sans_creneau', 'order']
+    list_filter = ['category', 'sans_creneau']
+    list_editable = ['order']
+    fields = ['name', 'category', 'price', 'deposit_amount', 'discount_percent', 'duration', 'description', 'nattes_requises', 'sans_creneau', 'order']
     inlines = [ServiceImageInline]
 
     def display_discount(self, obj):
@@ -30,6 +31,15 @@ class ServiceAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('https://upload-widget.cloudinary.com/latest/global/all.js', 'js/cloudinary_upload.js')
+
+
+@admin.register(ServiceRequest)
+class ServiceRequestAdmin(admin.ModelAdmin):
+    list_display = ['customer_name', 'customer_email', 'service', 'created_at', 'contacted']
+    list_filter = ['service', 'contacted']
+    list_editable = ['contacted']
+    readonly_fields = ['customer_name', 'customer_email', 'service', 'message', 'created_at']
+    ordering = ['-created_at']
 
 
 # ── Feature 1: Bulk slot generation ──────────────────────────────────────────

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import booking_page, booking_success, booking_deposit_success, booking_deposit_cancel, stripe_webhook, available_slots_api
+from .views import booking_page, booking_success, booking_deposit_success, booking_deposit_cancel, stripe_webhook, available_slots_api, service_request, service_request_success
 
 urlpatterns = [
     path("", booking_page, name="booking"),
@@ -8,4 +8,6 @@ urlpatterns = [
     path("deposit/cancel/", booking_deposit_cancel, name="booking_deposit_cancel"),
     path("webhook/stripe/", stripe_webhook, name="stripe_webhook"),
     path("slots/available/", available_slots_api, name="available_slots_api"),
+    path("demande/", service_request, name="service_request"),
+    path("demande/merci/", service_request_success, name="service_request_success"),
 ]

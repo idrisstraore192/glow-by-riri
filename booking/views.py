@@ -2,13 +2,14 @@ import stripe
 import logging
 from datetime import date as today_date
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .forms import AppointmentForm
-from .models import Service, Appointment, AvailabilitySlot
+from .forms import AppointmentForm, ServiceRequestForm
+from .models import Service, Appointment, AvailabilitySlot, ServiceRequest
 from reviews.models import Review
 from reviews.forms import ReviewForm
 
@@ -166,7 +167,7 @@ def booking_page(request):
     category = request.GET.get('category', '')
     price_range = request.GET.get('price', '')
 
-    services = Service.objects.all().order_by('price')
+    services = Service.objects.all().order_by('order', 'price')
     if category:
         services = services.filter(category=category)
     if price_range == '0-50':
@@ -178,9 +179,9 @@ def booking_page(request):
 
     sort = request.GET.get('sort', '')
     if sort == 'asc':
-        services = services.order_by('price')
+        services = services.order_by('order', 'price')
     elif sort == 'desc':
-        services = services.order_by('-price')
+        services = services.order_by('order', '-price')
 
     reviews = Review.objects.filter(approved=True)[:6]
     review_form = ReviewForm()
@@ -278,3 +279,47 @@ def booking_deposit_cancel(request):
 
 def booking_success(request):
     return render(request, 'booking/success.html')
+
+
+def service_request(request):
+    service_id = request.GET.get('service') or request.POST.get('service')
+    initial_service_id = None
+    if service_id:
+        try:
+            svc = Service.objects.get(id=service_id, sans_creneau=True)
+            initial_service_id = svc.id
+        except Service.DoesNotExist:
+            pass
+
+    if request.method == 'POST':
+        form = ServiceRequestForm(request.POST)
+        if form.is_valid():
+            req = form.save()
+            try:
+                send_mail(
+                    subject=f"Nouvelle demande — {req.customer_name} ({req.service.name})",
+                    message=(
+                        f"Nouvelle demande de service\n\n"
+                        f"Cliente  : {req.customer_name}\n"
+                        f"Email    : {req.customer_email}\n"
+                        f"Service  : {req.service.name}\n"
+                        f"Prix     : {req.service.final_price} $ CAD\n"
+                        f"Message  : {req.message or '(aucun message)'}\n\n"
+                        f"Contacte la cliente pour organiser le dépôt et la récupération.\n\n"
+                        f"Glow by Riri"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[settings.ADMIN_EMAIL],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error(f"ServiceRequest email error: {e}")
+            return redirect('service_request_success')
+    else:
+        form = ServiceRequestForm(initial_service_id=initial_service_id)
+
+    return render(request, 'booking/service_request.html', {'form': form})
+
+
+def service_request_success(request):
+    return render(request, 'booking/service_request_success.html')
