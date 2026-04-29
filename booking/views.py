@@ -33,9 +33,9 @@ def _confirm_appointment(appt, session_id):
     _nattes_line = ''
     if appt.service.nattes_requises:
         if appt.nattes_deja_faites is True:
-            _nattes_line = "Nattes       : Deja faites (pas de supplement)\n"
+            _nattes_line = "Nattes       : Déjà faites (pas de supplément)\n"
         elif appt.nattes_deja_faites is False:
-            _nattes_line = "Nattes       : A faire sur place (+10 $ CAD inclus dans le total)\n"
+            _nattes_line = "Nattes       : À faire sur place (+10 $ CAD inclus dans le total)\n"
     try:
         send_mail(
             subject=f"Nouveau rendez-vous — {appt.customer_name}",
