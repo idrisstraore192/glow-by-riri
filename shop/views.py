@@ -389,8 +389,8 @@ def payment_success(request):
                     pass
             cart.clear()
             _send_order_emails(order, items_list)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"payment_success order creation error: {e}")
     return render(request, "shop/payment_success.html")
 
 
@@ -458,8 +458,13 @@ def _generate_invoice_pdf(order):
 
 
 def _send_order_emails(order, items):
+    def _item_name(item):
+        if item.get('product'):
+            return item['product'].name
+        return item.get('product_name') or 'Article'
+
     lines = '\n'.join(
-        f"  • {item['product'].name}"
+        f"  • {_item_name(item)}"
         + (f" — {item['label']}" if item.get('label') else '')
         + f"  x{item['quantity']}  {float(item['price']):.2f} $"
         for item in items
@@ -628,9 +633,19 @@ def stripe_webhook(request):
                             price=li.amount_total / 100 / (li.quantity or 1),
                             quantity=li.quantity or 1,
                         )
-                    _send_order_emails(order, [])
-                except Exception:
-                    pass
+                    items_for_email = [
+                        {
+                            'product': oi.product,
+                            'product_name': oi.product_name,
+                            'label': None,
+                            'quantity': oi.quantity,
+                            'price': str(oi.price),
+                        }
+                        for oi in order.items.all()
+                    ]
+                    _send_order_emails(order, items_for_email)
+                except Exception as e:
+                    logger.error(f"Webhook order creation error: {e}")
 
         elif event_type == 'deposit':
             appt_id = meta.get('appt_id')
@@ -643,8 +658,8 @@ def stripe_webhook(request):
                     if appt.slot_id:
                         appt.slot.is_booked = True
                         appt.slot.save()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.error(f"Webhook deposit confirmation error: {e}")
 
     return HttpResponse(status=200)
 
