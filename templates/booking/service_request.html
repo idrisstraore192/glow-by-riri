@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Faire une demande — Glow by Riri{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Faire une demande</h1>
+    <p>Remplissez le formulaire et Riri vous contactera pour organiser le dépôt et la récupération</p>
+</div>
+
+<div class="section" style="padding-top:3rem;">
+    <div class="booking-form-box" style="max-width:520px;">
+        <h3>Votre demande</h3>
+        <p style="font-size:0.85rem;color:#888;margin-bottom:1.5rem;">Aucun paiement requis à cette étape. Riri vous contactera par email pour convenir d'un dépôt.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <ul class="field-errors">
+                    {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-black" style="width:100%;margin-top:0.5rem;">Envoyer ma demande</button>
+        </form>
+        <a href="{% url 'booking' %}" style="display:block;text-align:center;margin-top:1rem;font-size:0.85rem;color:#888;">← Retour aux services</a>
+    </div>
+</div>
+
+{% endblock %}
