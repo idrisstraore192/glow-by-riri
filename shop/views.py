@@ -339,6 +339,18 @@ def payment_success(request):
                 if addr:
                     parts = [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
                     shipping_address = ', '.join(p for p in parts if p)
+            # Si le webhook a déjà créé la commande, on envoie juste les emails
+            existing = Order.objects.filter(stripe_session_id=session_id).first()
+            if existing:
+                existing_items = [
+                    {'product': oi.product, 'product_name': oi.product_name,
+                     'label': None, 'quantity': oi.quantity, 'price': str(oi.price)}
+                    for oi in existing.items.all()
+                ]
+                _send_order_emails(existing, existing_items)
+                cart.clear()
+                return render(request, "shop/payment_success.html")
+
             order = Order.objects.create(
                 customer_name=session.customer_details.name or "Cliente",
                 customer_email=session.customer_details.email or "",
@@ -507,18 +519,19 @@ def _send_order_emails(order, items):
             pdf_buffer = _generate_invoice_pdf(order)
             if pdf_buffer:
                 msg.attach(f"facture-{order.id}.pdf", pdf_buffer.read(), 'application/pdf')
-            msg.send(fail_silently=True)
-        except Exception:
+            msg.send(fail_silently=False)
+        except Exception as e:
+            logger.error(f"Client confirmation email error (order #{order.id}): {e}")
             try:
                 send_mail(
                     subject=f"Confirmation de ta commande #{order.id} — Glow by Riri",
                     message=client_msg,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[order.customer_email],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
-            except Exception:
-                pass
+            except Exception as e2:
+                logger.error(f"Client fallback email error (order #{order.id}): {e2}")
 
     livraison_admin = "REMISE EN MAIN PROPRE — à contacter pour convenir d'un moment." if is_pickup else f"Livraison\nAdresse : {order.shipping_address}"
     admin_msg = (
@@ -534,10 +547,10 @@ def _send_order_emails(order, items):
             message=admin_msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[settings.ADMIN_EMAIL],
-            fail_silently=True,
+            fail_silently=False,
         )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error(f"Admin notification email error (order #{order.id}): {e}")
 
 
 def payment_cancel(request):
