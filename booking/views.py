@@ -14,7 +14,7 @@ from reviews.models import Review
 from reviews.forms import ReviewForm
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-SITE_URL = "https://glowbyriri.store"
+SITE_URL = "https://glowbyriri.up.railway.app"
 logger = logging.getLogger(__name__)
 
 

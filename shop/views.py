@@ -12,7 +12,7 @@ from .models import Product, ProductVariant, Order, OrderItem, TutorialVideo, Pr
 from .cart import Cart
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-SITE_URL = "https://glowbyriri.store"
+SITE_URL = "https://glowbyriri.up.railway.app"
 
 
 def product_list(request):
