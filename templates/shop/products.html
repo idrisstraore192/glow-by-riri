@@ -257,6 +257,11 @@ function goToTuto(i) {
     const card = cards[tutoIndex];
     if (card) card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 }
+document.querySelectorAll('.tuto-card video').forEach(function(vid) {
+    vid.addEventListener('loadedmetadata', function() {
+        if (vid.currentTime === 0) vid.currentTime = 0.5;
+    });
+});
 function playTuto(card) {
     const vid = card.querySelector('video');
     const playBtn = card.querySelector('.tuto-play-btn');
