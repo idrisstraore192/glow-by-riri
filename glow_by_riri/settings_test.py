@@ -22,6 +22,7 @@ MIGRATION_MODULES = {
     "contenttypes": None,
     "sessions": None,
     "admin": None,
+    "sites": None,
 }
 
 # Disable password hashing for faster tests
