@@ -20,9 +20,11 @@ INSTALLED_APPS = [
     'booking',
     'reviews',
     'anymail',
+    'django.contrib.sitemaps',
 ]
 
 MIDDLEWARE = [
+    'glow_by_riri.middleware.RemoveWWWMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',

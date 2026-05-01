@@ -10,6 +10,15 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <meta name="theme-color" content="#0f0f0f">
     <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <!-- SEO -->
+    <meta name="description" content="{% block meta_description %}Glow by Riri — Boutique de perruques, bundles, extensions capillaires et soins. Prenez rendez-vous en ligne à Montréal.{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% block title %}Glow by Riri{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Boutique de perruques, bundles, extensions capillaires et soins. Prenez rendez-vous en ligne à Montréal.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://glowbyriri.store{% static 'images/hero.jpg' %}">
+    <meta property="og:url" content="https://glowbyriri.store{{ request.path }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://glowbyriri.store{{ request.path }}">
 </head>
 <body>
 
