@@ -21,7 +21,10 @@ INSTALLED_APPS = [
     'reviews',
     'anymail',
     'django.contrib.sitemaps',
+    'django.contrib.sites',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'glow_by_riri.middleware.RemoveWWWMiddleware',
