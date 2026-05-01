@@ -359,36 +359,26 @@ def payment_success(request):
                 shipping_address=shipping_address,
                 paid=True,
             )
-            items_list = list(cart)
-            for item in items_list:
-                OrderItem.objects.create(
+            # Use Stripe line_items (not session cart) so orders are never lost
+            # regardless of payment method (Klarna, Apple Pay, etc.)
+            line_items_response = stripe.checkout.Session.list_line_items(session_id)
+            items_list = []
+            for li in line_items_response.data:
+                unit_price = li.amount_total / 100 / (li.quantity or 1)
+                oi = OrderItem.objects.create(
                     order=order,
-                    product=item['product'],
-                    product_name=item.get('product_name') or (item['product'].name if item['product'] else 'Produit supprimé'),
-                    price=item['price'],
-                    quantity=item['quantity'],
+                    product=None,
+                    product_name=li.description or 'Article',
+                    price=unit_price,
+                    quantity=li.quantity or 1,
                 )
-                # Feature 13: decrement stock
-                if item['product'] and item['product'].stock is not None:
-                    Product.objects.filter(pk=item['product'].pk, stock__gt=0).update(
-                        stock=django_models.F('stock') - item['quantity']
-                    )
-                    updated = Product.objects.filter(pk=item['product'].pk, stock=0).first()
-                    if updated:
-                        try:
-                            send_mail(
-                                subject=f"Rupture de stock — {updated.name}",
-                                message=(
-                                    f"Le stock du produit suivant vient d'atteindre 0 suite à une commande :\n\n"
-                                    f"Produit : {updated.name}\n\n"
-                                    f"Pense à réapprovisionner ou à désactiver le produit.\n\nGlow by Riri"
-                                ),
-                                from_email=settings.DEFAULT_FROM_EMAIL,
-                                recipient_list=[settings.ADMIN_EMAIL],
-                                fail_silently=True,
-                            )
-                        except Exception:
-                            pass
+                items_list.append({
+                    'product': None,
+                    'product_name': oi.product_name,
+                    'label': None,
+                    'quantity': oi.quantity,
+                    'price': str(oi.price),
+                })
             # Feature 7: increment promo code uses
             promo_code = request.session.get('promo_code')
             if promo_code:
