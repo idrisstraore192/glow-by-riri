@@ -1,4 +1,5 @@
 import json
+import logging
 import stripe
 from django.db import models as django_models
 from django.shortcuts import render, redirect, get_object_or_404
@@ -13,6 +14,7 @@ from .cart import Cart
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 SITE_URL = "https://glowbyriri.store"
+logger = logging.getLogger(__name__)
 
 
 def product_list(request):
@@ -420,7 +422,7 @@ def _generate_invoice_pdf(order):
 
         elements = []
         elements.append(Paragraph("Glow by Riri", title_style))
-        elements.append(Paragraph("glowbyririi@gmail.com — glowbyriri.up.railway.app", normal))
+        elements.append(Paragraph("glowbyririi@gmail.com — glowbyriri.store", normal))
         elements.append(Spacer(1, 0.4*cm))
         elements.append(Paragraph(f"<b>Facture #{order.id}</b>", styles['Heading2']))
         elements.append(Paragraph(f"Date : {order.created_at.strftime('%d/%m/%Y')}", normal))
