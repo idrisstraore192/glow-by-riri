@@ -19,7 +19,7 @@ class ProductSitemap(Sitemap):
     changefreq = 'weekly'
 
     def items(self):
-        return Product.objects.filter(available=True)
+        return Product.objects.filter(disponible=True)
 
     def location(self, obj):
         return reverse('product_detail', args=[obj.id])
