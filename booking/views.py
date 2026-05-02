@@ -51,7 +51,7 @@ def _confirm_appointment(appt, session_id):
                 f"Date        : {appt.date.strftime('%A %d %B %Y')}\n"
                 f"Heure       : {appt.time.strftime('%H h %M')}\n\n"
                 f"Consulte tous tes rendez-vous ici :\n"
-                f"https://glowbyriri.up.railway.app/admin/booking/appointment/\n\n"
+                f"https://glowbyriri.store/admin/booking/appointment/\n\n"
                 f"Glow by Riri"
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
