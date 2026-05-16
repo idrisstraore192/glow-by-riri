@@ -7,3 +7,6 @@ staticfiles/
 .env
 *.env
 .DS_Store
+check_stripe_orders.py
+GUIDE_*.html
+FACTURE_*.html

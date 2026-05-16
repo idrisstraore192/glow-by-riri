@@ -78,7 +78,7 @@ def product_detail(request, product_id):
 
     related_products = Product.objects.filter(
         disponible=True, product_type=product.product_type
-    ).exclude(pk=product.pk).order_by('?')[:4]
+    ).exclude(pk=product.pk).order_by('order', 'pk')[:4]
 
     return render(request, "shop/product_detail.html", {
         "product": product,
@@ -211,7 +211,6 @@ def checkout(request):
     if len(cart) == 0:
         return redirect('products')
 
-    # Feature 10: validate prices server-side from DB
     line_items = []
     for item in cart:
         product = item['product']
@@ -260,7 +259,6 @@ def checkout(request):
             'quantity': item['quantity'],
         })
 
-    # Feature 7: apply promo code discount via Stripe coupon
     discounts = []
     promo_code = request.session.get('promo_code')
     if promo_code:
@@ -323,25 +321,60 @@ def checkout(request):
     return redirect(session.url, code=303)
 
 
+def _create_order_from_session(session_id):
+    """Creates Order + OrderItems from a Stripe session. Returns (order, items_list).
+
+    Uses Stripe line_items (not the session cart) so orders are never lost
+    regardless of payment method (Klarna, Apple Pay, etc.).
+    """
+    full_session = stripe.checkout.Session.retrieve(session_id, expand=['shipping_cost.shipping_rate'])
+    shipping_name = ''
+    if full_session.shipping_cost and full_session.shipping_cost.shipping_rate:
+        shipping_name = full_session.shipping_cost.shipping_rate.display_name or ''
+    is_pickup = 'main propre' in shipping_name.lower()
+    if is_pickup:
+        shipping_address = 'Remise en main propre'
+    else:
+        addr = full_session.shipping_details.address if full_session.shipping_details else None
+        shipping_address = ''
+        if addr:
+            parts = [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
+            shipping_address = ', '.join(p for p in parts if p)
+
+    order = Order.objects.create(
+        customer_name=full_session.customer_details.name or "Cliente",
+        customer_email=full_session.customer_details.email or "",
+        total=full_session.amount_total / 100,
+        stripe_session_id=session_id,
+        shipping_address=shipping_address,
+        paid=True,
+    )
+    line_items_response = stripe.checkout.Session.list_line_items(session_id)
+    items_list = []
+    for li in line_items_response.data:
+        unit_price = li.amount_total / 100 / (li.quantity or 1)
+        oi = OrderItem.objects.create(
+            order=order,
+            product=None,
+            product_name=li.description or 'Article',
+            price=unit_price,
+            quantity=li.quantity or 1,
+        )
+        items_list.append({
+            'product': None,
+            'product_name': oi.product_name,
+            'label': None,
+            'quantity': oi.quantity,
+            'price': str(oi.price),
+        })
+    return order, items_list
+
+
 def payment_success(request):
     session_id = request.GET.get('session_id')
     cart = Cart(request)
     if session_id:
         try:
-            session = stripe.checkout.Session.retrieve(session_id, expand=['shipping_cost.shipping_rate'])
-            shipping_name = ''
-            if session.shipping_cost and session.shipping_cost.shipping_rate:
-                shipping_name = session.shipping_cost.shipping_rate.display_name or ''
-            is_pickup = 'main propre' in shipping_name.lower()
-            if is_pickup:
-                shipping_address = 'Remise en main propre'
-            else:
-                addr = session.shipping_details.address if session.shipping_details else None
-                shipping_address = ''
-                if addr:
-                    parts = [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
-                    shipping_address = ', '.join(p for p in parts if p)
-            # Si le webhook a déjà créé la commande, on envoie juste les emails
             existing = Order.objects.filter(stripe_session_id=session_id).first()
             if existing:
                 existing_items = [
@@ -353,35 +386,7 @@ def payment_success(request):
                 cart.clear()
                 return render(request, "shop/payment_success.html")
 
-            order = Order.objects.create(
-                customer_name=session.customer_details.name or "Cliente",
-                customer_email=session.customer_details.email or "",
-                total=session.amount_total / 100,
-                stripe_session_id=session_id,
-                shipping_address=shipping_address,
-                paid=True,
-            )
-            # Use Stripe line_items (not session cart) so orders are never lost
-            # regardless of payment method (Klarna, Apple Pay, etc.)
-            line_items_response = stripe.checkout.Session.list_line_items(session_id)
-            items_list = []
-            for li in line_items_response.data:
-                unit_price = li.amount_total / 100 / (li.quantity or 1)
-                oi = OrderItem.objects.create(
-                    order=order,
-                    product=None,
-                    product_name=li.description or 'Article',
-                    price=unit_price,
-                    quantity=li.quantity or 1,
-                )
-                items_list.append({
-                    'product': None,
-                    'product_name': oi.product_name,
-                    'label': None,
-                    'quantity': oi.quantity,
-                    'price': str(oi.price),
-                })
-            # Feature 7: increment promo code uses
+            order, items_list = _create_order_from_session(session_id)
             promo_code = request.session.get('promo_code')
             if promo_code:
                 try:
@@ -583,7 +588,6 @@ def checkout_review(request):
     })
 
 
-# ── Feature 4: Stripe Webhook ─────────────────────────────────────────────────
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
@@ -604,51 +608,11 @@ def stripe_webhook(request):
         event_type = meta.get('type', '')
 
         if event_type == 'order':
-            # Only create order if not already created (avoid duplicate with payment_success)
             session_id = session['id']
             if not Order.objects.filter(stripe_session_id=session_id).exists():
                 try:
-                    full_session = stripe.checkout.Session.retrieve(session_id, expand=['shipping_cost.shipping_rate'])
-                    shipping_name = ''
-                    if full_session.shipping_cost and full_session.shipping_cost.shipping_rate:
-                        shipping_name = full_session.shipping_cost.shipping_rate.display_name or ''
-                    is_pickup = 'main propre' in shipping_name.lower()
-                    if is_pickup:
-                        shipping_address = 'Remise en main propre'
-                    else:
-                        addr = full_session.shipping_details.address if full_session.shipping_details else None
-                        shipping_address = ''
-                        if addr:
-                            parts = [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
-                            shipping_address = ', '.join(p for p in parts if p)
-                    order = Order.objects.create(
-                        customer_name=full_session.customer_details.name or "Cliente",
-                        customer_email=full_session.customer_details.email or "",
-                        total=full_session.amount_total / 100,
-                        stripe_session_id=session_id,
-                        shipping_address=shipping_address,
-                        paid=True,
-                    )
-                    line_items_response = stripe.checkout.Session.list_line_items(session_id)
-                    for li in line_items_response.data:
-                        OrderItem.objects.create(
-                            order=order,
-                            product=None,
-                            product_name=li.description or 'Article',
-                            price=li.amount_total / 100 / (li.quantity or 1),
-                            quantity=li.quantity or 1,
-                        )
-                    items_for_email = [
-                        {
-                            'product': oi.product,
-                            'product_name': oi.product_name,
-                            'label': None,
-                            'quantity': oi.quantity,
-                            'price': str(oi.price),
-                        }
-                        for oi in order.items.all()
-                    ]
-                    _send_order_emails(order, items_for_email)
+                    order, items_list = _create_order_from_session(session_id)
+                    _send_order_emails(order, items_list)
                 except Exception as e:
                     logger.error(f"Webhook order creation error: {e}")
 
@@ -669,7 +633,6 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
-# ── Feature 7: Apply Promo Code (AJAX) ───────────────────────────────────────
 def apply_promo(request):
     if request.method != 'POST':
         return JsonResponse({'valid': False, 'message': 'Méthode non autorisée.'})
@@ -699,7 +662,6 @@ def apply_promo(request):
     })
 
 
-# ── Feature 9: Invoice PDF ────────────────────────────────────────────────────
 def invoice_pdf(request, order_id):
     email = request.GET.get('email', '').strip()
     order = get_object_or_404(Order, id=order_id, paid=True)
@@ -714,7 +676,6 @@ def invoice_pdf(request, order_id):
     return response
 
 
-# ── Feature 11: Mon compte ────────────────────────────────────────────────────
 def mon_compte(request):
     orders = None
     appointments = None
@@ -731,7 +692,6 @@ def mon_compte(request):
     return render(request, 'shop/mon_compte.html', {'orders': orders, 'appointments': appointments, 'email': email})
 
 
-# ── Feature 12: Wishlist ──────────────────────────────────────────────────────
 def wishlist_toggle(request, product_id):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST requis'}, status=405)
@@ -754,7 +714,6 @@ def wishlist_view(request):
     return render(request, 'shop/wishlist.html', {'items': items})
 
 
-# ── Feature 14: product detail by slug ───────────────────────────────────────
 def product_detail_slug(request, slug):
     product = get_object_or_404(Product, slug=slug)
     return product_detail(request, product.id)
