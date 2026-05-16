@@ -1,8 +1,18 @@
 # Glow by Riri
 
+[![Live](https://img.shields.io/badge/🌐_Live-glowbyriri.store-green)](https://glowbyriri.store)
+
 Site e-commerce et système de réservation pour une coiffeuse à Trois-Rivières (Québec, Canada), **déployé en production** à l'adresse [glowbyriri.store](https://glowbyriri.store).
 
 Le projet regroupe une boutique en ligne (perruques, laces, produits capillaires) et un système de prise de rendez-vous avec paiement d'acompte.
+
+---
+
+## Aperçu
+
+![Boutique](screenshots/shop.png)
+![Réservation](screenshots/booking.png)
+![Dashboard admin](screenshots/dashboard.png)
 
 ---
 
